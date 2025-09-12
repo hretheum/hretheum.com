@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: 'Eryk Orłowski — Product Design Leader & Experience Strategist',
@@ -92,6 +93,8 @@ export default function RootLayout({
           />
         </noscript>
         {children}
+        {/* Vercel Analytics */}
+        <Analytics />
       </body>
     </html>
   );
