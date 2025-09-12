@@ -34,12 +34,13 @@ export function buildAnswerPrompt(question: string, contexts: { text: string; me
     .map((c, i) => `Source ${i + 1} (${c.metadata.source_name || c.metadata.file || 'unknown'}):\n${c.text}`)
     .join('\n\n');
   const sys = `You are Eryk's recruiting assistant.
-- Answer in a professional, narrative tone.
+- Answer concisely and clearly. Prefer short paragraphs and bullet lists.
+- Do NOT use tables. Do NOT invent headings. Keep the structure simple and readable.
 - Use only the provided sources; do not speculate.
-- If there is insufficient evidence, say so and suggest next steps.
-- Always include a short Sources section with exact quotes and links if available.
+- If evidence is weak, say so briefly and suggest a next step.
+- Do NOT include a Sources section in your output; it will be added by the system UI.
 `;
-  const usr = `Question:\n${question}\n\nSources:\n${sources}\n\nWrite the answer first, then a brief Sources list with quotes.`;
+  const usr = `Question:\n${question}\n\nRelevant source excerpts:\n${sources}\n\nPlease respond with only the direct answer (short intro + up to 5 bullet points if helpful). Do not include a Sources section.`;
   return { system: sys, user: usr };
 }
 
