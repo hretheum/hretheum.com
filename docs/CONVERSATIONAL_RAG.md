@@ -3,11 +3,7 @@
 ## 1. Goal & Scope
 - Purpose: Provide a conversational assistant that answers recruiter-style questions about Eryk's competencies, experience, leadership approach, and case studies using natural language.
 - Scope (MVP):
-  - Ingestion from local Markdown files under `data/rag/`. [Status: Done]
-  - Local vector store (JSON) for embeddings and metadata. [Status: Done]
-  - Retrieval-Augmented Generation (RAG) API route returning answer + citations (quotes + links to portfolio sections). [Status: Done]
-  - Minimal sticky-bottom chat widget in the UI. [Status: Done]
-  - Cheap default model via Vercel AI Gateway with easy runtime switch. [Status: Done]
+  - [cleaned — completed]
 - Out of scope (MVP):
   - PDF parsing, web crawling, advanced reranking, advanced analytics dashboards.
 
@@ -24,27 +20,20 @@
   - Include a data provenance note in the docs and system prompt.
 
 ## 4. Architecture Overview
-- Frontend: Next.js client component for sticky chat (bottom dock), streaming responses, rendering citations. [Status: Partial — chat UI done, responses currently non-streaming]
-- Backend: Next.js Route Handlers. [Status: Done]
-  - `/api/rag/ingest` – parse MD → chunk → embed → write `data/index.json` (vectors + metadata). [Status: Done]
-  - `/api/rag/query` – embed query → KNN search → prompt compose → stream answer with sources. [Status: Partial — returns answer + citations, non-streaming]
-- Vector Store (MVP): JSON file `data/index.json` with fields: `id`, `text`, `embedding`, `metadata`. [Status: Done]
+- Frontend: Next.js client component for sticky chat (bottom dock), streaming responses, rendering citations. [Status: Partial — responses currently non-streaming]
+  - `/api/rag/query` – embed query → KNN search → prompt compose → stream answer with sources. [Status: Partial — non-streaming]
 - Future Store: Vercel Postgres + pgvector. [Status: Pending]
-- AI Gateway:
-  - Embeddings and generation routed via provider aliases. [Status: Done]
-  - Default cheap model alias env: `AI_MODEL_GENERATION=provider:cheap-default`. [Status: Done — using `openai/gpt-oss-120b` as current default]
-  - Default embeddings alias env: `AI_MODEL_EMBEDDINGS=provider:embed-default`. [Status: Done — `openai/text-embedding-3-small`]
 
 ## 5. Chunking & Metadata
-- Chunk size: 500–1000 tokens, overlap 100–150. [Status: Partial — chunking implemented, exact tokenization configurable]
+- Chunk size: 500–1000 tokens, overlap 100–150. [Status: Partial — exact tokenization configurable]
 - Strategy: break on headings/paragraphs; keep semantic boundaries. [Status: Partial]
 - Metadata fields: [Status: Partial]
   - `source_type` (competency | leadership | case_study | bio | faq)
-  - `source_name` (e.g., "ING Onboarding DS") [present]
+  - `source_name` (e.g., "ING Onboarding DS")
   - `role` (e.g., Head of Design)
   - `tech` (e.g., Figma, React, Tailwind, pgvector)
   - `date` (ISO, optional)
-  - `link` (deep link to portfolio section) [present]
+  - `link` (deep link to portfolio section)
 
 ## 6. Retrieval & Reranking
 - Retrieval: cosine similarity over normalized embeddings; take top-k (k=5). [Status: Done]
@@ -54,7 +43,7 @@
 ## 7. Prompting & Answer Format
 - System Prompt (summary): [Status: Partial — concise narrative prompt, citations handled by UI]
   - "You are Eryk's recruiting assistant. Answer concisely with a professional, narrative tone. Use only provided sources. If insufficient evidence, say so and suggest next steps or a link to contact. Always include Citations with exact quotes and links."
-- Output contract (JSON streamed or structured blocks): [Status: Done]
+- Output contract (JSON streamed or structured blocks):
   - `answer`: markdown string
   - `citations`: list of `{quote, source_name, link}`
 - Safety behavior: abstain if low similarity or conflicting info; avoid speculation. [Status: Partial — abstain/low-confidence path implemented; moderation pending]
@@ -74,13 +63,8 @@
 - Cost budget per 100 queries.
 
 ## 10. Definition of Done (DoD)
-- Docs and environment variables prepared (`AI_MODEL_GENERATION`, `AI_MODEL_EMBEDDINGS`). [Status: Done]
-- Ingestion route can index at least 3 MD files into `data/index.json`. [Status: Done — supports multiple MD files]
 - Query route returns streamed answer with at least 2 citations. [Status: Partial — non-streaming, returns citations]
-- Sticky chat UI integrated and functional on desktop and mobile. [Status: Done]
 - Guardrails (moderation + abstain path) enabled. [Status: Partial — abstain in place; moderation pending]
-- Basic analytics via Vercel AI Gateway metrics. [Status: Done]
-- `.vercelignore` excludes `docs/` from deploy uploads. [Status: Done]
 
 ## 11. Metrics of Success
 - Content satisfaction (thumbs up/down rate ≥ 80% positive).
@@ -103,9 +87,6 @@
 - Caching: cache system prompts and stable tool instructions in Gateway. [Status: Pending]
 
 ## 14. Branching & Deployment
-- Work on a separate branch: `feature/rag-assistant`. [Status: Done]
-- Commit discipline: small, coherent commits; PR template with checklist. [Status: Done]
-- The `docs/` folder is versioned in GitHub but excluded from Vercel deployment via `.vercelignore`. [Status: Done]
 - Ensure the GitHub repository is private. [Status: Pending]
 
 ## 15. Risks & Mitigations
@@ -119,3 +100,41 @@
 - Vercel Postgres + pgvector migration. [Status: Pending]
 - Reranking model / LLM-as-a-reranker. [Status: Pending]
 - Analytics dashboard and feedback loop for content improvement. [Status: Pending]
+
+## 17. Migration Plan to pgvector (Vercel Postgres)
+
+1) Database setup
+- Create Vercel Postgres database and enable pgvector extension.
+- Define schema for documents and embeddings:
+  - `documents(id uuid pk, source_name text, source_type text, role text, tech text[], date timestamptz, link text)`
+  - `chunks(id uuid pk, document_id uuid fk -> documents(id), text text, embedding vector(1536), created_at timestamptz default now())`
+- Add indexes:
+  - `CREATE INDEX ON chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);`
+  - `CREATE INDEX ON documents (source_type, date);`
+
+2) Ingestion pipeline changes
+- Parse MD → chunk as today, but write documents/chunks to Postgres.
+- Generate embeddings and store to `chunks.embedding`.
+- Keep a one-time backfill job to migrate existing `data/index.json`.
+
+3) Retrieval changes
+- Replace in-memory cosine with SQL KNN:
+  - `SELECT c.*, d.source_name, d.source_type, d.link FROM chunks c JOIN documents d ON d.id=c.document_id ORDER BY c.embedding <=> $1 LIMIT $k;`
+- Maintain dynamic thresholding and intent-based boosts in application layer.
+
+4) API updates
+- `/api/rag/ingest`: write to Postgres inside transaction; batch embeddings.
+- `/api/rag/query`: query pgvector; map rows to contexts and citations.
+
+5) Observability & ops
+- Add basic metrics for query latency and hit ratio.
+- Daily consistency check comparing JSON store vs. Postgres (during transition).
+
+6) Rollout plan
+- Phase 1: dual-write (JSON + Postgres), read from JSON.
+- Phase 2: read from Postgres behind an env flag.
+- Phase 3: remove JSON, keep Postgres as sole source of truth.
+
+7) Env & secrets
+- `PGHOST`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `PGPORT`, plus connection string if preferred.
+- Feature flag: `RAG_STORE=pgvector|json`.
