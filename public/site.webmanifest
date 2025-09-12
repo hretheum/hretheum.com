@@ -1,0 +1,21 @@
+{
+  "name": "Eryk Orłowski Portfolio",
+  "short_name": "Eryk Orłowski",
+  "description": "Product Design Leader & Experience Strategist",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/icons/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
