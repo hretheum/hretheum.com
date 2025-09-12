@@ -1,0 +1,3 @@
+# Exclude project documentation from deployment
+# (still present in the repository and visible on GitHub)
+docs/
