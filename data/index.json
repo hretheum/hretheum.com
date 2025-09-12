@@ -1,3 +1,377 @@
 {
-  "vectors": []
+  "vectors": [
+    {
+      "id": "profile-summary-1",
+      "text": "Eryk Orłowski — Design leader and builder. Pioneered usability in Poland (2003). Built large-scale design systems at ING. Now building AI-powered systems (agentic RAG pipelines, MCP servers, hireverse.app). Philosophy: What I do today, the industry does in 5 years.",
+      "metadata": {
+        "source_type": "bio",
+        "source_name": "Profile",
+        "role": "Product Design Leader",
+        "tech": ["Design Systems", "AI", "RAG", "MCP"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-sportradar-1",
+      "text": "Sportradar (2022–2025) — Tribe Product Design Lead. Led product design across 15+ squads in Odds Tribe; partnered with engineering & product leadership; mentored designers to senior/lead; established design as a decision-making partner.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Sportradar",
+        "role": "Tribe Product Design Lead",
+        "tech": ["Leadership", "Org Design", "Culture"],
+        "date": "2022-2025",
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-ing-1",
+      "text": "ING Bank (2017–2022) — UX Principal Expert / Chapter Lead. Built UX chapter for Business Banking from scratch; co-created scalable design system foundations; drove digital transformation of legacy platforms; facilitated design reviews and cross-squad collaboration.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "ING Bank",
+        "role": "UX Principal Expert / Chapter Lead",
+        "tech": ["Design Systems", "Enterprise UX", "Org Scaling"],
+        "date": "2017-2022",
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-deloitte-1",
+      "text": "Deloitte Digital CE (2015–2016) — UX Manager. Led enterprise-scale design projects; balanced client expectations with team delivery.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Deloitte Digital CE",
+        "role": "UX Manager",
+        "tech": ["Enterprise", "Stakeholder Management"],
+        "date": "2015-2016",
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-uselab-1",
+      "text": "UseLab (2011) — UX Director. Managed client projects in usability and UX research.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "UseLab",
+        "role": "UX Director",
+        "tech": ["Usability", "UX Research"],
+        "date": "2011",
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-komitywa-1",
+      "text": "Komitywa.com (2007–2009) — Managing Director & Co‑Founder. Ran one of Poland’s earliest UX agencies; built and led a team of usability experts.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Komitywa.com",
+        "role": "Managing Director & Co‑Founder",
+        "tech": ["Agency Leadership", "Team Building"],
+        "date": "2007-2009",
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-grey-1",
+      "text": "Grey/Argonauts (2003–2006) — Project Manager / UX Lead. Established Poland’s first professional usability lab; conducted pioneering usability tests for Volkswagen Bank; evangelized evidence-based design.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Grey/Argonauts",
+        "role": "Project Manager / UX Lead",
+        "tech": ["Usability Lab", "User Testing"],
+        "date": "2003-2006",
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "career-earlier-1",
+      "text": "Earlier roles — Wprost Online (2000–2003), Radio Zet (Jazz Reviewer), Forum Publishing (Journalist).",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Earlier Roles",
+        "role": "Various",
+        "tech": ["Publishing", "Editorial"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "cs-ing-permissions-1",
+      "text": "ING Business — SME/MC Permission Management. Challenge: complex access & authorization causing support load. Approach: personas, journey mapping, IDIs, Design Studio, prototype testing. Solution: contextual workflows and natural language questions replacing legalese.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "ING Business — Permissions",
+        "role": "Lead/Principal",
+        "tech": ["Personas", "Journey Mapping", "Prototyping"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "cs-ing-permissions-2",
+      "text": "Outcome: improved adoption, reduced support costs, higher task success rates, stronger stakeholder alignment.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "ING Business — Permissions",
+        "role": "Lead/Principal",
+        "tech": ["Adoption", "Support Cost", "Task Success"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "cs-banqup-1",
+      "text": "BanqUP / Solarisbank — Purely Digital Bank. Role: owned leadership activities, guided design direction, ensured actionable outcomes; designed UX for customizable financial services across desktop and mobile.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "BanqUP / Solarisbank",
+        "role": "Design Lead",
+        "tech": ["Customizable UX", "Mobile+Desktop"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "cs-banqup-2",
+      "text": "Challenge: deliver personalization at scale for SMEs. Onboarding personal yet efficient; blend analytics, integrations, and widgets to optimize operations.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "BanqUP / Solarisbank",
+        "role": "Design Lead",
+        "tech": ["Personalization", "Onboarding", "Analytics"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "cs-banqup-3",
+      "text": "Approach: human‑centered design — research, co‑creation, rapid prototyping, iterative validation; tagging & organizational tools; smart analytics for transactions; dashboards and widgets for connected apps.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "BanqUP / Solarisbank",
+        "role": "Design Lead",
+        "tech": ["HCD", "Prototyping", "Dashboards"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "cs-banqup-4",
+      "text": "Outcome: improved adoption, reduced support, higher task success; tailored SME experience balancing simplicity and flexibility.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "BanqUP / Solarisbank",
+        "role": "Design Lead",
+        "tech": ["Adoption", "Task Success"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "cs-bph-1",
+      "text": "Bank BPH — Digital Conversion Transformation. Redesigned end‑to‑end digital conversion paths; workflow design, wireframing, conversion optimization; improved onboarding and transactions in regulated environment.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "Bank BPH",
+        "role": "UX Lead",
+        "tech": ["Conversion", "Wireframing", "Workflow"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "cs-warta-1",
+      "text": "Warta.pl — InsurTech Service Design Overhaul. Discovery interviews, workshops, journey mapping; streamlined car insurance quote funnel via progressive disclosure and smart defaults; iterative usability testing.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "Warta.pl",
+        "role": "Service/UX Lead",
+        "tech": ["Service Design", "Journey Mapping", "Usability"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "cs-pko-1",
+      "text": "PKO Bank Polski — iPKO Biznes Corporate Redesign. 18‑month transformation; 3‑month discovery with interviews and workshops; defined design systems and enterprise workflows; cross‑functional alignment.",
+      "metadata": {
+        "source_type": "case_study",
+        "source_name": "PKO Bank Polski — iPKO Biznes",
+        "role": "UX Strategy / Service Design",
+        "tech": ["Discovery", "Design Systems", "Enterprise UX"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "sector-telecom-1",
+      "text": "Telecom projects — T‑Mobile (e‑shop conversion paths), Plus.pl (full redesign 2008), TP SA (multiple product flows). Focus on usability at scale and conversion.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Telecom Projects",
+        "role": "UX Lead/Consultant",
+        "tech": ["Conversion", "Usability", "E‑commerce"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "sector-media-1",
+      "text": "Media projects — Cyfrowy Polsat (portals), Polska Times (content aggregation for 16 local titles), TVP (large‑scale IA, accessibility, portals).",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "Media Projects",
+        "role": "UX Lead/Consultant",
+        "tech": ["Information Architecture", "Accessibility", "Publishing"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "leadership-overview-1",
+      "text": "Leadership & Philosophy — managing tribe/chapter models; coaching designers into leads; designers coding and engaging with AI; multidisciplinary collaboration; stakeholder buy‑in.",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Overview",
+        "role": "Design Leader",
+        "tech": ["Org Models", "Coaching", "Stakeholders"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "leadership-playbook-1",
+      "text": "Leadership Playbook — Org Models & Embedding: tribe/chapter; dual reporting (craft leadership + squad alignment); interfaces between Design, Product, Engineering.",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Playbook",
+        "role": "Design Leader",
+        "tech": ["Org Models", "Embedding"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "leadership-playbook-2",
+      "text": "Discovery & Delivery Balance — shift‑left discovery; continuous discovery with delivery; playbooks: IDIs, diary studies, JTBD interviews.",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Playbook",
+        "role": "Design Leader",
+        "tech": ["Research", "JTBD", "Continuous Discovery"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "leadership-playbook-3",
+      "text": "Design Ops & Systems — scalable design systems, governance, Figma libraries, tokens, accessibility; shared language across teams; contribution models.",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Playbook",
+        "role": "Design Leader",
+        "tech": ["Design Systems", "Design Ops", "Accessibility"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "leadership-playbook-4",
+      "text": "Research Ops — centralized research repos; standardized recruitment and templates; democratization of research (enable PMs/engineers to observe and co‑analyze).",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Playbook",
+        "role": "Design Leader",
+        "tech": ["Research Ops", "Repositories", "Democratization"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "leadership-playbook-5",
+      "text": "Quality & Feedback Loops — design critiques and rituals; review systems; metrics for design quality: adoption, usability scores, support tickets.",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Playbook",
+        "role": "Design Leader",
+        "tech": ["Quality Metrics", "Critiques", "Feedback Loops"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+    {
+      "id": "leadership-playbook-6",
+      "text": "AI & Future‑Forward — integrate AI‑assisted tools; use LLMs to synthesize research; explore agentic AI to automate parts of design ops.",
+      "metadata": {
+        "source_type": "leadership",
+        "source_name": "Leadership Playbook",
+        "role": "Design Leader",
+        "tech": ["AI", "LLMs", "Agentic Systems"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "ai-builder-1",
+      "text": "AI Builder Phase (2022–Now) — hireverse.app (AI interviews recruiters); personal RAG for design knowledge; MCP server for AI meeting intelligence; advocacy: senior designers should code.",
+      "metadata": {
+        "source_type": "experience",
+        "source_name": "AI Builder",
+        "role": "Founder/Builder",
+        "tech": ["RAG", "MCP", "Automation"],
+        "date": "2022-Now",
+        "link": null
+      },
+      "embedding": null
+    },
+
+    {
+      "id": "keywords-1",
+      "text": "Keywords: UX strategy, design leadership, stakeholder alignment, user research, prototyping, information architecture, design systems, B2B SaaS, accessibility, conversion optimization, service design, mentoring, team leadership.",
+      "metadata": {
+        "source_type": "bio",
+        "source_name": "Keywords",
+        "role": "Summary",
+        "tech": ["UX", "Design Systems", "Leadership"],
+        "date": null,
+        "link": null
+      },
+      "embedding": null
+    }
+  ]
 }
