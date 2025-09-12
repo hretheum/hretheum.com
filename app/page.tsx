@@ -43,7 +43,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-
       {/* Single Page Content */}
       <div className="pt-16 print:pt-0">
         <div data-section="cover"><CoverPage /></div>

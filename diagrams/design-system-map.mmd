@@ -1,0 +1,62 @@
+%% Design System Map with Theming
+flowchart LR
+  
+  subgraph Base
+    A1[Colors: primary secondary accent neutral status utility]
+    A2[Spacing scale]
+    A3[Radius scale]
+    A4[Border and Ring width]
+    A5[Shadows]
+    A6[Typography family size weight line letter]
+  end
+  
+  subgraph SemanticLight
+    SL1[text primary -> neutral 900]
+    SL2[background base -> neutral 0]
+    SL3[background elevated -> neutral 100]
+    SL4[action primary -> primary 500]
+  end
+  
+  subgraph SemanticDark
+    SD1[text primary -> neutral 0]
+    SD2[background base -> neutral 900]
+    SD3[background elevated -> neutral 800]
+    SD4[action primary -> primary 300]
+  end
+  
+  subgraph Component
+    C1[Button Primary bg bgHover bgActive text focusRing]
+    C2[Input bg text placeholder border]
+    C3[Card bg bgElevated text border divider]
+  end
+  
+  subgraph UI
+    U1[Button Primary]
+    U2[Input]
+    U3[Card]
+  end
+  
+  %% Connections Base -> Semantic
+  Base --> SL1
+  Base --> SL2
+  Base --> SL3
+  Base --> SL4
+  Base --> SD1
+  Base --> SD2
+  Base --> SD3
+  Base --> SD4
+
+  %% Semantic -> Component
+  SL1 --> C1
+  SD1 --> C1
+  SL2 --> C2
+  SD2 --> C2
+  SL3 --> C3
+  SD3 --> C3
+  SL4 --> C1
+  SD4 --> C1
+
+  %% Component -> UI
+  C1 --> U1
+  C2 --> U2
+  C3 --> U3

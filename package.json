@@ -29,6 +29,7 @@
     "@eslint/config-array": "0.19.1",
     "@eslint/js": "9.17.0",
     "@eslint/object-schema": "2.1.5",
+    "@mermaid-js/mermaid-cli": "^11.9.0",
     "@types/react": "19.1.12"
   }
 }

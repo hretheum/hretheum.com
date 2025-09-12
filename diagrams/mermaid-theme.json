@@ -1,0 +1,19 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#7c3aed",
+    "primaryTextColor": "#ffffff",
+    "primaryBorderColor": "#6d28d9",
+    "lineColor": "#7c3aed",
+    "secondaryColor": "#f5f3ff",
+    "tertiaryColor": "#ede9fe",
+    "edgeLabelBackground": "#ffffff",
+    "fontFamily": "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Inter, Noto Sans, 'Apple Color Emoji', 'Segoe UI Emoji'",
+    "background": "#ffffff",
+
+    "clusterBkg": "#ffffff",
+    "clusterBorder": "#e5e7eb",
+    "nodeBorder": "#e5e7eb",
+    "nodeTextColor": "#111827"
+  }
+}
