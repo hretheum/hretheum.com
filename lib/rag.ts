@@ -3,8 +3,7 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import { createOpenAI } from '@ai-sdk/openai';
-import { embedMany } from 'ai';
+import OpenAI from 'openai';
 
 export type RAGVector = {
   id: string;
@@ -154,45 +153,32 @@ export async function saveIndex(index: RAGIndex) {
 }
 
 export async function embedTexts(texts: string[]) {
-  const openai = createOpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    baseURL: process.env.AI_GATEWAY_URL || undefined,
-  });
   const model = getEnvEmbeddingModel();
-  const res = await embedMany({
-    model: openai.embedding(model),
-    values: texts,
-  });
-  // embeddings is number[][]
-  return res.embeddings as number[][];
+  const client = getOpenAIClient();
+  const res = await client.embeddings.create({ model, input: texts });
+  return res.data.map((d) => d.embedding as number[]);
 }
 
 export async function generateAnswer(system: string, user: string) {
-  // Call the AI Gateway compatible chat completions endpoint to avoid SDK type issues
-  const baseURL = process.env.AI_GATEWAY_URL || 'https://api.openai.com/v1';
   const model = getEnvGenerationModel();
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OPENAI_API_KEY is required');
-  const res = await fetch(`${baseURL}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-      temperature: 0.3,
-    }),
+  const client = getOpenAIClient();
+  const completion = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    temperature: 0.3,
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Model call failed: ${res.status} ${text}`);
+  return completion.choices?.[0]?.message?.content ?? '';
+}
+
+function getOpenAIClient() {
+  const gatewayKey = process.env.AI_GATEWAY_API_KEY;
+  if (gatewayKey) {
+    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' });
   }
-  const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
-  return typeof content === 'string' ? content : '';
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY');
+  return new OpenAI({ apiKey });
 }
