@@ -9,6 +9,8 @@ import {
   rankBySimilarity,
   generateAnswer,
 } from '@/lib/rag';
+import { searchByEmbedding } from '@/lib/rag_store/supabase';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
 import { rerankWithLLM } from '@/lib/intent/rerank';
 import type { IntentId } from '@/lib/intent/intents';
@@ -24,18 +26,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load index and embed query
-    const index = await loadIndex();
-    if (!index.vectors || index.vectors.length === 0) {
-      return NextResponse.json({
-        answer: 'I do not have any indexed data yet. Please add Markdown sources to data/rag/ and run ingestion.',
-        citations: [],
-      });
+    // Load index only in JSON mode (fallback). Supabase mode queries remotely.
+    const useSupabase = process.env.RAG_STORE === 'supabase';
+    const index = useSupabase ? null : await loadIndex();
+    if (!useSupabase) {
+      if (!index!.vectors || index!.vectors.length === 0) {
+        return NextResponse.json({
+          answer: 'I do not have any indexed data yet. Please add Markdown sources to data/rag/ and run ingestion.',
+          citations: [],
+        });
+      }
     }
     // Query Expansion (2–4 paraphrases based on intent synonyms) + aggregation
     const generateExpansions = (intent: string, msg: string): string[] => {
       const base = msg.trim();
       const extras: string[] = [];
+      const mlow = base.toLowerCase();
+      const mentionsFinance = /(finans|bank|ubezpiecze|insurtech|fintech)/.test(mlow);
       switch (intent) {
         case 'retrieval_core.competencies':
           extras.push(`${base} competencies`, `${base} skills verification`, `usability heuristics ${base}`);
@@ -70,6 +77,16 @@ export async function POST(req: NextRequest) {
         default:
           break;
       }
+      // Finance-specific alias expansions to bias retrieval towards banks/insurers when the query is broad
+      if (mentionsFinance) {
+        extras.push(
+          `${base} ING`,
+          `${base} PKO`,
+          `${base} Warta`,
+          `${base} Bank BPH`,
+          `${base} BPH`
+        );
+      }
       // Limit to 3 expansions to keep cost down
       return [base, ...extras.slice(0, 3)];
     };
@@ -77,21 +94,90 @@ export async function POST(req: NextRequest) {
     // We need intent for expansion; classify first quickly (will be used again below)
     // But we already do classification further down; do an early classification here to guide expansions
     const earlyIntent = await classifyIntent(message);
-    const expansions = generateExpansions(earlyIntent.topIntent, message);
+    let expansions = generateExpansions(earlyIntent.topIntent, message);
 
-    // Embed each expansion and aggregate similarities by (text + source) key using max score
-    const aggScores = new Map<string, { r: ReturnType<typeof rankBySimilarity>[number]; score: number }>();
+    // PRF (pseudo-relevance feedback) when Supabase is enabled: take top lexical terms and extend expansions
+    if (useSupabase) {
+      try {
+        const supabase = createAdminClient();
+        // Use hybrid with empty embedding to get lexical-only seeds quickly
+        // We pass a zero vector and rely on ts_rank; embedding threshold makes vec_score negligible
+        const zero = new Array(1536).fill(0);
+        const { data, error } = await supabase.rpc('match_chunks_hybrid', {
+          query_text: message,
+          query_embedding: zero as any,
+          match_count: 20,
+          similarity_threshold: 1.1, // ignore vec matches
+        });
+        if (!error && Array.isArray(data) && data.length > 0) {
+          // naive PRF: extract top frequent tokens from returned texts
+          const freq = new Map<string, number>();
+          for (const r of data as any[]) {
+            const toks = String(r.text || '')
+              .toLowerCase()
+              .split(/[^a-z0-9ąęśćżźółń]+/)
+              .filter((t) => t && t.length >= 3);
+            for (const t of toks) freq.set(t, (freq.get(t) || 0) + 1);
+          }
+          const stop = new Set<string>(['the','and','or','not','for','with','you','your','are','have','has','this','that','from','about','into','over','under','into','how','what','when','which','why','use','used','using','case','study','project','projekt','case study']);
+          const topTerms = Array.from(freq.entries())
+            .filter(([t]) => !stop.has(t))
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([t]) => t);
+          if (topTerms.length) {
+            expansions = [expansions[0], ...topTerms.map((t) => `${message} ${t}`), ...expansions.slice(1)].slice(0, 4);
+          }
+        }
+      } catch {}
+    }
+
+    // Aggregate via hybrid RPC when Supabase, otherwise via JSON index
+    const aggScores = new Map<string, { v: { text: string; metadata: Record<string, any> }; score: number }>();
     for (const qStr of expansions) {
-      const vec = await embedQuery(qStr);
-      const partial = rankBySimilarity(vec, index.vectors).slice(0, Math.max(getTopK() * 4, 20));
-      for (const r of partial) {
-        const key = `${r.v.metadata?.source_name || ''}::${r.v.text.slice(0, 64)}`;
-        const prev = aggScores.get(key)?.score ?? -Infinity;
-        if (r.score > prev) aggScores.set(key, { r, score: r.score });
+      if (useSupabase) {
+        const vec = await embedQuery(qStr);
+        const supabase = createAdminClient();
+        const { data, error } = await supabase.rpc('match_chunks_hybrid_two_stage', {
+          query_text: qStr,
+          query_embedding: vec as any,
+          vec_k: 200,
+          match_count: Math.max(getTopK() * 6, 40),
+          similarity_threshold: 0.0,
+        });
+        const rows = (!error && Array.isArray(data)) ? data as any[] : [];
+        for (const r of rows) {
+          const key = `${r.source_name || ''}::${String(r.text).slice(0, 64)}`;
+          const prev = aggScores.get(key)?.score ?? -Infinity;
+          const score = Number(r.score ?? 0);
+          if (score > prev) aggScores.set(key, { v: { text: r.text, metadata: {
+            document_id: r.document_id,
+            file: r.file,
+            source_name: r.source_name,
+            source_type: r.source_type,
+            role: r.role,
+            tech: r.tech,
+            org: r.org,
+            product: r.product,
+            domain: r.domain,
+            kpis: r.kpis,
+            aliases: r.aliases,
+            link: r.link,
+            date: r.date,
+          } }, score });
+        }
+      } else {
+        const vec = await embedQuery(qStr);
+        const partial = rankBySimilarity(vec, index!.vectors).slice(0, Math.max(getTopK() * 6, 40));
+        for (const r of partial) {
+          const key = `${r.v.metadata?.source_name || ''}::${r.v.text.slice(0, 64)}`;
+          const prev = aggScores.get(key)?.score ?? -Infinity;
+          if (r.score > prev) aggScores.set(key, { v: { text: r.v.text, metadata: r.v.metadata }, score: r.score });
+        }
       }
     }
     const ranked = Array.from(aggScores.values())
-      .map((x) => x.r)
+      .map((x) => ({ v: x.v, score: x.score }))
       .sort((a, b) => b.score - a.score);
 
     // Intent detection for boosting (embedding-first)
@@ -142,18 +228,9 @@ export async function POST(req: NextRequest) {
     }));
     boosted.sort((a, b) => b.boosted - a.boosted);
 
-    // Dynamic thresholding based on top-1 score
+    // Widen-then-prune: skip hard threshold, start from a broad pool, prune later by MMR and token budget
     const top1 = boosted[0]?.boosted ?? 0;
-    let threshold = baseThreshold;
-    let lowConfidence = false;
-    if (top1 >= 0.8) {
-      threshold = Math.max(baseThreshold, top1 - 0.1);
-    } else if (top1 >= 0.65) {
-      threshold = Math.max(0.6, baseThreshold - 0.05);
-    } else {
-      threshold = Math.max(0.5, Math.min(baseThreshold, 0.55));
-      lowConfidence = true;
-    }
+    let lowConfidence = top1 < 0.55;
 
     // Simple MMR to reduce redundancy based on token overlap
     const mmrSelect = (cands: typeof boosted, k: number): typeof boosted => {
@@ -179,7 +256,9 @@ export async function POST(req: NextRequest) {
       return sel;
     };
 
-    let filtered = boosted.filter((r) => r.boosted >= threshold);
+    // Broad candidate pool (adaptive size)
+    const poolSize = Math.min(boosted.length, Math.max(getTopK() * 8, 60));
+    let filtered = boosted.slice(0, poolSize);
     // Conditional filtering by source_type for certain intents when confidence is low
     if (lowConfidence && (intentId === 'retrieval_core.case_study' || intentId === 'retrieval_core.experience')) {
       const requiredType = intentId === 'retrieval_core.case_study' ? 'case_study' : 'experience';
@@ -188,16 +267,33 @@ export async function POST(req: NextRequest) {
         filtered = byType;
       } else {
         // fallback: widen search within boosted pool by type
-        const boostedByType = boosted.filter((r) => String(r.v.metadata?.source_type || '').toLowerCase() === requiredType);
+        const boostedByType = boosted.filter((r) => String(r.v.metadata?.source_type || '').toLowerCase() === requiredType).slice(0, poolSize);
         if (boostedByType.length > 0) {
           filtered = boostedByType;
         }
       }
     }
-    let selected = mmrSelect(filtered, topK);
+    // Token-budgeted selection: increase K until answer context ~ within budget
+    const estimateTokens = (s: string) => Math.ceil(s.length / 4);
+    const tokenBudget = 2200; // fits safely into prompt window
+    let kTry = Math.min(3, filtered.length);
+    let selected = mmrSelect(filtered.slice(), kTry);
+    let totalTokens = selected.reduce((acc, it) => acc + estimateTokens(it.v.text), 0);
+    while (kTry < Math.min(12, filtered.length) && totalTokens < tokenBudget) {
+      kTry += 1;
+      selected = mmrSelect(filtered.slice(), kTry);
+      totalTokens = selected.reduce((acc, it) => acc + estimateTokens(it.v.text), 0);
+      if (totalTokens > tokenBudget) {
+        // step back one to stay within budget
+        kTry -= 1;
+        selected = mmrSelect(filtered.slice(), kTry);
+        break;
+      }
+    }
     if (selected.length === 0) {
       // Fallback: take topK regardless of threshold and mark low confidence
-      selected = mmrSelect(boosted, topK);
+      const fbSize = Math.min(10, Math.max(getTopK(), boosted.length));
+      selected = mmrSelect(boosted.slice(0, fbSize), Math.min(5, fbSize));
       lowConfidence = true;
     }
 

@@ -12,6 +12,7 @@ import {
   type RAGIndex,
   type RAGVector,
 } from '../lib/rag';
+import { upsertChunks, type StoreChunk } from '../lib/rag_store/supabase';
 
 // Lightweight .env loader (no external deps). Ensures OPENAI_API_KEY / AI_GATEWAY_API_KEY
 // are available when running the script with `tsx` outside of Next.js runtime.
@@ -132,9 +133,36 @@ async function ingest() {
   }
 
   const index: RAGIndex = { vectors };
-  await fs.mkdir(path.dirname(INDEX_PATH), { recursive: true });
-  await saveIndex(index);
-  console.log(`[ingest] Saved index with ${vectors.length} vectors to ${INDEX_PATH}`);
+  if (process.env.RAG_STORE === 'supabase') {
+    // Map vectors to StoreChunk rows and upsert to Supabase
+    const rows: StoreChunk[] = index.vectors.map((v) => {
+      const file = String(v.metadata?.file || '');
+      const chunkIdx = Number(String(v.id).split('#').pop());
+      return {
+        file,
+        source_name: v.metadata?.source_name,
+        source_type: v.metadata?.source_type,
+        role: v.metadata?.role,
+        tech: v.metadata?.tech,
+        org: v.metadata?.org,
+        product: v.metadata?.product,
+        domain: v.metadata?.domain,
+        kpis: v.metadata?.kpis,
+        aliases: v.metadata?.aliases,
+        link: v.metadata?.link,
+        date: v.metadata?.date,
+        chunk_index: Number.isFinite(chunkIdx) ? chunkIdx : 0,
+        text: v.text,
+        embedding: (v.embedding as number[]) || [],
+      };
+    });
+    await upsertChunks(rows);
+    console.log(`[ingest] Upserted ${rows.length} chunks to Supabase (RAG_STORE=supabase)`);
+  } else {
+    await fs.mkdir(path.dirname(INDEX_PATH), { recursive: true });
+    await saveIndex(index);
+    console.log(`[ingest] Saved index with ${vectors.length} vectors to ${INDEX_PATH}`);
+  }
 }
 
 ingest().catch((err) => {

@@ -16,6 +16,8 @@
     "@ai-sdk/openai-compatible": "^0.2.16",
     "@langchain/core": "^0.3.75",
     "@langchain/openai": "^0.6.11",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.4",
     "@swc/helpers": "^0.5.5",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "22.7.5",
