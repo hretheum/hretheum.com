@@ -179,6 +179,20 @@ export async function POST(req: NextRequest) {
     };
 
     let filtered = boosted.filter((r) => r.boosted >= threshold);
+    // Conditional filtering by source_type for certain intents when confidence is low
+    if (lowConfidence && (intentId === 'retrieval_core.case_study' || intentId === 'retrieval_core.experience')) {
+      const requiredType = intentId === 'retrieval_core.case_study' ? 'case_study' : 'experience';
+      const byType = filtered.filter((r) => String(r.v.metadata?.source_type || '').toLowerCase() === requiredType);
+      if (byType.length > 0) {
+        filtered = byType;
+      } else {
+        // fallback: widen search within boosted pool by type
+        const boostedByType = boosted.filter((r) => String(r.v.metadata?.source_type || '').toLowerCase() === requiredType);
+        if (boostedByType.length > 0) {
+          filtered = boostedByType;
+        }
+      }
+    }
     let selected = mmrSelect(filtered, topK);
     if (selected.length === 0) {
       // Fallback: take topK regardless of threshold and mark low confidence
@@ -284,12 +298,33 @@ function computeBoost(meta: any, intentId: string, userMessage: string) {
   const tech = Array.isArray(meta?.tech) ? meta.tech.map((t: string) => String(t).toLowerCase()) : [];
   const sourceName = String(meta?.source_name || '').toLowerCase();
   const sourceType = String(meta?.source_type || '').toLowerCase();
+  const org = String(meta?.org || '').toLowerCase();
+  const product = String(meta?.product || '').toLowerCase();
+  const domain = String(meta?.domain || '').toLowerCase();
+  const kpis: string[] = Array.isArray(meta?.kpis) ? meta.kpis.map((x: string) => String(x).toLowerCase()) : [];
+  const aliases: string[] = Array.isArray(meta?.aliases) ? meta.aliases.map((x: string) => String(x).toLowerCase()) : [];
 
   const mentionsDesignSystems = /design system|design\s*systems/.test(msg) || /design system/.test(sourceName) || /design system/.test(sourceType);
   const mentionsAI = /\b(ai|rag|llm|mcp)\b/.test(msg) && tech.some((t: string) => /\b(ai|rag|llm|mcp)\b/.test(t));
 
   if (mentionsDesignSystems) boost += 0.05;
   if (mentionsAI) boost += 0.05;
+
+  // Entity boost: overlap between user message tokens and source_name
+  if (sourceName) {
+    const stop = new Set([
+      'the','and','or','a','an','to','of','for','on','in','with','about','from','by','at','as','is','are','be','this','that','it','how','what','when','which','why','do','does','did','you','your','my'
+    ]);
+    const msgTokens = Array.from(new Set(msg.split(/[^a-z0-9]+/).filter(t => t.length >= 3 && !stop.has(t))));
+    let hits = 0;
+    for (const t of msgTokens) {
+      if (sourceName.includes(t)) hits++;
+    }
+    if (hits > 0) {
+      // up to +0.15 boost for strong entity overlap
+      boost += Math.min(0.15, 0.03 * hits);
+    }
+  }
 
   return boost;
 }
