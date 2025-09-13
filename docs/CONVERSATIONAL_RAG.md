@@ -96,10 +96,52 @@
 - Risk: Incomplete coverage → Mitigation: extend MD corpus iteratively.
 
 ## 16. Roadmap (Post-MVP)
-- PDF and web source ingestion. [Status: Pending]
-- Vercel Postgres + pgvector migration. [Status: Pending]
-- Reranking model / LLM-as-a-reranker. [Status: Pending]
-- Analytics dashboard and feedback loop for content improvement. [Status: Pending]
+The following milestones reflect the authoritative execution plan. Each item links to the relevant section(s) of this document or playbooks.
+
+1) Intent Detector Integration Hardened [Priority: High]
+- Scope: finalize embedding-first intent detection with optional LLM adjudication, thresholds, hard rules.
+- Dependencies: Section 18.3; dataset from intent playbook.
+- Acceptance: chat uses `classifyIntent()` every turn; low-confidence → clarification; telemetry logged.
+
+2) Retrieval Pipeline Enhancements [Priority: High]
+- Scope: apply Intent-Based Boosts, Query Expansion (2–4 variants), MMR, Dynamic Thresholding, Fallbacks.
+- Dependencies: Section 18.4; `docs/playbooks/RETRIEVAL_PLAYBOOK.md`.
+- Acceptance: improved hit-rate with diversity; thresholds adapt to top-1; fallbacks labeled.
+
+3) Non-retrieval Flows Policies [Priority: High]
+- Scope: logistics/process/assets/compliance/conversational handling with clarifying questions on uncertainty.
+- Dependencies: Section 18.5 and intent taxonomy.
+- Acceptance: consistent responses with safe defaults (NDA/privacy) and next-step prompts.
+
+4) Evaluation & Feedback Loop [Priority: Medium]
+- Scope: CSV-based tests for intent accuracy/F1; log borderline (0.40–0.55); expand dataset and re-embed.
+- Dependencies: Section 18.8; intent playbook §3.
+- Acceptance: automated script + periodic re-embed process documented.
+
+5) Streaming Answers via Gateway [Priority: Medium]
+- Scope: switch `/api/rag/query` to streaming SSE with citations.
+- Dependencies: Retrieval stable (Milestone 2); Gateway config.
+- Acceptance: streamed tokens with stable citations rendering.
+
+6) Vector Store Persistence [Priority: Medium]
+- Scope: move from MemoryVectorStore to FAISS/Chroma; warm-up cache on boot.
+- Dependencies: Intent dataset stabilizing (Milestone 4).
+- Acceptance: persisted index, faster cold starts, re-embed documented.
+
+7) Migration to pgvector (Vercel Postgres) [Priority: Medium]
+- Scope: implement Section 17 end-to-end (dual-write → read-switch → JSON removal).
+- Dependencies: Milestone 2 done; ENV/feature flags ready.
+- Acceptance: production reads from Postgres; parity verified; ops metrics in place.
+
+8) Guardrails & Moderation [Priority: Medium]
+- Scope: input moderation, denylist, explicit abstain paths; refine safety prompts.
+- Dependencies: Section 8.
+- Acceptance: unsafe inputs blocked or de-escalated; logs for moderation events.
+
+9) Analytics & Ops [Priority: Low]
+- Scope: dashboard for latency, hit ratio, cost; feedback capture on answers.
+- Dependencies: Sections 11, 12, 15; ops playbook.
+- Acceptance: weekly report; thresholds tuned from data.
 
 ## Playbooks
 - Retrieval: see `docs/playbooks/RETRIEVAL_PLAYBOOK.md`

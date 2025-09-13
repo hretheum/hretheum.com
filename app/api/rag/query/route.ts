@@ -8,6 +8,7 @@ import {
   rankBySimilarity,
   generateAnswer,
 } from '@/lib/rag';
+import { classifyIntent } from '@/lib/intent/classify';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,17 +32,28 @@ export async function POST(req: NextRequest) {
     const qVec = await embedQuery(message);
     const ranked = rankBySimilarity(qVec, index.vectors);
 
+    // Intent detection for boosting (embedding-first)
+    const intentRes = await classifyIntent(message);
+    const intentId = intentRes.topIntent;
+
+    // If low-confidence intent, ask for clarification (Section 18.3)
+    if (intentRes.confidence < 0.45) {
+      return NextResponse.json({
+        answer:
+          "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?",
+        citations: [],
+        intent: { id: intentId, confidence: intentRes.confidence },
+      });
+    }
+
     // Filter by similarity threshold
     const baseThreshold = getSimilarityThreshold();
     const topK = getTopK();
 
-    // Intent detection for boosting
-    const intent = detectIntent(message);
-
-    // Apply metadata boosts and compute boosted scores
+    // Apply metadata boosts per Retrieval Playbook and compute boosted scores
     const boosted = ranked.map((r) => ({
       ...r,
-      boosted: r.score * (1 + computeBoost(r.v.metadata, intent)),
+      boosted: r.score * (1 + computeBoost(r.v.metadata, intentId, message)),
     }));
     boosted.sort((a, b) => b.boosted - a.boosted);
 
@@ -80,7 +92,7 @@ export async function POST(req: NextRequest) {
       link: s.v.metadata?.link || undefined,
     }));
 
-    return NextResponse.json({ answer, citations });
+    return NextResponse.json({ answer, citations, intent: { id: intentId, confidence: intentRes.confidence } });
   } catch (err) {
     console.error('RAG query error', err);
     return NextResponse.json(
@@ -91,39 +103,41 @@ export async function POST(req: NextRequest) {
 }
 
 // --- Helpers ---
-function detectIntent(q: string) {
-  const s = q.toLowerCase();
-  return {
-    competencies: /competenc|strength|skill|core/i.test(s),
-    leadership: /leader|playbook|org|coaching|chapter|tribe/i.test(s),
-    experience: /experience|career|role|project|worked|where/i.test(s),
-    caseStudy: /case\s*study|outcome|approach|challenge|result/i.test(s),
-  };
-}
-
-function computeBoost(meta: any, intent: ReturnType<typeof detectIntent>) {
+function computeBoost(meta: any, intentId: string, userMessage: string) {
   let boost = 0;
   const st = String(meta?.source_type || '').toLowerCase();
-  if (intent.competencies) {
-    if (st === 'bio') boost += 0.15;
-    if (st === 'leadership') boost += 0.15;
-  }
-  if (intent.leadership && st === 'leadership') boost += 0.2;
-  if (intent.experience && st === 'experience') boost += 0.15;
-  if (intent.caseStudy && st === 'case_study') boost += 0.2;
 
-  // Light tech keyword matching boost
-  const tech = Array.isArray(meta?.tech) ? meta.tech.map((t: string) => String(t).toLowerCase()) : [];
-  if (/design system|design\s*systems/i.test(String(meta?.source_name || '')) || /design system/i.test(String(meta?.source_type || ''))) {
-    if (/design system/i.test(intentToString(intent))) boost += 0.05;
+  // Intent-Based Boosts (Retrieval Playbook)
+  switch (intentId) {
+    case 'retrieval_core.competencies':
+      if (st === 'bio') boost += 0.15;
+      if (st === 'leadership') boost += 0.15;
+      break;
+    case 'retrieval_core.leadership':
+      if (st === 'leadership') boost += 0.2;
+      break;
+    case 'retrieval_core.experience':
+      if (st === 'experience') boost += 0.15;
+      break;
+    case 'retrieval_core.case_study':
+      if (st === 'case_study') boost += 0.2;
+      break;
+    default:
+      // non-retrieval intents: no metadata boost
+      break;
   }
-  // If question mentions RAG/AI and chunk tagged AI, add small boost
-  if (/ai|rag|llm|mcp/i.test(intentToString(intent)) && tech.some((t: string) => /ai|rag|llm|mcp/.test(t))) boost += 0.05;
+
+  // Optional keyword boosts
+  const msg = String(userMessage || '').toLowerCase();
+  const tech = Array.isArray(meta?.tech) ? meta.tech.map((t: string) => String(t).toLowerCase()) : [];
+  const sourceName = String(meta?.source_name || '').toLowerCase();
+  const sourceType = String(meta?.source_type || '').toLowerCase();
+
+  const mentionsDesignSystems = /design system|design\s*systems/.test(msg) || /design system/.test(sourceName) || /design system/.test(sourceType);
+  const mentionsAI = /\b(ai|rag|llm|mcp)\b/.test(msg) && tech.some((t: string) => /\b(ai|rag|llm|mcp)\b/.test(t));
+
+  if (mentionsDesignSystems) boost += 0.05;
+  if (mentionsAI) boost += 0.05;
 
   return boost;
-}
-
-function intentToString(intent: ReturnType<typeof detectIntent>) {
-  const keys = Object.entries(intent).filter(([, v]) => v).map(([k]) => k).join(' ');
-  return keys;
 }
