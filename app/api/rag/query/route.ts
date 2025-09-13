@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import OpenAI from 'openai';
 import {
   buildAnswerPrompt,
   embedQuery,
@@ -203,10 +204,6 @@ export async function POST(req: NextRequest) {
     // Prepare prompt from selected contexts
     const contexts = selected.map((s) => ({ text: s.v.text, metadata: s.v.metadata }));
     const { system, user } = buildAnswerPrompt(message, contexts);
-    let answer = await generateAnswer(system, user);
-    if (lowConfidence) {
-      answer = `${answer}\n\nNote: Confidence is low because few highly similar sources were found. If you want a more precise answer, try a more specific question (e.g., include organization or project name).`;
-    }
 
     // Build simple citations from selected chunks (first 200 chars)
     const citations = selected.map((s) => ({
@@ -214,6 +211,61 @@ export async function POST(req: NextRequest) {
       source_name: s.v.metadata?.source_name || 'source',
       link: s.v.metadata?.link || undefined,
     }));
+
+    // If SSE streaming requested, stream tokens
+    const url = new URL(req.url);
+    const wantsSSE = url.searchParams.get('stream') === '1' || (req.headers.get('accept') || '').includes('text/event-stream');
+    if (wantsSSE) {
+      const client = getOpenAIClientLocal();
+      const model = process.env.AI_MODEL_GENERATION || 'gpt-4o-mini';
+      const stream = await client.chat.completions.create({
+        model,
+        stream: true,
+        temperature: 0.3,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      });
+      const encoder = new TextEncoder();
+      const rs = new ReadableStream<Uint8Array>({
+        start(controller) {
+          (async () => {
+            for await (const part of stream) {
+              const token = part.choices?.[0]?.delta?.content || '';
+              if (token) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'token', token })}\n\n`));
+              }
+            }
+            // final meta
+            const meta = { type: 'done', citations, intent: { id: intentId, confidence: intentRes.confidence }, lowConfidence };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(meta)}\n\n`));
+            controller.close();
+          })().catch((err) => controller.error(err));
+        },
+      });
+      // telemetry (normal)
+      console.log('[rag.query:intent]', {
+        msg: String(message).slice(0, 120),
+        intent: intentId,
+        confidence: Number(intentRes.confidence.toFixed(3)),
+        selectedCount: selected.length,
+        top1Boosted: Number(top1.toFixed(3)),
+      });
+      return new Response(rs, {
+        headers: {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+        },
+      });
+    }
+
+    // Non-streaming JSON response (default)
+    let answer = await generateAnswer(system, user);
+    if (lowConfidence) {
+      answer = `${answer}\n\nNote: Confidence is low because few highly similar sources were found. If you want a more precise answer, try a more specific question (e.g., include organization or project name).`;
+    }
 
     // telemetry (normal)
     console.log('[rag.query:intent]', {
@@ -327,4 +379,15 @@ function computeBoost(meta: any, intentId: string, userMessage: string) {
   }
 
   return boost;
+}
+
+// Local OpenAI client for SSE streaming path (mirrors lib/rag.ts gateway logic)
+function getOpenAIClientLocal() {
+  const gatewayKey = process.env.AI_GATEWAY_API_KEY;
+  if (gatewayKey) {
+    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' });
+  }
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY');
+  return new OpenAI({ apiKey });
 }

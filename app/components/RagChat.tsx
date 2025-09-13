@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { streamRag } from '@/lib/client/streamRag';
 
 type Citation = { quote: string; source_name: string; link?: string };
 
@@ -11,6 +12,12 @@ export default function RagChat() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; citations?: Citation[] }[]>([]);
   const [minimized, setMinimized] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const tokenBufferRef = useRef<string>('');
+  const flushTimerRef = useRef<number | null>(null);
+  const pauseTimerRef = useRef<number | null>(null);
 
   // Load minimized state from localStorage on mount
   useEffect(() => {
@@ -59,32 +66,113 @@ export default function RagChat() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Auto-scroll to bottom when messages update or while streaming
+  useEffect(() => {
+    if (!bottomRef.current) return;
+    // Use instant scroll during streaming to keep up with tokens
+    bottomRef.current.scrollIntoView({ behavior: loading ? 'instant' as ScrollBehavior : 'smooth' });
+  }, [messages, loading]);
+
   async function onSend(e?: React.FormEvent) {
     e?.preventDefault();
     const message = input.trim();
     if (!message || loading) return;
 
+    // cancel any in-flight stream
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     setMessages((m) => [...m, { role: 'user', content: message }]);
     setDraft('');
     setLoading(true);
+
+    // create empty assistant placeholder and stream into it
+    let assistantIndex = -1;
+    setMessages((m) => {
+      assistantIndex = m.length; // new index after pushing user
+      return [...m, { role: 'assistant', content: '' }];
+    });
+
     try {
-      const res = await fetch('/api/rag/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
-      });
-      const data = await res.json();
-      const assistantMsg = typeof data?.answer === 'string' ? data.answer : 'Unexpected response';
-      const citations: Citation[] = Array.isArray(data?.citations) ? data.citations : [];
-      setMessages((m) => [...m, { role: 'assistant', content: assistantMsg, citations }]);
+      // start throttled flush of token buffer with punctuation-based pauses
+      tokenBufferRef.current = '';
+      if (flushTimerRef.current) window.clearInterval(flushTimerRef.current);
+      const baseInterval = 45; // ms (natural pace)
+      const scheduleFlush = () => {
+        flushTimerRef.current = window.setInterval(() => {
+          if (pauseTimerRef.current) return; // currently in a pause
+          const chunk = tokenBufferRef.current;
+          if (!chunk) return;
+          tokenBufferRef.current = '';
+          setMessages((m) => {
+            const copy = m.slice();
+            const last = copy[assistantIndex];
+            if (last && last.role === 'assistant') {
+              copy[assistantIndex] = { ...last, content: (last.content || '') + chunk };
+            }
+            return copy;
+          });
+          // If the last emitted characters suggest a sentence/paragraph end, insert a short pause
+          const tail = chunk.slice(-6);
+          if (/[\.!?…]["')\]]?\s?$/.test(tail) || /\n{2,}$/.test(tail)) {
+            // pause ~250ms
+            if (flushTimerRef.current) {
+              window.clearInterval(flushTimerRef.current);
+              flushTimerRef.current = null;
+            }
+            pauseTimerRef.current = window.setTimeout(() => {
+              pauseTimerRef.current = null;
+              if (!flushTimerRef.current) scheduleFlush();
+            }, 320) as unknown as number;
+          }
+        }, baseInterval) as unknown as number;
+      };
+      scheduleFlush();
+
+      for await (const evt of streamRag(message, {
+        signal: ctrl.signal,
+        onToken: (t) => {
+          tokenBufferRef.current += t;
+        },
+        onDone: (d) => {
+          const citations: Citation[] = Array.isArray(d.citations) ? d.citations : [];
+          const remainder = tokenBufferRef.current;
+          tokenBufferRef.current = '';
+          setMessages((m) => {
+            const copy = m.slice();
+            const last = copy[assistantIndex];
+            if (last && last.role === 'assistant') {
+              copy[assistantIndex] = { ...last, content: (last.content || '') + remainder, citations };
+            }
+            return copy;
+          });
+        },
+      })) {
+        // events also handled via callbacks; loop keeps the generator flowing
+      }
     } catch (err) {
       console.error(err);
-      setMessages((m) => [
-        ...m,
-        { role: 'assistant', content: 'Sorry, something went wrong. Please try again later.' },
-      ]);
+      setMessages((m) => {
+        const copy = m.slice();
+        const last = copy[assistantIndex];
+        if (last && last.role === 'assistant') {
+          copy[assistantIndex] = { ...last, content: (last.content || '') + '\n\n[Streaming error, please try again.]' } as any;
+        } else {
+          copy.push({ role: 'assistant', content: 'Sorry, something went wrong. Please try again later.' });
+        }
+        return copy;
+      });
     } finally {
       setLoading(false);
+      if (flushTimerRef.current) {
+        window.clearInterval(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+      if (pauseTimerRef.current) {
+        window.clearTimeout(pauseTimerRef.current);
+        pauseTimerRef.current = null;
+      }
     }
   }
 
@@ -116,7 +204,7 @@ export default function RagChat() {
                 –
               </button>
             </div>
-            <div className="max-h-56 sm:max-h-60 overflow-y-auto p-2 sm:p-2.5 space-y-3">
+            <div ref={listRef} className="max-h-56 sm:max-h-60 overflow-y-auto p-2 sm:p-2.5 space-y-3">
               {messages.length === 0 && (
                 <div className="text-sm text-gray-500">
                   Ask about competencies, experience, leadership approach, or case studies. I will cite sources from the portfolio.
@@ -186,6 +274,7 @@ export default function RagChat() {
                   </div>
                 </div>
               )}
+              <div ref={bottomRef} />
             </div>
             <form onSubmit={onSend} className="flex items-center gap-2 border-t border-gray-200 p-2">
               <input
