@@ -49,6 +49,8 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.product_sense", text: "Jak decydujesz o MVP przy wysokiej niepewności" },
   { intent: "retrieval_core.product_sense", text: "What tradeoffs do you make between acquisition and retention" },
   { intent: "retrieval_core.product_sense", text: "Jak testujesz propozycję wartości przed budową" },
+  { intent: "retrieval_core.product_sense", text: "Jak definiujesz hipotezy i sukces dla nowego eksperymentu produktu" },
+  { intent: "retrieval_core.product_sense", text: "How do you balance activation retention and monetization" },
 
   // retrieval_core.research_process
   { intent: "retrieval_core.research_process", text: "Jak planujesz sprint badawczy i dobierasz metody?" },
@@ -76,6 +78,8 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak eskalujesz ryzyko gdy stakeholder blokuje decyzję" },
   { intent: "retrieval_core.stakeholder_mgmt", text: "How do you align conflicting C level stakeholders fast" },
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak radzisz sobie gdy stakeholder ignoruje rekomendacje" },
+  { intent: "retrieval_core.stakeholder_mgmt", text: "Jak budujesz alignment z C suite przed bramką decyzyjną" },
+  { intent: "retrieval_core.stakeholder_mgmt", text: "How do you communicate risk tradeoffs to executives" },
 
   // retrieval_core.tools_automation
   { intent: "retrieval_core.tools_automation", text: "Jak korzystasz z Figmy w zespole na co dzień?" },
@@ -124,6 +128,8 @@ export const DATASET: IntentExample[] = [
   { intent: "role_fit.skill_verification", text: "Jak oceniasz swój poziom prototypowania hi fi" },
   { intent: "role_fit.skill_verification", text: "How comfortable are you with metrics driven design decisions" },
   { intent: "role_fit.skill_verification", text: "Jak weryfikujesz swoje umiejętności względem wymagań roli" },
+  { intent: "role_fit.skill_verification", text: "Opisz jak dobierasz narzędzia i techniki do problemu projektowego" },
+  { intent: "role_fit.skill_verification", text: "Which design ops skills do you have hands on and at what level" },
 
   // role_fit.domain_expertise
   { intent: "role_fit.domain_expertise", text: "Jak oceniasz konkurencję w naszej domenie?" },
