@@ -40,6 +40,13 @@ export async function POST(req: NextRequest) {
 
     // If low-confidence intent, ask for clarification (Section 18.3)
     if (intentRes.confidence < 0.45) {
+      // telemetry (low-confidence)
+      console.log('[rag.query:intent]', {
+        msg: String(message).slice(0, 120),
+        intent: intentId,
+        confidence: Number(intentRes.confidence.toFixed(3)),
+        note: 'low-confidence',
+      });
       return NextResponse.json({
         answer:
           "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?",
@@ -110,6 +117,14 @@ export async function POST(req: NextRequest) {
       link: s.v.metadata?.link || undefined,
     }));
 
+    // telemetry (normal)
+    console.log('[rag.query:intent]', {
+      msg: String(message).slice(0, 120),
+      intent: intentId,
+      confidence: Number(intentRes.confidence.toFixed(3)),
+      selectedCount: selected.length,
+      top1Boosted: Number(top1.toFixed(3)),
+    });
     return NextResponse.json({ answer, citations, intent: { id: intentId, confidence: intentRes.confidence } });
   } catch (err) {
     console.error('RAG query error', err);

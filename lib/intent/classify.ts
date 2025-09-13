@@ -28,8 +28,10 @@ export async function classifyIntent(
   opts?: { k?: number; threshold?: number; routing?: RoutingRules }
 ): Promise<IntentResult> {
   const store = await buildStore();
-  const k = opts?.k ?? 6;
-  const threshold = opts?.threshold ?? 0.45;
+  const kAgg = opts?.k ?? 6; // how many docs to aggregate for scoring
+  const kSearch = Math.max(kAgg, 24); // how many docs to retrieve before deterministic trim
+  const envThresh = Number.parseFloat(process.env.INTENT_THRESHOLD || '');
+  const threshold = opts?.threshold ?? (Number.isFinite(envThresh) ? envThresh : 0.45);
   const routing = opts?.routing ?? { hardBlock: hardBlockRule, priority: DEFAULT_PRIORITY };
 
   // 1) hard routing
@@ -40,36 +42,59 @@ export async function classifyIntent(
 
   // 2) vector similarity
   const q = normalizeQuery(query);
-  const results = await store.similaritySearchWithScore(q, k);
+  const results = await store.similaritySearchWithScore(q, kSearch);
+  // Deterministic ordering of retrieved docs before selecting top-kAgg
+  const ordered = results
+    .map(([doc, raw]) => ({ doc, sim: normalizeScore(raw) }))
+    .sort((a, b) => {
+      const d = b.sim - a.sim;
+      if (d !== 0) return d;
+      // stable tiebreaks by content and content-hash
+      const ac = String(a.doc.pageContent);
+      const bc = String(b.doc.pageContent);
+      const c = ac.localeCompare(bc);
+      if (c !== 0) return c;
+      return hashStr(ac) - hashStr(bc);
+    })
+    .slice(0, kAgg);
+
   const byIntent = new Map<IntentId, number>();
   const evidence: { intent: IntentId; score: number; text: string }[] = [];
 
-  for (const [doc, raw] of results) {
-    const sim = normalizeScore(raw);
+  for (const { doc, sim } of ordered) {
     const intent = doc.metadata.intent as IntentId;
     byIntent.set(intent, (byIntent.get(intent) ?? 0) + sim);
     evidence.push({ intent, score: sim, text: doc.pageContent });
   }
 
-  // pick best with priority tie‑break
-  const ranked = Array.from(byIntent.entries()).sort((a, b) => b[1] - a[1]);
+  // pick best with deterministic tie‑break: score desc, priority asc, intentId asc
+  const order = new Map((routing.priority ?? []).map((id, i) => [id, i] as const));
+  const ranked = Array.from(byIntent.entries()).sort((a, b) => {
+    const d = b[1] - a[1];
+    if (d !== 0) return d;
+    const pa = order.get(a[0]) ?? 999;
+    const pb = order.get(b[0]) ?? 999;
+    if (pa !== pb) return pa - pb;
+    return a[0].localeCompare(b[0]);
+  });
   let [topIntent, topScore] = ranked[0] ?? [("conversational.clarification" as IntentId), 0];
-
-  if (routing.priority && ranked.length > 1) {
-    const order = new Map(routing.priority.map((id, i) => [id, i] as const));
-    ranked.sort((a, b) => {
-      if (Math.abs(a[1] - b[1]) > 1e-6) return b[1] - a[1];
-      return (order.get(a[0]) ?? 999) - (order.get(b[0]) ?? 999);
-    });
-    [topIntent, topScore] = ranked[0];
-  }
 
   // threshold / fallback
   if (topScore < threshold) {
     topIntent = "conversational.clarification";
   }
 
-  return { topIntent, confidence: Math.min(1, topScore), matches: evidence.slice(0, k) };
+  return { topIntent, confidence: Math.min(1, topScore), matches: evidence.slice(0, kAgg) };
+}
+
+// simple deterministic hash for strings (djb2 variant)
+function hashStr(s: string): number {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h) ^ s.charCodeAt(i);
+    h |= 0;
+  }
+  return h;
 }
 
 // Return top-N intent candidates with aggregated scores, for optional LLM reranking
@@ -78,7 +103,7 @@ export async function topIntentCandidates(
   opts?: { kDocs?: number; maxIntents?: number; routing?: RoutingRules }
 ): Promise<{ id: IntentId; score: number }[]> {
   const store = await buildStore();
-  const kDocs = opts?.kDocs ?? 12;
+  const kDocs = opts?.kDocs ?? 14;
   const q = normalizeQuery(query);
   const results = await store.similaritySearchWithScore(q, kDocs);
   const byIntent = new Map<IntentId, number>();
@@ -91,7 +116,11 @@ export async function topIntentCandidates(
 
   const ranked = Array.from(byIntent.entries())
     .map(([id, score]) => ({ id, score }))
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => {
+      const d = b.score - a.score;
+      if (d !== 0) return d;
+      return a.id.localeCompare(b.id);
+    });
 
   return ranked.slice(0, opts?.maxIntents ?? 2);
 }

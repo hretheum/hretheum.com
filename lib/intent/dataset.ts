@@ -13,6 +13,8 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.competencies", text: "Jak zapewniasz dostępność (WCAG) w codziennej pracy?" },
   { intent: "retrieval_core.competencies", text: "Jakie znasz metody ewaluacji użyteczności?" },
   { intent: "retrieval_core.competencies", text: "How do you handle accessibility in day-to-day work?" },
+  { intent: "retrieval_core.competencies", text: "Jak wybierasz metody research dla konkretnego problemu" },
+  { intent: "retrieval_core.competencies", text: "How do you define success criteria for usability sessions" },
 
   // retrieval_core.case_study
   {
@@ -44,11 +46,15 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.product_sense", text: "Jak definiujesz MVP w warunkach niepewności?" },
   { intent: "retrieval_core.product_sense", text: "What would you change in our product and why?" },
   { intent: "retrieval_core.product_sense", text: "Jak rozumiesz north star metric dla tego produktu?" },
+  { intent: "retrieval_core.product_sense", text: "Jak decydujesz o MVP przy wysokiej niepewności" },
+  { intent: "retrieval_core.product_sense", text: "What tradeoffs do you make between acquisition and retention" },
 
   // retrieval_core.research_process
   { intent: "retrieval_core.research_process", text: "Jak planujesz sprint badawczy i dobierasz metody?" },
   { intent: "retrieval_core.research_process", text: "How do you structure interviews to avoid bias?" },
   { intent: "retrieval_core.research_process", text: "W jaki sposób dokumentujesz i udostępniasz insighty?" },
+  { intent: "retrieval_core.research_process", text: "Jak unikasz biasu w testach użyteczności w praktyce" },
+  { intent: "retrieval_core.research_process", text: "How do you turn research insights into backlog items" },
 
   // retrieval_core.design_systems
   { intent: "retrieval_core.design_systems", text: "Jak utrzymujesz spójność designu w wielu produktach?" },
@@ -64,6 +70,8 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak przekonywałeś interesariuszy do inwestycji w UX?" },
   { intent: "retrieval_core.stakeholder_mgmt", text: "Tell me about a time you aligned conflicting stakeholders" },
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak dokumentujesz decyzje i rationale?" },
+  { intent: "retrieval_core.stakeholder_mgmt", text: "Jak eskalujesz ryzyko gdy stakeholder blokuje decyzję" },
+  { intent: "retrieval_core.stakeholder_mgmt", text: "How do you align conflicting C level stakeholders fast" },
 
   // retrieval_core.tools_automation
   { intent: "retrieval_core.tools_automation", text: "Jak korzystasz z Figmy w zespole na co dzień?" },
@@ -109,6 +117,8 @@ export const DATASET: IntentExample[] = [
   { intent: "role_fit.skill_verification", text: "W jakim obszarze jesteś najsilniejszy?" },
   { intent: "role_fit.skill_verification", text: "How do you handle high-fidelity prototyping?" },
   { intent: "role_fit.skill_verification", text: "Jak radzisz sobie z analityką danych?" },
+  { intent: "role_fit.skill_verification", text: "Jak oceniasz swój poziom prototypowania hi fi" },
+  { intent: "role_fit.skill_verification", text: "How comfortable are you with metrics driven design decisions" },
 
   // role_fit.domain_expertise
   { intent: "role_fit.domain_expertise", text: "Jak oceniasz konkurencję w naszej domenie?" },
@@ -119,6 +129,8 @@ export const DATASET: IntentExample[] = [
   { intent: "role_fit.fit_assessment", text: "Co Cię napędza do pracy?" },
   { intent: "role_fit.fit_assessment", text: "Jak opisałbyś swój styl pracy w zespole?" },
   { intent: "role_fit.fit_assessment", text: "What kind of team culture helps you thrive?" },
+  { intent: "role_fit.fit_assessment", text: "Co Cię motywuje w pracy na co dzień" },
+  { intent: "role_fit.fit_assessment", text: "What team culture helps you perform best" },
 
   // role_fit.behavioral
   { intent: "role_fit.behavioral", text: "Opowiedz o porażce i czego Cię nauczyła" },

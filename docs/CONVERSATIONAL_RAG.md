@@ -261,4 +261,30 @@ When the detected intent belongs to retrieval_core, run the RAG pipeline:
 - Retrieval details: `docs/playbooks/RETRIEVAL_PLAYBOOK.md`.
 - Intent detector dataset and TS setup: `docs/playbooks/intent_detector_dataset_and_ts_setup_UPDATED.md`.
 
-<!-- CASCADE_APPEND_TARGET -->
+## 19. Evaluation of Intent Detector
+
+This section describes how to run and interpret the intent classifier evaluation.
+
+### 19.1 Dataset
+- Source file: `tests/intent_eval.csv`
+- Format: `query,expected_intent` (no extra commas inside `query`)
+- Ensure balanced coverage across the taxonomy (retrieval_core, role_fit, logistics, process, assets, compliance, conversational)
+
+### 19.2 Run
+- Make sure your `.env` includes `OPENAI_API_KEY`
+- Execute:
+  - `npx tsx scripts/eval_intents.ts tests/intent_eval.csv`
+
+### 19.3 Metrics
+- `accuracy`: overall ratio of correct predictions
+- `macroF1`: unweighted F1 averaged across labels; more robust to class imbalance
+- Target (initial): `macroF1 >= 0.70`
+
+### 19.4 Maintenance
+- Expand `lib/intent/dataset.ts` with new `example_utterances` from real traffic
+- After dataset updates, re-run the evaluation and re-embed vectors (restart server to clear the in-memory store)
+- Keep `tests/intent_eval.csv` in sync with taxonomy changes
+
+### 19.5 Troubleshooting
+- Low macroF1 → add more examples to underperforming intents (short, specific, PL/EN mix)
+- Frequent `clarification` predictions → consider threshold tuning (Section 18.3) or add examples near decision boundaries

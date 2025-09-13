@@ -67,14 +67,46 @@ async function main() {
 
   const accuracy = correct / rows.length;
   let macroF1 = 0;
+  const perIntent: Record<string, { tp: number; fp: number; fn: number; precision: number; recall: number; f1: number }>= {};
   for (const l of labels) {
-    const p = (tp.get(l) || 0) / Math.max(1, (tp.get(l) || 0) + (fp.get(l) || 0));
-    const r = (tp.get(l) || 0) / Math.max(1, (tp.get(l) || 0) + (fn.get(l) || 0));
-    macroF1 += f1(p, r);
+    const tpi = tp.get(l) || 0;
+    const fpi = fp.get(l) || 0;
+    const fni = fn.get(l) || 0;
+    const p = tpi / Math.max(1, tpi + fpi);
+    const r = tpi / Math.max(1, tpi + fni);
+    const fi = f1(p, r);
+    macroF1 += fi;
+    perIntent[l] = { tp: tpi, fp: fpi, fn: fni, precision: p, recall: r, f1: fi };
   }
   macroF1 /= labels.size || 1;
 
   console.log(JSON.stringify({ total: rows.length, correct, accuracy, macroF1 }, null, 2));
+
+  // Diagnostics: per-intent metrics sorted by F1 asc
+  const sortedDiag = Object.entries(perIntent)
+    .sort((a, b) => a[1].f1 - b[1].f1)
+    .map(([k, v]) => ({ intent: k, ...v }));
+  console.log("\nPer-intent metrics (lowest F1 first):\n", JSON.stringify(sortedDiag, null, 2));
+
+  // Optionally list top confusions (predicted -> expected counts)
+  // To keep it lightweight, recompute quickly
+  const conf: Record<string, Record<string, number>> = {};
+  for (const { query, expected } of rows) {
+    const res = await classifyIntent(query);
+    const pred = res.topIntent as string;
+    if (pred !== expected) {
+      conf[pred] = conf[pred] || {};
+      conf[pred][expected] = (conf[pred][expected] || 0) + 1;
+    }
+  }
+  const confList: Array<{ pred: string; expected: string; count: number }> = [];
+  for (const p of Object.keys(conf)) {
+    for (const e of Object.keys(conf[p])) {
+      confList.push({ pred: p, expected: e, count: conf[p][e] });
+    }
+  }
+  confList.sort((a, b) => b.count - a.count);
+  console.log("\nTop confusions (pred -> expected):\n", JSON.stringify(confList.slice(0, 15), null, 2));
 }
 
 main().catch((e) => {
