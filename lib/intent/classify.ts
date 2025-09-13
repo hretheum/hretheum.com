@@ -19,6 +19,10 @@ function hardBlockRule(q: string): IntentId | null {
   return null;
 }
 
+function normalizeQuery(s: string): string {
+  return String(s || "").trim();
+}
+
 export async function classifyIntent(
   query: string,
   opts?: { k?: number; threshold?: number; routing?: RoutingRules }
@@ -35,7 +39,8 @@ export async function classifyIntent(
   }
 
   // 2) vector similarity
-  const results = await store.similaritySearchWithScore(query, k);
+  const q = normalizeQuery(query);
+  const results = await store.similaritySearchWithScore(q, k);
   const byIntent = new Map<IntentId, number>();
   const evidence: { intent: IntentId; score: number; text: string }[] = [];
 
@@ -73,8 +78,9 @@ export async function topIntentCandidates(
   opts?: { kDocs?: number; maxIntents?: number; routing?: RoutingRules }
 ): Promise<{ id: IntentId; score: number }[]> {
   const store = await buildStore();
-  const kDocs = opts?.kDocs ?? 8;
-  const results = await store.similaritySearchWithScore(query, kDocs);
+  const kDocs = opts?.kDocs ?? 12;
+  const q = normalizeQuery(query);
+  const results = await store.similaritySearchWithScore(q, kDocs);
   const byIntent = new Map<IntentId, number>();
 
   for (const [doc, raw] of results) {
