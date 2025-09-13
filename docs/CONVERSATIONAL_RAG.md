@@ -37,7 +37,7 @@
 
 ## 6. Retrieval & Reranking
 - Retrieval: cosine similarity over normalized embeddings; take top-k (k=5). [Status: Done]
-- Optional reranking: light MMR or in-prompt reordering based on coverage + diversity. [Status: Partial — dynamic threshold + metadata boosts implemented; MMR pending]
+- Optional reranking: LLM adjudication for close top-2 intents; MMR or in-prompt diversity reordering. [Status: Partial — LLM rerank implemented; MMR pending]
 - Filters/Boosting: optional topic filters (competencies/experience/leadership) to boost relevant chunks. [Status: Done — intent-based boosts]
 
 ## 7. Prompting & Answer Format
@@ -74,7 +74,7 @@
 - Cost per 100 queries within target (e.g., <$0.50 for MVP).
 
 ## 12. Validation Methods
-- Offline eval set: 30–50 questions across competencies/experience/leadership. [Status: Pending]
+- Offline eval set: 30–50 questions across competencies/experience/leadership. [Status: Done]
 - Automated checks: exact-quote verification for citations. [Status: Pending]
 - Human review: weekly spot-check of 10 conversations. [Status: Pending]
 - Canary release: enable for a limited audience; monitor metrics. [Status: Pending]
@@ -98,12 +98,12 @@
 ## 16. Roadmap (Post-MVP)
 The following milestones reflect the authoritative execution plan. Each item links to the relevant section(s) of this document or playbooks.
 
-1) Intent Detector Integration Hardened [Priority: High]
+1) Intent Detector Integration Hardened [Priority: High] [Status: Done]
 - Scope: finalize embedding-first intent detection with optional LLM adjudication, thresholds, hard rules.
 - Dependencies: Section 18.3; dataset from intent playbook.
 - Acceptance: chat uses `classifyIntent()` every turn; low-confidence → clarification; telemetry logged.
 
-2) Retrieval Pipeline Enhancements [Priority: High]
+2) Retrieval Pipeline Enhancements [Priority: High] [Status: Partial]
 - Scope: apply Intent-Based Boosts, Query Expansion (2–4 variants), MMR, Dynamic Thresholding, Fallbacks.
 - Dependencies: Section 18.4; `docs/playbooks/RETRIEVAL_PLAYBOOK.md`.
 - Acceptance: improved hit-rate with diversity; thresholds adapt to top-1; fallbacks labeled.
@@ -113,7 +113,7 @@ The following milestones reflect the authoritative execution plan. Each item lin
 - Dependencies: Section 18.5 and intent taxonomy.
 - Acceptance: consistent responses with safe defaults (NDA/privacy) and next-step prompts.
 
-4) Evaluation & Feedback Loop [Priority: Medium]
+4) Evaluation & Feedback Loop [Priority: Medium] [Status: Done]
 - Scope: CSV-based tests for intent accuracy/F1; log borderline (0.40–0.55); expand dataset and re-embed.
 - Dependencies: Section 18.8; intent playbook §3.
 - Acceptance: automated script + periodic re-embed process documented.
@@ -250,6 +250,9 @@ When the detected intent belongs to retrieval_core, run the RAG pipeline:
 - Minimal loop: CSV of prompts → run `classifyIntent` → compute accuracy/F1.
 - Log borderline samples (0.40–0.55) and expand dataset; re-embed after updates.
 - Telemetry: `(query, topIntent, confidence, topK evidence, rerankUsed)`.
+  - Implementation: console logs in `app/api/rag/query/route.ts` emit objects for low-confidence and normal flows.
+  - Fields (normal): `msg` (first 120 chars), `intent`, `confidence`, `selectedCount`, `top1Boosted`.
+  - Fields (low-confidence): `msg`, `intent`, `confidence`, `note: 'low-confidence'`.
 - See: `docs/playbooks/intent_detector_dataset_and_ts_setup_UPDATED.md` (section 3).
 
 ## 18.9 Maintenance
@@ -288,3 +291,5 @@ This section describes how to run and interpret the intent classifier evaluation
 ### 19.5 Troubleshooting
 - Low macroF1 → add more examples to underperforming intents (short, specific, PL/EN mix)
 - Frequent `clarification` predictions → consider threshold tuning (Section 18.3) or add examples near decision boundaries
+
+<!-- CASCADE_APPEND_TARGET -->

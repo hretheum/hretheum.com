@@ -31,8 +31,67 @@ export async function POST(req: NextRequest) {
         citations: [],
       });
     }
-    const qVec = await embedQuery(message);
-    const ranked = rankBySimilarity(qVec, index.vectors);
+    // Query Expansion (2–4 paraphrases based on intent synonyms) + aggregation
+    const generateExpansions = (intent: string, msg: string): string[] => {
+      const base = msg.trim();
+      const extras: string[] = [];
+      switch (intent) {
+        case 'retrieval_core.competencies':
+          extras.push(`${base} competencies`, `${base} skills verification`, `usability heuristics ${base}`);
+          break;
+        case 'retrieval_core.leadership':
+          extras.push(`${base} leadership style`, `${base} coaching mentoring`, `org design ${base}`);
+          break;
+        case 'retrieval_core.experience':
+          extras.push(`${base} past roles`, `${base} responsibilities`, `projects ${base}`);
+          break;
+        case 'retrieval_core.case_study':
+          extras.push(`${base} case study`, `${base} outcomes`, `approach challenges results ${base}`);
+          break;
+        case 'retrieval_core.product_sense':
+          extras.push(`${base} mvp tradeoffs`, `${base} value proposition`, `retention activation ${base}`);
+          break;
+        case 'retrieval_core.research_process':
+          extras.push(`${base} research plan`, `${base} avoid bias`, `insights backlog ${base}`);
+          break;
+        case 'retrieval_core.design_systems':
+          extras.push(`${base} design tokens`, `${base} storybook`, `governance ${base}`);
+          break;
+        case 'retrieval_core.metrics_experiments':
+          extras.push(`${base} ab test`, `${base} metrics roi`, `experiments power bias ${base}`);
+          break;
+        case 'retrieval_core.stakeholder_mgmt':
+          extras.push(`${base} stakeholder alignment`, `${base} risk communication`, `escalation ${base}`);
+          break;
+        case 'retrieval_core.tools_automation':
+          extras.push(`${base} figma`, `${base} design ops automation`, `notion confluence ${base}`);
+          break;
+        default:
+          break;
+      }
+      // Limit to 3 expansions to keep cost down
+      return [base, ...extras.slice(0, 3)];
+    };
+
+    // We need intent for expansion; classify first quickly (will be used again below)
+    // But we already do classification further down; do an early classification here to guide expansions
+    const earlyIntent = await classifyIntent(message);
+    const expansions = generateExpansions(earlyIntent.topIntent, message);
+
+    // Embed each expansion and aggregate similarities by (text + source) key using max score
+    const aggScores = new Map<string, { r: ReturnType<typeof rankBySimilarity>[number]; score: number }>();
+    for (const qStr of expansions) {
+      const vec = await embedQuery(qStr);
+      const partial = rankBySimilarity(vec, index.vectors).slice(0, Math.max(getTopK() * 4, 20));
+      for (const r of partial) {
+        const key = `${r.v.metadata?.source_name || ''}::${r.v.text.slice(0, 64)}`;
+        const prev = aggScores.get(key)?.score ?? -Infinity;
+        if (r.score > prev) aggScores.set(key, { r, score: r.score });
+      }
+    }
+    const ranked = Array.from(aggScores.values())
+      .map((x) => x.r)
+      .sort((a, b) => b.score - a.score);
 
     // Intent detection for boosting (embedding-first)
     const intentRes = await classifyIntent(message);
@@ -95,10 +154,35 @@ export async function POST(req: NextRequest) {
       lowConfidence = true;
     }
 
-    let selected = boosted.filter((r) => r.boosted >= threshold).slice(0, topK);
+    // Simple MMR to reduce redundancy based on token overlap
+    const mmrSelect = (cands: typeof boosted, k: number): typeof boosted => {
+      const sel: typeof boosted = [];
+      const tokens = (s: string) => new Set(String(s).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+      while (sel.length < k && cands.length > 0) {
+        const cand = cands.shift()!;
+        // compute max overlap with already selected
+        const tCand = tokens(cand.v.text);
+        let maxOverlap = 0;
+        for (const s of sel) {
+          const tSel = tokens(s.v.text);
+          const inter = [...tCand].filter((t) => tSel.has(t)).length;
+          const union = new Set([...tCand, ...tSel]).size || 1;
+          const jacc = inter / union;
+          if (jacc > maxOverlap) maxOverlap = jacc;
+        }
+        // apply small diversity penalty threshold
+        if (maxOverlap < 0.5) sel.push(cand);
+      }
+      // backfill if we selected too few (highly repetitive corpus)
+      if (sel.length < k) sel.push(...cands.slice(0, k - sel.length));
+      return sel;
+    };
+
+    let filtered = boosted.filter((r) => r.boosted >= threshold);
+    let selected = mmrSelect(filtered, topK);
     if (selected.length === 0) {
       // Fallback: take topK regardless of threshold and mark low confidence
-      selected = boosted.slice(0, topK);
+      selected = mmrSelect(boosted, topK);
       lowConfidence = true;
     }
 
