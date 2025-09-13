@@ -39,9 +39,8 @@ export async function classifyIntent(
   const byIntent = new Map<IntentId, number>();
   const evidence: { intent: IntentId; score: number; text: string }[] = [];
 
-  for (const [doc, score] of results) {
-    // Some stores return lower distance for closer matches; transform monotonically
-    const sim = 1 / (1 + score);
+  for (const [doc, raw] of results) {
+    const sim = normalizeScore(raw);
     const intent = doc.metadata.intent as IntentId;
     byIntent.set(intent, (byIntent.get(intent) ?? 0) + sim);
     evidence.push({ intent, score: sim, text: doc.pageContent });
@@ -66,4 +65,37 @@ export async function classifyIntent(
   }
 
   return { topIntent, confidence: Math.min(1, topScore), matches: evidence.slice(0, k) };
+}
+
+// Return top-N intent candidates with aggregated scores, for optional LLM reranking
+export async function topIntentCandidates(
+  query: string,
+  opts?: { kDocs?: number; maxIntents?: number; routing?: RoutingRules }
+): Promise<{ id: IntentId; score: number }[]> {
+  const store = await buildStore();
+  const kDocs = opts?.kDocs ?? 8;
+  const results = await store.similaritySearchWithScore(query, kDocs);
+  const byIntent = new Map<IntentId, number>();
+
+  for (const [doc, raw] of results) {
+    const sim = normalizeScore(raw);
+    const intent = doc.metadata.intent as IntentId;
+    byIntent.set(intent, (byIntent.get(intent) ?? 0) + sim);
+  }
+
+  const ranked = Array.from(byIntent.entries())
+    .map(([id, score]) => ({ id, score }))
+    .sort((a, b) => b.score - a.score);
+
+  return ranked.slice(0, opts?.maxIntents ?? 2);
+}
+
+// Normalize vectorstore returned score to a similarity in [0,1]
+function normalizeScore(raw: number): number {
+  // Case 1: cosine similarity in [-1, 1] (e.g., MemoryVectorStore)
+  if (raw >= -1 && raw <= 1) return (raw + 1) / 2;
+  // Case 2: distance in [0, 2] (cosine distance) → similarity ~ 1 - d (clamped)
+  if (raw >= 0 && raw <= 2) return Math.max(0, Math.min(1, 1 - raw));
+  // Fallback: generic monotonic transform
+  return 1 / (1 + Math.max(0, raw));
 }

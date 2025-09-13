@@ -8,7 +8,9 @@ import {
   rankBySimilarity,
   generateAnswer,
 } from '@/lib/rag';
-import { classifyIntent } from '@/lib/intent/classify';
+import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
+import { rerankWithLLM } from '@/lib/intent/rerank';
+import type { IntentId } from '@/lib/intent/intents';
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Intent detection for boosting (embedding-first)
     const intentRes = await classifyIntent(message);
-    const intentId = intentRes.topIntent;
+    let intentId = intentRes.topIntent;
 
     // If low-confidence intent, ask for clarification (Section 18.3)
     if (intentRes.confidence < 0.45) {
@@ -44,6 +46,22 @@ export async function POST(req: NextRequest) {
         citations: [],
         intent: { id: intentId, confidence: intentRes.confidence },
       });
+    }
+
+    // Try LLM rerank if top-2 candidates are close (delta < 10%)
+    try {
+      const candidates = await topIntentCandidates(message, { kDocs: 8, maxIntents: 2 });
+      if (candidates.length === 2) {
+        const [a, b] = candidates;
+        if (a.score > 0 && (a.score - b.score) / a.score < 0.10) {
+          const adjudication = await rerankWithLLM(message, candidates);
+          if (isIntentId(adjudication?.final_intent)) {
+            intentId = adjudication.final_intent;
+          }
+        }
+      }
+    } catch (_) {
+      // best-effort rerank; ignore errors
     }
 
     // Filter by similarity threshold
@@ -103,6 +121,41 @@ export async function POST(req: NextRequest) {
 }
 
 // --- Helpers ---
+function isIntentId(v: any): v is IntentId {
+  const allowed: Set<string> = new Set([
+    'retrieval_core.competencies',
+    'retrieval_core.leadership',
+    'retrieval_core.experience',
+    'retrieval_core.case_study',
+    'retrieval_core.product_sense',
+    'retrieval_core.research_process',
+    'retrieval_core.design_systems',
+    'retrieval_core.metrics_experiments',
+    'retrieval_core.stakeholder_mgmt',
+    'retrieval_core.tools_automation',
+    'role_fit.skill_verification',
+    'role_fit.domain_expertise',
+    'role_fit.fit_assessment',
+    'role_fit.behavioral',
+    'logistics.availability',
+    'logistics.location_remote',
+    'logistics.compensation',
+    'logistics.scheduling',
+    'logistics.visa_relocation_travel',
+    'process.hiring_process',
+    'process.assignment_brief',
+    'assets.assets_request',
+    'assets.code_or_design_files',
+    'compliance.nda_privacy',
+    'compliance.data_processing_ip',
+    'compliance.accessibility_compliance',
+    'conversational.clarification',
+    'conversational.smalltalk',
+    'conversational.rapport_meta',
+    'conversational.curveballs_creative',
+  ]);
+  return typeof v === 'string' && allowed.has(v);
+}
 function computeBoost(meta: any, intentId: string, userMessage: string) {
   let boost = 0;
   const st = String(meta?.source_type || '').toLowerCase();
