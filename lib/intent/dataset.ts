@@ -48,6 +48,7 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.product_sense", text: "Jak rozumiesz north star metric dla tego produktu?" },
   { intent: "retrieval_core.product_sense", text: "Jak decydujesz o MVP przy wysokiej niepewności" },
   { intent: "retrieval_core.product_sense", text: "What tradeoffs do you make between acquisition and retention" },
+  { intent: "retrieval_core.product_sense", text: "Jak testujesz propozycję wartości przed budową" },
 
   // retrieval_core.research_process
   { intent: "retrieval_core.research_process", text: "Jak planujesz sprint badawczy i dobierasz metody?" },
@@ -65,6 +66,8 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.metrics_experiments", text: "Jak weryfikujesz czy design przynosi ROI?" },
   { intent: "retrieval_core.metrics_experiments", text: "Describe your last A/B test and learnings" },
   { intent: "retrieval_core.metrics_experiments", text: "Jakie metryki były kluczowe dla decyzji produktowych?" },
+  { intent: "retrieval_core.metrics_experiments", text: "Jak projektujesz eksperyment bez biasu i z odpowiednią mocą" },
+  { intent: "retrieval_core.metrics_experiments", text: "How do you prevent metric gaming and p hacking" },
 
   // retrieval_core.stakeholder_mgmt
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak przekonywałeś interesariuszy do inwestycji w UX?" },
@@ -72,6 +75,7 @@ export const DATASET: IntentExample[] = [
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak dokumentujesz decyzje i rationale?" },
   { intent: "retrieval_core.stakeholder_mgmt", text: "Jak eskalujesz ryzyko gdy stakeholder blokuje decyzję" },
   { intent: "retrieval_core.stakeholder_mgmt", text: "How do you align conflicting C level stakeholders fast" },
+  { intent: "retrieval_core.stakeholder_mgmt", text: "Jak radzisz sobie gdy stakeholder ignoruje rekomendacje" },
 
   // retrieval_core.tools_automation
   { intent: "retrieval_core.tools_automation", text: "Jak korzystasz z Figmy w zespole na co dzień?" },
@@ -119,6 +123,7 @@ export const DATASET: IntentExample[] = [
   { intent: "role_fit.skill_verification", text: "Jak radzisz sobie z analityką danych?" },
   { intent: "role_fit.skill_verification", text: "Jak oceniasz swój poziom prototypowania hi fi" },
   { intent: "role_fit.skill_verification", text: "How comfortable are you with metrics driven design decisions" },
+  { intent: "role_fit.skill_verification", text: "Jak weryfikujesz swoje umiejętności względem wymagań roli" },
 
   // role_fit.domain_expertise
   { intent: "role_fit.domain_expertise", text: "Jak oceniasz konkurencję w naszej domenie?" },
