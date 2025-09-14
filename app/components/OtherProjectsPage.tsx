@@ -57,7 +57,7 @@ export default function OtherProjectsPage() {
   return (
     <section className="py-16 px-6 bg-white">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-[4rem] md:text-[6rem] font-black text-gray-900 mb-16 leading-none text-center">
+        <h1 className="text-[clamp(2rem,9vw,2.75rem)] md:text-[6rem] font-black text-gray-900 mb-16 leading-[1.02] tracking-tight text-center break-words [text-wrap:balance]">
           OTHER PROJECTS
         </h1>
         

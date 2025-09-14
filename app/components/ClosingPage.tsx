@@ -24,15 +24,15 @@ export default function ClosingPage() {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black text-white">
+    <section className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-black text-white">
       {/* Neon Slash */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform -rotate-12 opacity-90"></div>
       </div>
       
       {/* Main Content */}
-      <div className="text-center z-10 px-6 max-w-6xl">
-        <h1 className="text-[4rem] md:text-[6rem] lg:text-[8rem] font-black leading-tight mb-12">
+      <div className="text-center z-10 px-4 sm:px-6 max-w-6xl">
+        <h1 className="text-[clamp(2.25rem,9vw,3.25rem)] md:text-[6rem] lg:text-[8rem] font-black leading-[1.02] tracking-tight mb-10 break-words [text-wrap:balance]">
           HIRE ME<br/>
           OR STAY<br/>
           IRRELEVANT.
@@ -44,22 +44,22 @@ export default function ClosingPage() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCTAClick}
-            className="inline-block bg-white text-black px-8 py-4 text-xl font-black hover:bg-purple-200 transition-colors duration-200"
+            className="inline-block bg-white text-black px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl font-black hover:bg-purple-200 transition-colors duration-200"
           >
             Schedule a meeting
           </a>
         </div>
         
-        <div className="bg-purple-600 p-8 inline-block">
-          <div className="text-2xl font-black mb-4">CONTACT</div>
-          <div className="text-xl">eof@offline.pl</div>
-          <div className="text-xl">+48 535 555 066</div>
+        <div className="bg-purple-600 p-6 md:p-8 inline-block text-left md:text-center">
+          <div className="text-xl md:text-2xl font-black mb-3 md:mb-4">CONTACT</div>
+          <div className="text-lg md:text-xl">eof@offline.pl</div>
+          <div className="text-lg md:text-xl">+48 535 555 066</div>
           <a 
             href="https://linkedin.com/in/eofek" 
             target="_blank" 
             rel="noopener noreferrer"
             onClick={handleLinkedInClick}
-            className="text-lg hover:text-purple-200 underline transition-colors duration-200"
+            className="text-base md:text-lg hover:text-purple-200 underline transition-colors duration-200"
           >
             linkedin.com/in/eofek
           </a>

@@ -10,13 +10,18 @@ import {
   generateAnswer,
 } from '@/lib/rag';
 import { searchByEmbedding } from '@/lib/rag_store/supabase';
-import { createAdminClient } from '@/utils/supabase/admin';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
 import { rerankWithLLM } from '@/lib/intent/rerank';
 import type { IntentId } from '@/lib/intent/intents';
 
 export async function POST(req: NextRequest) {
   try {
+    const tStart = Date.now();
+    const timings: Record<string, number> = {};
+    const mark = (label: string, t0: number) => {
+      timings[label] = (timings[label] || 0) + (Date.now() - t0);
+    };
     const { message } = await req.json();
 
     if (typeof message !== 'string' || !message.trim()) {
@@ -99,16 +104,22 @@ export async function POST(req: NextRequest) {
     // PRF (pseudo-relevance feedback) when Supabase is enabled: take top lexical terms and extend expansions
     if (useSupabase) {
       try {
-        const supabase = createAdminClient();
+        const supabase = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { persistSession: false } }
+        );
         // Use hybrid with empty embedding to get lexical-only seeds quickly
         // We pass a zero vector and rely on ts_rank; embedding threshold makes vec_score negligible
         const zero = new Array(1536).fill(0);
+        const t0 = Date.now();
         const { data, error } = await supabase.rpc('match_chunks_hybrid', {
           query_text: message,
           query_embedding: zero as any,
           match_count: 20,
           similarity_threshold: 1.1, // ignore vec matches
         });
+        mark('prf_seed_ms', t0);
         if (!error && Array.isArray(data) && data.length > 0) {
           // naive PRF: extract top frequent tokens from returned texts
           const freq = new Map<string, number>();
@@ -136,16 +147,42 @@ export async function POST(req: NextRequest) {
     const aggScores = new Map<string, { v: { text: string; metadata: Record<string, any> }; score: number }>();
     for (const qStr of expansions) {
       if (useSupabase) {
-        const vec = await embedQuery(qStr);
-        const supabase = createAdminClient();
-        const { data, error } = await supabase.rpc('match_chunks_hybrid_two_stage', {
-          query_text: qStr,
-          query_embedding: vec as any,
-          vec_k: 200,
-          match_count: Math.max(getTopK() * 6, 40),
-          similarity_threshold: 0.0,
-        });
-        const rows = (!error && Array.isArray(data)) ? data as any[] : [];
+        const supabase = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { persistSession: false } }
+        );
+        let rows: any[] = [];
+        try {
+          const tEmb0 = Date.now();
+          const vec = await embedQuery(qStr);
+          mark('embed_ms', tEmb0);
+          const tRpc0 = Date.now();
+          const { data, error } = await supabase.rpc('match_chunks_hybrid_two_stage', {
+            query_text: qStr,
+            query_embedding: vec as any,
+            vec_k: 200,
+            match_count: Math.max(getTopK() * 6, 40),
+            similarity_threshold: 0.0,
+          });
+          mark('hybrid_rpc_ms', tRpc0);
+          rows = (!error && Array.isArray(data)) ? (data as any[]) : [];
+          if (error) console.warn('[rag.query:rpc_error]', error.message || error);
+        } catch (embErr: any) {
+          console.warn('[rag.query:embed_fallback]', embErr?.message || embErr);
+          // Lexical-only fallback using hybrid (ignore vector by raising threshold)
+          const zero = new Array(1536).fill(0);
+          const tRpc0 = Date.now();
+          const { data, error } = await supabase.rpc('match_chunks_hybrid', {
+            query_text: qStr,
+            query_embedding: zero as any,
+            match_count: Math.max(getTopK() * 6, 40),
+            similarity_threshold: 1.1,
+          });
+          mark('hybrid_rpc_ms', tRpc0);
+          rows = (!error && Array.isArray(data)) ? (data as any[]) : [];
+          if (error) console.warn('[rag.query:rpc_error_fallback]', error.message || error);
+        }
         for (const r of rows) {
           const key = `${r.source_name || ''}::${String(r.text).slice(0, 64)}`;
           const prev = aggScores.get(key)?.score ?? -Infinity;
@@ -277,6 +314,7 @@ export async function POST(req: NextRequest) {
     const estimateTokens = (s: string) => Math.ceil(s.length / 4);
     const tokenBudget = 2200; // fits safely into prompt window
     let kTry = Math.min(3, filtered.length);
+    const tSel0 = Date.now();
     let selected = mmrSelect(filtered.slice(), kTry);
     let totalTokens = selected.reduce((acc, it) => acc + estimateTokens(it.v.text), 0);
     while (kTry < Math.min(12, filtered.length) && totalTokens < tokenBudget) {
@@ -290,6 +328,7 @@ export async function POST(req: NextRequest) {
         break;
       }
     }
+    mark('selection_mmr_ms', tSel0);
     if (selected.length === 0) {
       // Fallback: take topK regardless of threshold and mark low confidence
       const fbSize = Math.min(10, Math.max(getTopK(), boosted.length));
@@ -348,6 +387,13 @@ export async function POST(req: NextRequest) {
         selectedCount: selected.length,
         top1Boosted: Number(top1.toFixed(3)),
       });
+      // telemetry (timings) for SSE path
+      console.log('[rag.query:telemetry]', {
+        msg: String(message).slice(0, 120),
+        timings,
+        total_ms: Date.now() - tStart,
+        pool_size: filtered.length,
+      });
       return new Response(rs, {
         headers: {
           'Content-Type': 'text/event-stream; charset=utf-8',
@@ -355,29 +401,30 @@ export async function POST(req: NextRequest) {
           Connection: 'keep-alive',
         },
       });
+    } else {
+      // Non-SSE: generate full answer and return JSON
+      const tGen0 = Date.now();
+      const answer = await generateAnswer(system, user);
+      mark('llm_answer_ms', tGen0);
+      // telemetry
+      console.log('[rag.query:intent]', {
+        msg: String(message).slice(0, 120),
+        intent: intentId,
+        confidence: Number(intentRes.confidence.toFixed(3)),
+        selectedCount: selected.length,
+        top1Boosted: Number(top1.toFixed(3)),
+      });
+      console.log('[rag.query:telemetry]', {
+        msg: String(message).slice(0, 120),
+        timings,
+        total_ms: Date.now() - tStart,
+        pool_size: filtered.length,
+      });
+      return NextResponse.json({ answer, citations, intent: { id: intentId, confidence: intentRes.confidence } });
     }
-
-    // Non-streaming JSON response (default)
-    let answer = await generateAnswer(system, user);
-    if (lowConfidence) {
-      answer = `${answer}\n\nNote: Confidence is low because few highly similar sources were found. If you want a more precise answer, try a more specific question (e.g., include organization or project name).`;
-    }
-
-    // telemetry (normal)
-    console.log('[rag.query:intent]', {
-      msg: String(message).slice(0, 120),
-      intent: intentId,
-      confidence: Number(intentRes.confidence.toFixed(3)),
-      selectedCount: selected.length,
-      top1Boosted: Number(top1.toFixed(3)),
-    });
-    return NextResponse.json({ answer, citations, intent: { id: intentId, confidence: intentRes.confidence } });
-  } catch (err) {
-    console.error('RAG query error', err);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error('[rag.query:error]', err?.message || err);
+    return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
   }
 }
 

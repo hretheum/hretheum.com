@@ -293,3 +293,50 @@ This section describes how to run and interpret the intent classifier evaluation
 - Frequent `clarification` predictions → consider threshold tuning (Section 18.3) or add examples near decision boundaries
 
 <!-- CASCADE_APPEND_TARGET -->
+## 20. Observability (Telemetry)
+
+The query route `app/api/rag/query/route.ts` emits structured logs for intent and performance diagnostics.
+
+- Fields (intent log): `[rag.query:intent]`
+  - `msg`: first 120 chars of the user message
+  - `intent`: resolved intent id
+  - `confidence`: confidence score (0..1)
+  - `selectedCount`: number of selected contexts after selection/MMR
+  - `top1Boosted`: boosted score of the top candidate
+
+- Fields (telemetry log): `[rag.query:telemetry]`
+  - `timings`: object with phase timings in milliseconds
+    - `embed_ms`: sum of embedding latencies for expansions
+    - `prf_seed_ms`: PRF seed (lexical-only RPC) latency
+    - `hybrid_rpc_ms`: total time spent in hybrid search RPCs
+    - `selection_mmr_ms`: selection and MMR latency
+    - `llm_answer_ms`: answer generation latency (non-SSE path)
+  - `total_ms`: end-to-end latency
+  - `pool_size`: number of candidates in the broadened pool before MMR
+
+Operational notes:
+- Logs are printed in both SSE and non-SSE paths.
+- In Supabase mode, the route uses the anon client (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Service role is only used for ingestion.
+- Hybrid search uses `match_chunks_hybrid_two_stage` to reduce memory usage without GIN.
+
+SLOs (initial targets):
+- Latency: p95 `total_ms` < 2500ms on warm paths.
+- Selected contexts: `selectedCount` in [3..12], governed by token budget.
+
+## 21. Smoke Tests
+
+Basic smoke runner is provided to validate latency and evidence presence.
+
+- Script: `scripts/smoke_queries.ts`
+- Run: `npx tsx scripts/smoke_queries.ts`
+- Env (optional): `SMOKE_ENDPOINT` (defaults to `http://localhost:3000/api/rag/query?stream=0`)
+
+Output:
+- Per query: `[status] <latency>ms | intent=<id> (<confidence>) | citations=<N> | <query>`
+- Summary: passed count, p95 latency, average citations.
+
+Troubleshooting:
+- If `status` != 200 or `citations` = 0 for most queries, verify ingestion and Supabase env vars.
+- Check `[rag.query:telemetry]` for a breakdown of time spent per phase.
+
+<!-- CASCADE_APPEND_TARGET -->

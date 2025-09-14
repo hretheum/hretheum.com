@@ -2,7 +2,8 @@ export default function LeadershipPage() {
   return (
     <section className="min-h-screen bg-white py-16 px-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-[4rem] md:text-[6rem] font-black text-gray-900 mb-16 leading-none text-center">
+        {/* Clamp heading to avoid clipping on very small screens */}
+        <h1 className="text-[clamp(2.25rem,9vw,3.5rem)] md:text-[6rem] font-black text-gray-900 mb-12 md:mb-16 leading-[1.02] tracking-tight text-center break-words [text-wrap:balance]">
           LEADERSHIP
         </h1>
         
@@ -11,35 +12,35 @@ export default function LeadershipPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Leadership blocks */}
             <div className="space-y-8">
-              <div className="bg-gray-900 text-white p-8">
+              <div className="bg-gray-900 text-white p-8 -mx-6 md:mx-0">
                 <h3 className="text-2xl font-black mb-4">TRIBE/CHAPTER MODELS</h3>
                 <p className="text-lg">Spotify-like organizations</p>
               </div>
               
-              <div className="bg-purple-600 text-white p-8">
+              <div className="bg-purple-600 text-white p-8 -mx-6 md:mx-0">
                 <h3 className="text-2xl font-black mb-4">COACHING DESIGNERS</h3>
                 <p className="text-lg">Into senior and lead roles</p>
               </div>
               
-              <div className="bg-gray-900 text-white p-8">
+              <div className="bg-gray-900 text-white p-8 -mx-6 md:mx-0">
                 <h3 className="text-2xl font-black mb-4">MULTIDISCIPLINARY</h3>
                 <p className="text-lg">Business • IT • Ops • Product • Data Science</p>
               </div>
               
-              <div className="bg-purple-600 text-white p-8">
+              <div className="bg-purple-600 text-white p-8 -mx-6 md:mx-0">
                 <h3 className="text-2xl font-black mb-4">STAKEHOLDER BUY-IN</h3>
                 <p className="text-lg">Senior leadership alignment</p>
               </div>
             </div>
 
             {/* Giant quote */}
-            <div className="flex items-center justify-center">
-              <div className="bg-black text-white p-12 text-center">
-                <blockquote className="text-3xl md:text-4xl font-black leading-tight">
-                  &quot;SENIOR DESIGNERS<br/>
-                  SHOULD CODE,<br/>
+            <div className="-mx-6 md:mx-0">
+              <div className="bg-black text-white p-8 md:p-12 text-center w-full">
+                <blockquote className="text-[clamp(1.125rem,6vw,1.75rem)] md:text-4xl font-black leading-tight break-words [text-wrap:balance]">
+                  SENIOR DESIGNERS<br/>
+                  SHOULD BUILD,<br/>
                   NOT JUST<br/>
-                  COORDINATE.&quot;
+                  COORDINATE.
                 </blockquote>
               </div>
             </div>
@@ -48,11 +49,11 @@ export default function LeadershipPage() {
 
         {/* Product Design Leadership Playbook */}
         <div className="mb-20">
-          <h2 className="text-[3rem] md:text-[4rem] font-black text-purple-600 mb-12 leading-none">
+          <h2 className="text-[clamp(1.75rem,7.5vw,2.5rem)] md:text-[4rem] font-black text-purple-600 mb-8 md:mb-12 leading-[1.05] tracking-tight break-words [text-wrap:balance]">
             PRODUCT DESIGN<br/>LEADERSHIP PLAYBOOK
           </h2>
           
-          <div className="bg-gray-50 p-8 mb-12">
+          <div className="bg-gray-50 p-8 mb-12 -mx-6 md:mx-0">
             <p className="text-xl leading-relaxed text-gray-800">
               As a design leader, my role is to establish not only outcomes, but also the systems and environments where design thrives. 
               Below are the key principles, methods, and tools I apply when embedding Product Design and Research into organizations.
@@ -123,14 +124,16 @@ export default function LeadershipPage() {
         </div>
 
         {/* Pull Quote */}
-        <div className="bg-black text-white p-12 text-center">
-          <blockquote className="text-3xl md:text-4xl font-black leading-tight">
-            &quot;DESIGN LEADERSHIP<br/>
+        <div className="-mx-6 md:mx-0">
+          <div className="bg-black text-white p-8 md:p-12 text-center w-full">
+          <blockquote className="text-[clamp(1.125rem,6vw,1.75rem)] md:text-4xl font-black leading-tight break-words [text-wrap:balance]">
+            DESIGN LEADERSHIP<br/>
             IS ABOUT CREATING<br/>
             CONDITIONS WHERE<br/>
             GREAT DESIGN<br/>
-            BECOMES INEVITABLE.&quot;
+            BECOMES INEVITABLE.
           </blockquote>
+          </div>
         </div>
       </div>
     </section>

@@ -6,10 +6,11 @@ export default function CareerPage() {
         <div className="space-y-20">
           {/* Sportradar */}
           <div className="text-center">
-            <h2 className="text-[4rem] md:text-[6rem] font-black text-purple-600 mb-4 leading-none">
+            {/* Responsive clamp to prevent clipping on very small screens */}
+            <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-purple-600 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
               SPORTRADAR
             </h2>
-            <div className="text-[2rem] md:text-[3rem] font-black text-purple-600 mb-2">
+            <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-purple-600 mb-1">
               2022–2025
             </div>
             <div className="text-xl md:text-2xl font-bold text-gray-600">
@@ -19,10 +20,10 @@ export default function CareerPage() {
 
           {/* ING Bank */}
           <div className="text-center">
-            <h2 className="text-[4rem] md:text-[6rem] font-black text-gray-900 mb-4 leading-none">
+            <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-gray-900 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
               ING BANK
             </h2>
-            <div className="text-[2rem] md:text-[3rem] font-black text-gray-900 mb-2">
+            <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-gray-900 mb-1">
               2017–2022
             </div>
             <div className="text-xl md:text-2xl font-bold text-gray-600">
@@ -32,10 +33,10 @@ export default function CareerPage() {
 
           {/* Deloitte */}
           <div className="text-center">
-            <h2 className="text-[4rem] md:text-[6rem] font-black text-purple-600 mb-4 leading-none">
+            <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-purple-600 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
               DELOITTE
             </h2>
-            <div className="text-[2rem] md:text-[3rem] font-black text-purple-600 mb-2">
+            <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-purple-600 mb-1">
               2015–2016
             </div>
             <div className="text-xl md:text-2xl font-bold text-gray-600">
@@ -45,10 +46,10 @@ export default function CareerPage() {
 
           {/* Komitywa */}
           <div className="text-center">
-            <h2 className="text-[4rem] md:text-[6rem] font-black text-gray-900 mb-4 leading-none">
+            <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-gray-900 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
               KOMITYWA
             </h2>
-            <div className="text-[2rem] md:text-[3rem] font-black text-gray-900 mb-2">
+            <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-gray-900 mb-1">
               2007–2009
             </div>
             <div className="text-xl md:text-2xl font-bold text-gray-600">
@@ -58,10 +59,10 @@ export default function CareerPage() {
 
           {/* MRM Worldwide */}
           <div className="text-center">
-            <h2 className="text-[4rem] md:text-[6rem] font-black text-purple-600 mb-4 leading-none">
+            <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-purple-600 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
               MRM WORLDWIDE
             </h2>
-            <div className="text-[2rem] md:text-[3rem] font-black text-purple-600 mb-2">
+            <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-purple-600 mb-1">
               2006–2007
             </div>
             <div className="text-xl md:text-2xl font-bold text-gray-600">
@@ -73,10 +74,10 @@ export default function CareerPage() {
           <div className="relative -mx-6 md:-mx-12 lg:-mx-24">
             <div className="bg-gray-50 py-16 px-6 md:px-12 lg:px-24">
               <div className="text-center">
-                <h2 className="text-[4rem] md:text-[6rem] font-black text-emerald-600 mb-4 leading-none">
+                <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-emerald-600 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
                   OFFLINE.PL
                 </h2>
-                <div className="text-[2rem] md:text-[3rem] font-black text-emerald-600 mb-2">
+                <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-emerald-600 mb-1">
                   2004–2017
                 </div>
                 <div className="text-xl md:text-2xl font-bold text-gray-600">
@@ -88,10 +89,10 @@ export default function CareerPage() {
 
           {/* Grey/Argonauts */}
           <div className="text-center">
-            <h2 className="text-[4rem] md:text-[6rem] font-black text-gray-900 mb-4 leading-none">
+            <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-gray-900 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
               GREY
             </h2>
-            <div className="text-[2rem] md:text-[3rem] font-black text-gray-900 mb-2">
+            <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-gray-900 mb-1">
               2003–2006
             </div>
             <div className="text-xl md:text-2xl font-bold text-gray-600">
