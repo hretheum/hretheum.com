@@ -15,6 +15,27 @@ import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
 import { rerankWithLLM } from '@/lib/intent/rerank';
 import type { IntentId } from '@/lib/intent/intents';
 
+// Simple in-process LRU cache for embeddings of expansions to reduce embed_ms
+const EMBED_LRU_CAP = 50;
+const embedLRU = new Map<string, number[]>();
+async function embedQueryCached(q: string) {
+  if (embedLRU.has(q)) {
+    const v = embedLRU.get(q)!;
+    // refresh recency
+    embedLRU.delete(q);
+    embedLRU.set(q, v);
+    return v;
+  }
+  const v = await embedQuery(q);
+  embedLRU.set(q, v);
+  if (embedLRU.size > EMBED_LRU_CAP) {
+    // evict oldest
+    const first = embedLRU.keys().next().value;
+    if (first) embedLRU.delete(first);
+  }
+  return v;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const tStart = Date.now();
@@ -92,8 +113,9 @@ export async function POST(req: NextRequest) {
           `${base} BPH`
         );
       }
-      // Limit to 3 expansions to keep cost down
-      return [base, ...extras.slice(0, 3)];
+      // Limit expansions by ENV (default 3)
+      const envExp = Math.max(0, Number(process.env.RAG_EXPANSIONS || '3'));
+      return [base, ...extras.slice(0, envExp)];
     };
 
     // We need intent for expansion; classify first quickly (will be used again below)
@@ -120,7 +142,8 @@ export async function POST(req: NextRequest) {
           similarity_threshold: 1.1, // ignore vec matches
         });
         mark('prf_seed_ms', t0);
-        if (!error && Array.isArray(data) && data.length > 0) {
+        const prfSeedMs = (timings['prf_seed_ms'] || 0);
+        if (prfSeedMs <= 500 && !error && Array.isArray(data) && data.length > 0) {
           // naive PRF: extract top frequent tokens from returned texts
           const freq = new Map<string, number>();
           for (const r of data as any[]) {
@@ -139,72 +162,63 @@ export async function POST(req: NextRequest) {
           if (topTerms.length) {
             expansions = [expansions[0], ...topTerms.map((t) => `${message} ${t}`), ...expansions.slice(1)].slice(0, 4);
           }
+        } else if (prfSeedMs > 500) {
+          console.log('[rag.query:prf]', { note: 'skip_prf_due_to_slow_seed', prfSeedMs });
         }
       } catch {}
     }
 
     // Aggregate via hybrid RPC when Supabase, otherwise via JSON index
     const aggScores = new Map<string, { v: { text: string; metadata: Record<string, any> }; score: number }>();
-    for (const qStr of expansions) {
-      if (useSupabase) {
-        const supabase = createSupabaseClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { auth: { persistSession: false } }
-        );
-        let rows: any[] = [];
-        try {
+    // ENV-configurable RPC parameters (with safe defaults)
+    const envVecK = Math.max(20, Number(process.env.RAG_VEC_K || '120'));
+    const envMatchCount = Math.max(10, Number(process.env.RAG_MATCH_COUNT || '30'));
+    if (useSupabase) {
+      const supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { persistSession: false } }
+      );
+      await Promise.all(
+        expansions.map(async (qStr) => {
           const tEmb0 = Date.now();
-          const vec = await embedQuery(qStr);
+          const vec = await embedQueryCached(qStr);
           mark('embed_ms', tEmb0);
           const tRpc0 = Date.now();
           const { data, error } = await supabase.rpc('match_chunks_hybrid_two_stage', {
             query_text: qStr,
             query_embedding: vec as any,
-            vec_k: 200,
-            match_count: Math.max(getTopK() * 6, 40),
+            vec_k: envVecK,
+            match_count: Math.max(getTopK() * 6, envMatchCount),
             similarity_threshold: 0.0,
           });
           mark('hybrid_rpc_ms', tRpc0);
-          rows = (!error && Array.isArray(data)) ? (data as any[]) : [];
-          if (error) console.warn('[rag.query:rpc_error]', error.message || error);
-        } catch (embErr: any) {
-          console.warn('[rag.query:embed_fallback]', embErr?.message || embErr);
-          // Lexical-only fallback using hybrid (ignore vector by raising threshold)
-          const zero = new Array(1536).fill(0);
-          const tRpc0 = Date.now();
-          const { data, error } = await supabase.rpc('match_chunks_hybrid', {
-            query_text: qStr,
-            query_embedding: zero as any,
-            match_count: Math.max(getTopK() * 6, 40),
-            similarity_threshold: 1.1,
-          });
-          mark('hybrid_rpc_ms', tRpc0);
-          rows = (!error && Array.isArray(data)) ? (data as any[]) : [];
-          if (error) console.warn('[rag.query:rpc_error_fallback]', error.message || error);
-        }
-        for (const r of rows) {
-          const key = `${r.source_name || ''}::${String(r.text).slice(0, 64)}`;
-          const prev = aggScores.get(key)?.score ?? -Infinity;
-          const score = Number(r.score ?? 0);
-          if (score > prev) aggScores.set(key, { v: { text: r.text, metadata: {
-            document_id: r.document_id,
-            file: r.file,
-            source_name: r.source_name,
-            source_type: r.source_type,
-            role: r.role,
-            tech: r.tech,
-            org: r.org,
-            product: r.product,
-            domain: r.domain,
-            kpis: r.kpis,
-            aliases: r.aliases,
-            link: r.link,
-            date: r.date,
-          } }, score });
-        }
-      } else {
-        const vec = await embedQuery(qStr);
+          const rows = (!error && Array.isArray(data)) ? (data as any[]) : [];
+          for (const r of rows) {
+            const key = `${r.source_name || ''}::${String(r.text).slice(0, 64)}`;
+            const prev = aggScores.get(key)?.score ?? -Infinity;
+            const score = Number(r.score ?? 0);
+            if (score > prev) aggScores.set(key, { v: { text: r.text, metadata: {
+              document_id: r.document_id,
+              file: r.file,
+              source_name: r.source_name,
+              source_type: r.source_type,
+              role: r.role,
+              tech: r.tech,
+              org: r.org,
+              product: r.product,
+              domain: r.domain,
+              kpis: r.kpis,
+              aliases: r.aliases,
+              link: r.link,
+              date: r.date,
+            } }, score });
+          }
+        })
+      );
+    } else {
+      for (const qStr of expansions) {
+        const vec = await embedQueryCached(qStr);
         const partial = rankBySimilarity(vec, index!.vectors).slice(0, Math.max(getTopK() * 6, 40));
         for (const r of partial) {
           const key = `${r.v.metadata?.source_name || ''}::${r.v.text.slice(0, 64)}`;
