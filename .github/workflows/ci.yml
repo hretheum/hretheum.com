@@ -4,6 +4,18 @@ on:
   push:
     branches: [ main, master ]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      run_full_intents:
+        description: "Run full intent evaluation (uses model tokens)"
+        required: false
+        default: false
+        type: boolean
+      run_smoke:
+        description: "Run smoke tests (build + start + queries; uses tokens)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   intents:
@@ -23,7 +35,7 @@ jobs:
         run: npm ci
       # Cheap sanity by default (no tokens): run always with CI_DRY_INTENTS=1
       - name: Run intent eval (dry-run)
-        if: ${{ !(env.OPENAI != '' || env.GATEWAY != '') }}
+        if: ${{ ! (github.event_name == 'workflow_dispatch' && fromJSON(inputs.run_full_intents || 'false') ) }}
         env:
           CI_DRY_INTENTS: '1'
           NEXT_TELEMETRY_DISABLED: '1'
@@ -31,7 +43,7 @@ jobs:
 
       # Full eval only when keys exist
       - name: Run intent eval (full)
-        if: ${{ env.OPENAI != '' || env.GATEWAY != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && fromJSON(inputs.run_full_intents || 'false') && (env.OPENAI != '' || env.GATEWAY != '') }}
         env:
           OPENAI_API_KEY: ${{ env.OPENAI }}
           AI_GATEWAY_API_KEY: ${{ env.GATEWAY }}
@@ -59,7 +71,7 @@ jobs:
       - name: Build app
         run: npm run build
       - name: Start server
-        if: ${{ env.SUPA_URL != '' && env.SUPA_ANON != '' && (env.OPENAI != '' || env.GATEWAY != '') }}
+        if: ${{ github.event_name == 'workflow_dispatch' && fromJSON(inputs.run_smoke || 'false') && env.SUPA_URL != '' && env.SUPA_ANON != '' && (env.OPENAI != '' || env.GATEWAY != '') }}
         env:
           NODE_ENV: production
           RAG_STORE: supabase
@@ -71,7 +83,7 @@ jobs:
           nohup npm run start &
           npx wait-on http://localhost:3000
       - name: Run smoke queries
-        if: ${{ env.SUPA_URL != '' && env.SUPA_ANON != '' && (env.OPENAI != '' || env.GATEWAY != '') }}
+        if: ${{ github.event_name == 'workflow_dispatch' && fromJSON(inputs.run_smoke || 'false') && env.SUPA_URL != '' && env.SUPA_ANON != '' && (env.OPENAI != '' || env.GATEWAY != '') }}
         env:
           SMOKE_ENDPOINT: http://localhost:3000/api/rag/query?stream=0
         run: npx tsx scripts/smoke_queries.ts
