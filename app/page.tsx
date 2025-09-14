@@ -9,6 +9,7 @@ import LeadershipPage from './components/LeadershipPage';
 import AIBuilderPage from './components/AIBuilderPage';
 import OtherProjectsPage from './components/OtherProjectsPage';
 import ClosingPage from './components/ClosingPage';
+import RagChat from './components/RagChat';
 
 export default function Home() {
   useEffect(() => {
@@ -54,6 +55,8 @@ export default function Home() {
         <div data-section="other-projects"><OtherProjectsPage /></div>
         <div data-section="closing"><ClosingPage /></div>
       </div>
+      {/* Sticky chat overlay */}
+      <RagChat />
     </div>
   );
 }

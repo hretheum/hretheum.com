@@ -108,7 +108,7 @@ export default function CaseStudiesPage() {
         </div>
 
         {/* Big outcome statement */}
-        <div className="mt-16 bg-purple-600 text-white p-12 text-center">
+        <div className="mt-16 bg-purple-600 text-white p-12 text-center -mx-6 md:mx-0">
           <div className="text-3xl md:text-4xl font-black">
             MEASURABLE IMPACT:<br/>
             IMPROVED ADOPTION • REDUCED COSTS • HIGHER SUCCESS RATES

@@ -1,0 +1,201 @@
+Jak definiujesz problem projektowy?,retrieval_core.competencies
+How do you structure a rapid usability test under time pressure?,retrieval_core.competencies
+Jak zapewniasz dostępność WCAG w codziennej pracy?,retrieval_core.competencies
+Jak budujesz zaufanie w zespole?,retrieval_core.leadership
+Opisz sytuację konfliktu i jak ją rozwiązałeś,retrieval_core.leadership
+How do you grow juniors vs seniors?,retrieval_core.leadership
+Jak wyglądał Twój ostatni zespół i Twój zakres?,retrieval_core.experience
+Współpraca z product managerami co działało co nie?,retrieval_core.experience
+Which KPIs did you directly influence?,retrieval_core.experience
+Który projekt w portfolio najlepiej pokazuje Twoje umiejętności i dlaczego?,retrieval_core.case_study
+Jak mierzyłeś sukces projektu i jakie były wyniki?,retrieval_core.case_study
+Describe the hardest trade-off you made in this case,retrieval_core.case_study
+Jak definiujesz MVP w warunkach niepewności?,retrieval_core.product_sense
+What would you change in our product and why?,retrieval_core.product_sense
+Jak rozumiesz north star metric dla tego produktu?,retrieval_core.product_sense
+Jak planujesz sprint badawczy i dobierasz metody?,retrieval_core.research_process
+How do you structure interviews to avoid bias?,retrieval_core.research_process
+W jaki sposób dokumentujesz i udostępniasz insighty?,retrieval_core.research_process
+Jak utrzymujesz spójność designu w wielu produktach?,retrieval_core.design_systems
+Opisz wasz system design tokens i governance,retrieval_core.design_systems
+How did you integrate Storybook with the DS?,retrieval_core.design_systems
+Jak weryfikujesz czy design przynosi ROI?,retrieval_core.metrics_experiments
+Describe your last A/B test and learnings,retrieval_core.metrics_experiments
+Jakie metryki były kluczowe dla decyzji produktowych?,retrieval_core.metrics_experiments
+Jak przekonywałeś interesariuszy do inwestycji w UX?,retrieval_core.stakeholder_mgmt
+Tell me about a time you aligned conflicting stakeholders,retrieval_core.stakeholder_mgmt
+Jak dokumentujesz decyzje i rationale?,retrieval_core.stakeholder_mgmt
+Jak korzystasz z Figmy w zespole na co dzień?,retrieval_core.tools_automation
+How do you automate routine design ops?,retrieval_core.tools_automation
+Jak dokumentujesz proces w Notion lub Confluence?,retrieval_core.tools_automation
+W jakim obszarze jesteś najsilniejszy?,role_fit.skill_verification
+How do you handle high-fidelity prototyping?,role_fit.skill_verification
+Jak radzisz sobie z analityką danych?,role_fit.skill_verification
+Jak oceniasz konkurencję w naszej domenie?,role_fit.domain_expertise
+Doświadczenie w betting i trading kluczowe wyzwania?,role_fit.domain_expertise
+How would you adapt to strictly regulated markets?,role_fit.domain_expertise
+Co Cię napędza do pracy?,role_fit.fit_assessment
+Jak opisałbyś swój styl pracy w zespole?,role_fit.fit_assessment
+What kind of team culture helps you thrive?,role_fit.fit_assessment
+Opowiedz o porażce i czego Cię nauczyła,role_fit.behavioral
+Tell me about an unpopular decision you stood by,role_fit.behavioral
+Jak wyciągasz lekcje z błędów?,role_fit.behavioral
+Od kiedy możesz zacząć?,logistics.availability
+Jaki masz okres wypowiedzenia?,logistics.availability
+When are you available for next steps?,logistics.availability
+Preferujesz pracę zdalną czy hybrydową?,logistics.location_remote
+Are time zone overlaps a problem for you?,logistics.location_remote
+Jak często bywasz w biurze?,logistics.location_remote
+Jakie masz oczekiwania finansowe?,logistics.compensation
+B2B czy UoP co preferujesz i dlaczego?,logistics.compensation
+What range are you targeting?,logistics.compensation
+Kiedy pasują Ci kolejne etapy?,logistics.scheduling
+Proszę o 3 propozycje terminów,logistics.scheduling
+Can we schedule a 45-min portfolio deep-dive?,logistics.scheduling
+Czy rozważasz relokację?,logistics.visa_relocation_travel
+Do you require visa sponsorship?,logistics.visa_relocation_travel
+Jak podchodzisz do podróży służbowych?,logistics.visa_relocation_travel
+Jak wygląda proces rekrutacji?,process.hiring_process
+Kiedy mogę spodziewać się decyzji i feedbacku?,process.hiring_process
+Will there be a live exercise?,process.hiring_process
+Czy będzie zadanie domowe?,process.assignment_brief
+What are the evaluation criteria?,process.assignment_brief
+Jaki jest zakres i deadline zadania?,process.assignment_brief
+Proszę o portfolio lub deck case studies,assets.assets_request
+Can you share a condensed case deck?,assets.assets_request
+Masz referencje od poprzednich pracodawców?,assets.assets_request
+Czy możesz udostępnić prototyp Figmy?,assets.code_or_design_files
+Link do Storybooka albo repo?,assets.code_or_design_files
+Masz wersję high-fidelity do pokazania?,assets.code_or_design_files
+Czy podpiszemy NDA przed zagłębieniem w case?,compliance.nda_privacy
+Does your case reveal any confidential data?,compliance.nda_privacy
+Jak anonimizujesz materiały w portfolio?,compliance.nda_privacy
+Kto jest właścicielem IP w projektach?,compliance.data_processing_ip
+How do you ensure GDPR compliance in research?,compliance.data_processing_ip
+Do you separate PII in your repositories?,compliance.data_processing_ip
+Jak zapewniasz zgodność z WCAG?,compliance.accessibility_compliance
+Do you run accessibility audits?,compliance.accessibility_compliance
+Jakie narzędzia używasz do audytu?,compliance.accessibility_compliance
+Możesz doprecyzować pytanie?,conversational.clarification
+What do you mean by impact?,conversational.clarification
+Czy chodzi o projekt X czy Y?,conversational.clarification
+Jak minął dzień?,conversational.smalltalk
+Great to finally meet you,conversational.smalltalk
+Zanim zaczniemy kawa czy herbata?,conversational.smalltalk
+Wolisz krótkie odpowiedzi czy dłuższe przykłady?,conversational.rapport_meta
+Can I sketch a quick diagram?,conversational.rapport_meta
+Czy mogę wrócić do tego wątku później?,conversational.rapport_meta
+Opisz kolor żółty osobie niewidomej,conversational.curveballs_creative
+Jak zaprojektujesz budzik dla niesłyszących?,conversational.curveballs_creative
+Which three apps would you kill and why?,conversational.curveballs_creative
+retrieval core competencies wolisz heuristics czy usability testing,retrieval_core.competencies
+Jak testujesz prototypy low fidelity,retrieval_core.competencies
+How do you define success criteria for usability tests,retrieval_core.competencies
+Jak dobierasz metody badawcze do problemu,retrieval_core.competencies
+Jak weryfikujesz hipotezy badawcze na szybko,retrieval_core.competencies
+Opowiedz najtrudniejsze case study i decyzje trade off,retrieval_core.case_study
+Jak wyglądał proces research w tym projekcie,retrieval_core.case_study
+What outcomes did you achieve in the case study,retrieval_core.case_study
+Jak zebrałeś feedback interesariuszy w tym case,retrieval_core.case_study
+How would you revisit this case today,retrieval_core.case_study
+Jak rozwijasz juniorów w zespole,retrieval_core.leadership
+How do you coach seniors without micromanagement,retrieval_core.leadership
+Jak wprowadzasz kulturę feedbacku 360,retrieval_core.leadership
+How do you resolve conflicts between designers and PMs,retrieval_core.leadership
+Jak skalujesz praktykę designu w organizacji,retrieval_core.leadership
+Opisz ostatni skład zespołu i Twoją rolę,retrieval_core.experience
+How did you collaborate with engineering leads,retrieval_core.experience
+Jak dokumentowałeś decyzje projektowe,retrieval_core.experience
+What was the biggest challenge in a distributed team,retrieval_core.experience
+Jakie KPI były pod Twoją kontrolą,retrieval_core.experience
+Jak priorytetyzujesz backlog przez impact i effort,retrieval_core.product_sense
+How would you define MVP under uncertainty,retrieval_core.product_sense
+Jak ustalasz north star metric dla produktu,retrieval_core.product_sense
+What is your approach to value proposition testing,retrieval_core.product_sense
+Jakie kompromisy akwizycja vs retencja widzisz,retrieval_core.product_sense
+Jak planujesz sprint badawczy tydzień po tygodniu,retrieval_core.research_process
+How do you prevent interview bias in practice,retrieval_core.research_process
+Jak udostępniasz insighty zespołowi produktowemu,retrieval_core.research_process
+How do you make research actionable for engineers,retrieval_core.research_process
+Jak działasz gdy brakuje danych wejściowych,retrieval_core.research_process
+Jak utrzymujesz spójność w wielu brandach,retrieval_core.design_systems
+How do you govern design tokens at scale,retrieval_core.design_systems
+Jak integrujesz Storybook z systemem designu,retrieval_core.design_systems
+What is your stance on semantic tokens,retrieval_core.design_systems
+Jak rozwiązujesz konflikty wersji bibliotek,retrieval_core.design_systems
+Jak liczysz ROI designu na podstawie metryk,retrieval_core.metrics_experiments
+Describe an A B test that failed and why,retrieval_core.metrics_experiments
+Jak łączysz dane ilościowe i jakościowe,retrieval_core.metrics_experiments
+How do you prevent metric gaming,retrieval_core.metrics_experiments
+Jakie metryki decydowały o decyzji produktowej,retrieval_core.metrics_experiments
+Jak przekonywałeś zarząd do inwestycji w UX,retrieval_core.stakeholder_mgmt
+Tell me about aligning conflicting stakeholders,retrieval_core.stakeholder_mgmt
+Jak eskalujesz temat gdy rekomendacje są ignorowane,retrieval_core.stakeholder_mgmt
+How do you document decisions and rationale,retrieval_core.stakeholder_mgmt
+Jak komunikujesz ryzyko do leadershipu,retrieval_core.stakeholder_mgmt
+Jak korzystasz z Figmy w codziennym workflow,retrieval_core.tools_automation
+What AI tools saved you time in design ops,retrieval_core.tools_automation
+Jak automatyzujesz rutynowe zadania w design ops,retrieval_core.tools_automation
+How do you document process in Notion effectively,retrieval_core.tools_automation
+Jak budujesz przepływ Figmy z repozytorium,retrieval_core.tools_automation
+W jakim obszarze jesteś najmocniejszy technicznie,role_fit.skill_verification
+How comfortable are you with metrics driven design,role_fit.skill_verification
+Jak radzisz sobie z prototypowaniem high fidelity,role_fit.skill_verification
+Opisz swoją ekspercką domenę i ograniczenia rynku,role_fit.domain_expertise
+How would you approach a strictly regulated market,role_fit.domain_expertise
+Jak oceniasz konkurencję i pozycjonowanie,role_fit.domain_expertise
+Co Cię najbardziej motywuje w pracy,role_fit.fit_assessment
+Jak opisałbyś swój styl pracy w zespole,role_fit.fit_assessment
+Jak łączysz strategię i egzekucję,role_fit.fit_assessment
+Opowiedz o porażce i wnioskach z niej,role_fit.behavioral
+Tell me about a time you had to escalate,role_fit.behavioral
+Jak radzisz sobie z presją czasu,role_fit.behavioral
+Od kiedy możesz zacząć współpracę,logistics.availability
+Jaki masz okres wypowiedzenia obecnie,logistics.availability
+When could you start next steps,logistics.availability
+Preferujesz tryb remote czy hybrydowy,logistics.location_remote
+Are time zones an issue for collaboration,logistics.location_remote
+Jak często pojawiasz się w biurze,logistics.location_remote
+Jakie masz oczekiwania finansowe widełki,logistics.compensation
+What compensation range do you target,logistics.compensation
+Wolisz B2B czy UoP i dlaczego,logistics.compensation
+Kiedy pasują Ci kolejne spotkania,logistics.scheduling
+Podaj trzy terminy na rozmowę,logistics.scheduling
+Can we book a forty five minute deep dive,logistics.scheduling
+Czy rozważasz relokację w przyszłości,logistics.visa_relocation_travel
+Do you require visa sponsorship now,logistics.visa_relocation_travel
+Jak podchodzisz do podróży służbowych często,logistics.visa_relocation_travel
+Jak wygląda proces rekrutacji w Twojej ocenie,process.hiring_process
+Kiedy spodziewasz się decyzji i feedbacku,process.hiring_process
+Will there be a live exercise in the process,process.hiring_process
+Czy będzie zadanie domowe i jaki zakres,process.assignment_brief
+What are the assignment evaluation criteria,process.assignment_brief
+Jaki jest deadline zadania i wymogi,process.assignment_brief
+Proszę o portfolio lub case deck,assets.assets_request
+Can you share a short case deck,assets.assets_request
+Masz referencje od poprzednich pracodawców,assets.assets_request
+Czy możesz udostępnić prototyp Figma,assets.code_or_design_files
+Link do Storybooka albo repozytorium,assets.code_or_design_files
+Masz wersję high fidelity do pokazania,assets.code_or_design_files
+Czy podpiszemy NDA przed szczegółami case,compliance.nda_privacy
+Does your case reveal confidential data,compliance.nda_privacy
+Jak anonimizujesz materiały w portfolio teraz,compliance.nda_privacy
+Kto jest właścicielem IP w projekcie,compliance.data_processing_ip
+How do you ensure GDPR compliance in research,compliance.data_processing_ip
+Czy separujesz PII w repozytoriach,compliance.data_processing_ip
+Jak zapewniasz zgodność z WCAG w praktyce,compliance.accessibility_compliance
+Do you run accessibility audits regularly,compliance.accessibility_compliance
+Jakich narzędzi używasz do audytu dostępności,compliance.accessibility_compliance
+Możesz doprecyzować o co dokładnie pytasz,conversational.clarification
+What do you mean by impact in this context,conversational.clarification
+Czy mówimy o projekcie X czy Y,conversational.clarification
+Jak minął Twój dzień dzisiaj,conversational.smalltalk
+Miło Cię poznać,conversational.smalltalk
+Zanim zaczniemy kawa czy herbata,conversational.smalltalk
+Wolisz szybkie odpowiedzi czy dłuższe przykłady,conversational.rapport_meta
+Can I share a quick diagram,conversational.rapport_meta
+Czy mogę wrócić do tego wątku później proszę,conversational.rapport_meta
+Opisz kolor niebieski osobie niewidomej,conversational.curveballs_creative
+Jak zaprojektujesz onboarding astronauty,conversational.curveballs_creative
+What emoji best describe you and why,conversational.curveballs_creative
+<!-- CASCADE_APPEND_TARGET -->
