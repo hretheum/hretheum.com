@@ -8,7 +8,6 @@ on:
 jobs:
   intents:
     name: Intent Evaluation
-    if: ${{ secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,7 +18,17 @@ jobs:
           node-version: '22'
       - name: Install deps
         run: npm ci
-      - name: Run intent eval
+      # Cheap sanity by default (no tokens): run always with CI_DRY_INTENTS=1
+      - name: Run intent eval (dry-run)
+        if: ${{ !(secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '') }}
+        env:
+          CI_DRY_INTENTS: '1'
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npx tsx scripts/eval_intents.ts tests/intent_eval.csv
+
+      # Full eval only when keys exist
+      - name: Run intent eval (full)
+        if: ${{ secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '' }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
@@ -28,7 +37,6 @@ jobs:
 
   smoke:
     name: Smoke RAG Endpoint
-    if: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && (secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -37,12 +45,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Install deps
         run: npm ci
       - name: Build app
         run: npm run build
       - name: Start server
+        if: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && (secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '') }}
         env:
           NODE_ENV: production
           RAG_STORE: supabase
@@ -54,6 +63,7 @@ jobs:
           nohup npm run start &
           npx wait-on http://localhost:3000
       - name: Run smoke queries
+        if: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && (secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '') }}
         env:
           SMOKE_ENDPOINT: http://localhost:3000/api/rag/query?stream=0
         run: npx tsx scripts/smoke_queries.ts

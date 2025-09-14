@@ -63,6 +63,13 @@ async function main() {
     process.exit(1);
   }
 
+  // Dry-run mode: do not call any model/provider; print basic info and exit 0
+  if (process.env.CI_DRY_INTENTS === '1') {
+    const intents = Array.from(new Set(rows.map((r) => r.expected))).sort();
+    console.log(JSON.stringify({ dryRun: true, total: rows.length, uniqueIntents: intents.length, intents }, null, 2));
+    return;
+  }
+
   const labels = new Set<string>();
   rows.forEach((r) => labels.add(r.expected));
 
