@@ -293,6 +293,72 @@ This section describes how to run and interpret the intent classifier evaluation
 - Frequent `clarification` predictions → consider threshold tuning (Section 18.3) or add examples near decision boundaries
 
 <!-- CASCADE_APPEND_TARGET -->
+## 22. Runtime Environment Summary
+
+Runtime variables used by `app/api/rag/query/route.ts`:
+
+- `RAG_STORE` — `supabase | json`. Selects retrieval backend.
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon client for Supabase.
+- `OPENAI_API_KEY` or `AI_GATEWAY_API_KEY` — embeddings and generation.
+- `RAG_VEC_K` — shortlist size for two-stage hybrid (default 120; prod 100).
+- `RAG_MATCH_COUNT` — rows returned per RPC (default 30; prod 30).
+- `RAG_EXPANSIONS` — number of query expansions (default 3; prod 2).
+
+Operational behaviors:
+
+- PRF seed (lexical-only) is skipped if `prf_seed_ms > 500ms` to avoid latency spikes.
+- RPC requests for expansions run in parallel; embeddings cached with a 50-entry LRU.
+
+## 23. Supabase RPC (Schema)
+
+Functions (inline `to_tsvector`, no `tsv` column required; avoid memory errors):
+
+- `match_chunks_hybrid(text, vector(1536), int, float)`
+- `match_chunks_hybrid_two_stage(text, vector(1536), int, int, float)`
+
+Security setup:
+
+- `grant execute on function ... to anon, authenticated` for both functions.
+- RLS SELECT policies on `public.documents`, `public.chunks` for `anon, authenticated`.
+
+Troubleshooting:
+
+- `stack depth limit exceeded` → ensure wrappers `(text, vector, ...)` do not exist; keep only `vector(1536)` signatures.
+- `maintenance_work_mem` on `ALTER TABLE ... ADD COLUMN tsv` → not needed; we use inline `to_tsvector` in SQL.
+
+## 24. Incident Log (Intent & Vector Search)
+
+Key incidents and resolutions:
+
+1) Intent routing thresholding
+   - Symptom: borderline intents → noisy routing.
+   - Fix: stabilized threshold at `INTENT_THRESHOLD=0.44`, added LLM adjudication when top-2 close (<10%).
+   - Result: MacroF1 ~0.70–0.71 on `tests/intent_eval.csv`.
+
+2) Supabase recursion crash
+   - Symptom: `stack depth limit exceeded` in SQL Editor.
+   - Cause: wrapper functions `(text, vector, ...)` calling themselves (signature resolution).
+   - Fix: drop wrappers; keep only `(vector(1536))`; re-grant EXECUTE.
+
+3) Memory limits on generated tsv column
+   - Symptom: `maintenance_work_mem` errors on `ADD COLUMN ... tsv tsvector generated always`.
+   - Fix: switched to inline `to_tsvector('simple', text)` in RPC; no column/index needed for MVP.
+
+4) Latency spikes & timeouts in SQL Editor
+   - Symptom: timeouts / connection terminated.
+   - Fixes: REST testing for RPC; later stable execution in app with anon client.
+
+5) End-to-end latency tuning
+   - Actions: ENV-tunable `RAG_VEC_K`, `RAG_MATCH_COUNT`, `RAG_EXPANSIONS`; PRF skip >500ms; parallel RPC; LRU for embeddings.
+   - Result (smoke): p95 spadł z ~7.3s → ~5.2s; `hybrid_rpc_ms` ~<1s na ciepło.
+
+Links:
+
+- `docs/ARCHITECTURE_CHAT.md` — overview and diagrams.
+- `docs/playbooks/RETRIEVAL_PLAYBOOK.md` — boosts, expansions, MMR.
+- `docs/playbooks/VALIDATION_PLAYBOOK.md` — smoke & eval.
+- `docs/playbooks/GATEWAY_PLAYBOOK.md` — model/gateway config.
+
 ## 20. Observability (Telemetry)
 
 The query route `app/api/rag/query/route.ts` emits structured logs for intent and performance diagnostics.

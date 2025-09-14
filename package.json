@@ -9,7 +9,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "ingest": "npx tsx scripts/rag_ingest.ts",
+    "ingest:supabase": "RAG_STORE=supabase npx tsx scripts/rag_ingest.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.14",
