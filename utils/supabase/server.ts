@@ -8,7 +8,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export async function createClient(): Promise<SupabaseClient> {
-  const cookieStore = cookies();
+  // In Next 15, cookies() may return a Promise in some server contexts (e.g., Server Actions)
+  const cookieStore: any = await (cookies() as any);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -19,15 +20,27 @@ export async function createClient(): Promise<SupabaseClient> {
   const client = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value;
+        try {
+          return cookieStore?.get?.(name)?.value;
+        } catch {
+          return undefined;
+        }
       },
       set(name: string, value: string, options: CookieOptions) {
-        // Mutating cookies is supported in Server Components on Next 15
-        // If you hit a constraint in older Next versions, move this to a Route Handler or Server Action.
-        cookieStore.set({ name, value, ...options });
+        try {
+          // Mutating cookies is supported in Server Components on Next 15.
+          // In unsupported contexts, no-op.
+          cookieStore?.set?.({ name, value, ...options });
+        } catch {
+          /* no-op */
+        }
       },
       remove(name: string, options: CookieOptions) {
-        cookieStore.set({ name, value: '', ...options, maxAge: 0 });
+        try {
+          cookieStore?.set?.({ name, value: '', ...options, maxAge: 0 });
+        } catch {
+          /* no-op */
+        }
       },
     },
   });
