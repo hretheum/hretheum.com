@@ -8,6 +8,7 @@ on:
 jobs:
   intents:
     name: Intent Evaluation
+    if: ${{ secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,6 +28,7 @@ jobs:
 
   smoke:
     name: Smoke RAG Endpoint
+    if: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && (secrets.OPENAI_API_KEY != '' || secrets.AI_GATEWAY_API_KEY != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
