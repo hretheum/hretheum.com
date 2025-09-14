@@ -207,7 +207,7 @@ export default function RagChat() {
             <div ref={listRef} className="max-h-56 sm:max-h-60 overflow-y-auto p-2 sm:p-2.5 space-y-3">
               {messages.length === 0 && (
                 <div className="text-sm text-gray-500">
-                  Ask about competencies, experience, leadership approach, or case studies. I will cite sources from the portfolio.
+                  Ask about competencies, experience, leadership approach, or case studies.
                 </div>
               )}
               {messages.map((m, idx) => (
@@ -239,31 +239,7 @@ export default function RagChat() {
                     ) : (
                       <div className="whitespace-pre-wrap">{m.content}</div>
                     )}
-                    {m.role === 'assistant' && m.citations && m.citations.length > 0 && (
-                      <div className="mt-2 border-t border-gray-200 pt-2 text-xs text-gray-700">
-                        <div className="font-medium text-gray-700">Sources</div>
-                        <ul className="mt-1 list-disc pl-4 space-y-1">
-                          {m.citations.map((c, i) => {
-                            const clean = c.quote.replace(/\*\*|__|#+|\*|`|>+/g, '').replace(/\s+/g, ' ').trim();
-                            const truncated = clean.length > 180 ? clean.slice(0, 177) + '…' : clean;
-                            return (
-                              <li key={i}>
-                                <span className="italic">“{truncated}”</span>
-                                <span className="text-[11px] text-gray-500"> — <span className="font-medium text-gray-700">{c.source_name}</span></span>
-                                {c.link && (
-                                  <>
-                                    {' '}
-                                    <a className="text-indigo-600 hover:underline" href={c.link} target="_blank" rel="noreferrer">
-                                      link
-                                    </a>
-                                  </>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
+                    {/* Sources/citations UI removed per product decision */}
                   </div>
                 </div>
               ))}
