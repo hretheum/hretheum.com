@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 import {
   buildAnswerPrompt,
@@ -50,6 +51,44 @@ export async function POST(req: NextRequest) {
         { error: 'Invalid message' },
         { status: 400 }
       );
+    }
+
+    // Prepare session and meta; best-effort logging to Supabase chat_events
+    const cookieStore: any = await (cookies() as any);
+    let sessionId = cookieStore?.get?.('chat_session_id')?.value as string | undefined;
+    if (!sessionId) {
+      try {
+        sessionId = (globalThis as any).crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+        cookieStore?.set?.({ name: 'chat_session_id', value: sessionId, httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 365 });
+      } catch {}
+    }
+    const ua = req.headers.get('user-agent') || '';
+    const referer = req.headers.get('referer') || '';
+    const fwd = req.headers.get('x-forwarded-for') || '';
+    const ip = fwd.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '';
+
+    // Insert initial chat_event (user_message)
+    const logUseSupabase = process.env.RAG_STORE === 'supabase';
+    let chatEventId: string | null = null;
+    if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      try {
+        const supabase = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { persistSession: false } }
+        );
+        const { data, error } = await supabase
+          .from('chat_events')
+          .insert({
+            session_id: sessionId || null,
+            type: 'user_message',
+            message: message,
+            meta: { user_agent: ua, referer, ip },
+          })
+          .select('id')
+          .single();
+        if (!error && data?.id) chatEventId = String(data.id);
+      } catch {}
     }
 
     // Load index only in JSON mode (fallback). Supabase mode queries remotely.
@@ -244,10 +283,23 @@ export async function POST(req: NextRequest) {
         confidence: Number(intentRes.confidence.toFixed(3)),
         note: 'low-confidence',
       });
+      // best-effort logging update for low-confidence
+      if (chatEventId && logUseSupabase) {
+        try {
+          const supabase = createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            { auth: { persistSession: false } }
+          );
+          await supabase
+            .from('chat_events')
+            .update({ intent: intentId, confidence: intentRes.confidence, meta: { lowConfidence: true } })
+            .eq('id', chatEventId);
+        } catch {}
+      }
       return NextResponse.json({
         answer:
           "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?",
-        citations: [],
         intent: { id: intentId, confidence: intentRes.confidence },
       });
     }
@@ -410,6 +462,25 @@ export async function POST(req: NextRequest) {
         total_ms: Date.now() - tStart,
         pool_size: filtered.length,
       });
+      // best-effort: update chat_events with final intent, confidence, timings and meta
+      if (chatEventId && logUseSupabase) {
+        try {
+          const supabase = createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            { auth: { persistSession: false } }
+          );
+          await supabase
+            .from('chat_events')
+            .update({
+              intent: intentId,
+              confidence: intentRes.confidence,
+              timings,
+              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1 },
+            })
+            .eq('id', chatEventId);
+        } catch {}
+      }
       return new Response(rs, {
         headers: {
           'Content-Type': 'text/event-stream; charset=utf-8',
@@ -436,6 +507,25 @@ export async function POST(req: NextRequest) {
         total_ms: Date.now() - tStart,
         pool_size: filtered.length,
       });
+      // best-effort: update chat_events with final intent, confidence, timings and meta
+      if (chatEventId && logUseSupabase) {
+        try {
+          const supabase = createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            { auth: { persistSession: false } }
+          );
+          await supabase
+            .from('chat_events')
+            .update({
+              intent: intentId,
+              confidence: intentRes.confidence,
+              timings,
+              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1 },
+            })
+            .eq('id', chatEventId);
+        } catch {}
+      }
       return NextResponse.json(returnCitations ? { answer, intent: { id: intentId, confidence: intentRes.confidence }, citations } : { answer, intent: { id: intentId, confidence: intentRes.confidence } });
     }
   } catch (err: any) {
