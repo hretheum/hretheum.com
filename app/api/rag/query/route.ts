@@ -364,6 +364,7 @@ export async function POST(req: NextRequest) {
     // If SSE streaming requested, stream tokens
     const url = new URL(req.url);
     const wantsSSE = url.searchParams.get('stream') === '1' || (req.headers.get('accept') || '').includes('text/event-stream');
+    const returnCitations = String(process.env.RAG_RETURN_CITATIONS || '').toLowerCase() === 'true' || process.env.RAG_RETURN_CITATIONS === '1';
     if (wantsSSE) {
       const client = getOpenAIClientLocal();
       const model = process.env.AI_MODEL_GENERATION || 'gpt-4o-mini';
@@ -386,8 +387,9 @@ export async function POST(req: NextRequest) {
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'token', token })}\n\n`));
               }
             }
-            // final meta
-            const meta = { type: 'done', citations, intent: { id: intentId, confidence: intentRes.confidence }, lowConfidence };
+            // final meta — include citations only if feature flag enabled
+            const meta: any = { type: 'done', intent: { id: intentId, confidence: intentRes.confidence }, lowConfidence };
+            if (returnCitations) meta.citations = citations;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(meta)}\n\n`));
             controller.close();
           })().catch((err) => controller.error(err));
@@ -434,12 +436,13 @@ export async function POST(req: NextRequest) {
         total_ms: Date.now() - tStart,
         pool_size: filtered.length,
       });
-      return NextResponse.json({ answer, citations, intent: { id: intentId, confidence: intentRes.confidence } });
+      return NextResponse.json(returnCitations ? { answer, intent: { id: intentId, confidence: intentRes.confidence }, citations } : { answer, intent: { id: intentId, confidence: intentRes.confidence } });
     }
   } catch (err: any) {
     console.error('[rag.query:error]', err?.message || err);
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
   }
+
 }
 
 // --- Helpers ---

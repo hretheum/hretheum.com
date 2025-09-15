@@ -19,11 +19,11 @@ npm run dev
 ```
 
 ## Smoke Tests
-Validate the query endpoint end‑to‑end and print latency/intent/citations.
+Validate the query endpoint end‑to‑end and print latency and intent.
 
 ```bash
 npx tsx scripts/smoke_queries.ts
-# Output: [status] <latency>ms | intent=<id> (<conf>) | citations=<N> | <query>
+# Output: [status] <latency>ms | intent=<id> (<conf>) | <query>
 ```
 
 Optional:
@@ -47,6 +47,7 @@ Runtime (query route `app/api/rag/query/route.ts`):
 - `RAG_VEC_K` — shortlist size for two‑stage hybrid (default 120; recommended 100)
 - `RAG_MATCH_COUNT` — rows per RPC (default 30)
 - `RAG_EXPANSIONS` — number of query expansions (default 3; recommended 2)
+- `RAG_RETURN_CITATIONS` — `true|false` (default false). When true, API responses include `citations`; UI can consume them if desired. By default, citations are logged only in server telemetry and Sources UI is hidden.
 
 Ingest only (service role; not used by runtime):
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
