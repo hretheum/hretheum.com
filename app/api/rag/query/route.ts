@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 import {
   buildAnswerPrompt,
@@ -14,6 +15,13 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
 import { rerankWithLLM } from '@/lib/intent/rerank';
 import type { IntentId } from '@/lib/intent/intents';
+
+// Helper: create Supabase client for server-side logging. Prefer Service Role to bypass RLS for write-only logs.
+function getSupabaseLoggingClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  return createSupabaseClient(url, key, { auth: { persistSession: false } });
+}
 
 // Simple in-process LRU cache for embeddings of expansions to reduce embed_ms
 const EMBED_LRU_CAP = 50;
@@ -50,6 +58,50 @@ export async function POST(req: NextRequest) {
         { error: 'Invalid message' },
         { status: 400 }
       );
+    }
+
+    // Prepare session and meta; best-effort logging to Supabase chat_events
+    const cookieStore: any = await (cookies() as any);
+    let sessionId = cookieStore?.get?.('chat_session_id')?.value as string | undefined;
+    if (!sessionId) {
+      try {
+        sessionId = (globalThis as any).crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+        cookieStore?.set?.({ name: 'chat_session_id', value: sessionId, httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 365 });
+      } catch {}
+    }
+    const ua = req.headers.get('user-agent') || '';
+    const referer = req.headers.get('referer') || '';
+    const fwd = req.headers.get('x-forwarded-for') || '';
+    const ip = fwd.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '';
+
+    // Insert initial chat_event (user_message)
+    const logUseSupabase = process.env.RAG_STORE === 'supabase';
+    let chatEventId: string | null = null;
+    if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+      try {
+        const supabase = getSupabaseLoggingClient();
+        const { data, error } = await supabase
+          .from('chat_events')
+          .insert({
+            session_id: sessionId || null,
+            type: 'user_message',
+            message: message,
+            meta: { user_agent: ua, referer, ip },
+          })
+          .select('id')
+          .single();
+        if (!error && data?.id) {
+          chatEventId = String(data.id);
+        } else if (process.env.NODE_ENV !== 'production') {
+          console.warn('[chat_events:insert]', { error: error?.message || error, data });
+        }
+      } catch {}
+    } else if (process.env.NODE_ENV !== 'production') {
+      console.warn('[chat_events:skip]', {
+        logUseSupabase,
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY || !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      });
     }
 
     // Load index only in JSON mode (fallback). Supabase mode queries remotely.
@@ -244,10 +296,32 @@ export async function POST(req: NextRequest) {
         confidence: Number(intentRes.confidence.toFixed(3)),
         note: 'low-confidence',
       });
+      // best-effort logging update for low-confidence
+      if (chatEventId && logUseSupabase) {
+        try {
+          const supabase = getSupabaseLoggingClient();
+          const { error } = await supabase
+            .from('chat_events')
+            .update({ intent: intentId, confidence: intentRes.confidence, meta: { lowConfidence: true } })
+            .eq('id', chatEventId);
+          if (error && process.env.NODE_ENV !== 'production') {
+            console.warn('[chat_events:update-lowconf]', { error: error.message || error });
+          }
+        } catch {}
+      }
+      const clarification =
+        "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?";
+      // also log assistant answer (best-effort)
+      if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+        try {
+          const supabase = getSupabaseLoggingClient();
+          await supabase
+            .from('chat_events')
+            .insert({ session_id: sessionId || null, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence });
+        } catch {}
+      }
       return NextResponse.json({
-        answer:
-          "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?",
-        citations: [],
+        answer: clarification,
         intent: { id: intentId, confidence: intentRes.confidence },
       });
     }
@@ -378,15 +452,26 @@ export async function POST(req: NextRequest) {
         ],
       });
       const encoder = new TextEncoder();
+      let answerBuffer = '';
       const rs = new ReadableStream<Uint8Array>({
         start(controller) {
           (async () => {
             for await (const part of stream) {
               const token = part.choices?.[0]?.delta?.content || '';
               if (token) {
+                answerBuffer += token;
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'token', token })}\n\n`));
               }
             }
+            // best-effort: log assistant full answer upon stream completion
+            try {
+              if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+                const supabase = getSupabaseLoggingClient();
+                await supabase
+                  .from('chat_events')
+                  .insert({ session_id: sessionId || null, type: 'assistant_answer', message: answerBuffer, intent: intentId, confidence: intentRes.confidence });
+              }
+            } catch {}
             // final meta — include citations only if feature flag enabled
             const meta: any = { type: 'done', intent: { id: intentId, confidence: intentRes.confidence }, lowConfidence };
             if (returnCitations) meta.citations = citations;
@@ -410,6 +495,25 @@ export async function POST(req: NextRequest) {
         total_ms: Date.now() - tStart,
         pool_size: filtered.length,
       });
+      // Note: timings/meta are updated on the user_message row (see update below).
+      // best-effort: update chat_events with final intent, confidence, timings and meta
+      if (chatEventId && logUseSupabase) {
+        try {
+          const supabase = getSupabaseLoggingClient();
+          const { error } = await supabase
+            .from('chat_events')
+            .update({
+              intent: intentId,
+              confidence: intentRes.confidence,
+              timings,
+              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1 },
+            })
+            .eq('id', chatEventId);
+          if (error && process.env.NODE_ENV !== 'production') {
+            console.warn('[chat_events:update-sse]', { error: error.message || error });
+          }
+        } catch {}
+      }
       return new Response(rs, {
         headers: {
           'Content-Type': 'text/event-stream; charset=utf-8',
@@ -436,6 +540,21 @@ export async function POST(req: NextRequest) {
         total_ms: Date.now() - tStart,
         pool_size: filtered.length,
       });
+      // best-effort: update chat_events with final intent, confidence, timings and meta
+      if (chatEventId && logUseSupabase) {
+        try {
+          const supabase = getSupabaseLoggingClient();
+          await supabase
+            .from('chat_events')
+            .update({
+              intent: intentId,
+              confidence: intentRes.confidence,
+              timings,
+              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1 },
+            })
+            .eq('id', chatEventId);
+        } catch {}
+      }
       return NextResponse.json(returnCitations ? { answer, intent: { id: intentId, confidence: intentRes.confidence }, citations } : { answer, intent: { id: intentId, confidence: intentRes.confidence } });
     }
   } catch (err: any) {
