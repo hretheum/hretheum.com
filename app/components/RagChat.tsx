@@ -18,6 +18,19 @@ export default function RagChat() {
   const tokenBufferRef = useRef<string>('');
   const flushTimerRef = useRef<number | null>(null);
   const pauseTimerRef = useRef<number | null>(null);
+  const gtmEnabled = (process.env.NEXT_PUBLIC_ENABLE_GTM ?? 'true') !== 'false';
+  const chatVariant = process.env.NEXT_PUBLIC_CHAT_VARIANT || 'default';
+
+  // Lightweight GTM dataLayer push helper (no PII)
+  function dlPush(payload: Record<string, any>) {
+    if (!gtmEnabled) return;
+    try {
+      // ensure event name present and push to dataLayer
+      if (!payload || !payload.event) return;
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      (window as any).dataLayer.push(payload);
+    } catch {}
+  }
 
   // Load minimized state from localStorage on mount
   useEffect(() => {
@@ -35,6 +48,26 @@ export default function RagChat() {
     try {
       window.localStorage.setItem('ragChatMinimized', minimized ? '1' : '0');
     } catch {}
+  }, [minimized]);
+
+  // Fire chat_open once per session when panel is first shown
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!gtmEnabled) return;
+    if (!minimized) {
+      try {
+        const key = 'ragChat_open_sent';
+        if (window.sessionStorage.getItem(key) !== '1') {
+          dlPush({
+            event: 'chat_interaction',
+            chat_action: 'chat_open',
+            chat_widget: 'custom-react',
+            chat_variant: chatVariant,
+          });
+          window.sessionStorage.setItem(key, '1');
+        }
+      } catch {}
+    }
   }, [minimized]);
 
   // Load input draft from localStorage on mount
@@ -83,6 +116,17 @@ export default function RagChat() {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+
+    // Telemetry: chat_message_sent (no message text)
+    try {
+      dlPush({
+        event: 'chat_interaction',
+        chat_action: 'chat_message_sent',
+        message_len: message.length,
+        chat_widget: 'custom-react',
+        chat_variant: chatVariant,
+      });
+    } catch {}
 
     setMessages((m) => [...m, { role: 'user', content: message }]);
     setDraft('');
@@ -197,7 +241,16 @@ export default function RagChat() {
             <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-600">
               <div className="font-medium text-gray-700">Eryk Assistant</div>
               <button
-                onClick={() => setMinimized(true)}
+                onClick={() => {
+                  // Telemetry: chat_close
+                  dlPush({
+                    event: 'chat_interaction',
+                    chat_action: 'chat_close',
+                    chat_widget: 'custom-react',
+                    chat_variant: chatVariant,
+                  });
+                  setMinimized(true);
+                }}
                 className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-600 hover:bg-gray-200"
                 title="Minimize"
                 aria-label="Minimize chat"

@@ -80,6 +80,8 @@ More details: `docs/CONVERSATIONAL_RAG.md` §22 and `docs/ARCHITECTURE_CHAT.md`.
   - `[rag.query:intent]` → `msg`, `intent`, `confidence`, `selectedCount`, `top1Boosted`
   - `[rag.query:telemetry]` → `embed_ms`, `prf_seed_ms`, `hybrid_rpc_ms`, `selection_mmr_ms`, `llm_answer_ms`, `total_ms`, `pool_size`
 
+- GTM/GA4 Chat Telemetry: see `docs/TELEMETRY_GTM_GA4.md`
+
 ## FAQ
 - 400 `Invalid input` from RPC? Ensure vectors are `vector(1536)` and payload JSON matches RPC signature.
 - `stack depth limit exceeded`? Remove wrapper functions on `(text, vector, ...)` and keep only `(vector(1536))` signatures.

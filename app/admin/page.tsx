@@ -4,6 +4,18 @@ import AdminSignIn from './parts/AdminSignIn';
 import AdminEventsTable from './parts/AdminEventsTable';
 import AdminSessionBridge from './parts/AdminSessionBridge';
 
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+};
+
 function isAllowed(email: string | null): boolean {
   if (!email) return false;
   const allow = (process.env.ADMIN_EMAILS || '')
