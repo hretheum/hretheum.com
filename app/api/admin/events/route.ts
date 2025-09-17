@@ -44,22 +44,57 @@ export async function GET(req: NextRequest) {
     const sessionId = searchParams.get('session_id'); // optional filter
 
     const supabase = getServiceClient();
-    let query = supabase
-      .from('chat_events')
-      .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
 
-    if (type) query = query.eq('type', type);
-    if (sessionId) query = query.eq('session_id', sessionId);
-
-    const { data, error, count } = await query;
-    if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('[admin.events] query error:', error.message || error);
-      return NextResponse.json({ error: 'fetch_failed', message: process.env.NODE_ENV !== 'production' ? (error.message || String(error)) : undefined }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+    // If type filter is set, keep simple flat pagination over that type
+    if (type) {
+      let q = supabase
+        .from('chat_events')
+        .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
+        .eq('type', type)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (sessionId) q = q.eq('session_id', sessionId);
+      const { data, error, count } = await q;
+      if (error) {
+        if (process.env.NODE_ENV !== 'production') console.error('[admin.events] query error:', error.message || error);
+        return NextResponse.json({ error: 'fetch_failed', message: process.env.NODE_ENV !== 'production' ? (error.message || String(error)) : undefined }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+      }
+      return NextResponse.json({ items: data ?? [], total: count ?? 0, offset, limit }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
     }
 
-    return NextResponse.json({ items: data ?? [], total: count ?? 0, offset, limit }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+    // No type filter: paginate by user_message turns, then include matching assistant_answer by parent_id
+    let userQuery = supabase
+      .from('chat_events')
+      .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
+      .eq('type', 'user_message')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (sessionId) userQuery = userQuery.eq('session_id', sessionId);
+    const { data: users, error: userErr, count: userCount } = await userQuery;
+    if (userErr) {
+      if (process.env.NODE_ENV !== 'production') console.error('[admin.events] user_query error:', userErr.message || userErr);
+      return NextResponse.json({ error: 'fetch_failed', message: process.env.NODE_ENV !== 'production' ? (userErr.message || String(userErr)) : undefined }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+    }
+
+    const ids = (users ?? []).map((u) => u.id);
+    let assistants: any[] = [];
+    if (ids.length > 0) {
+      let aQuery = supabase
+        .from('chat_events')
+        .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta')
+        .eq('type', 'assistant_answer')
+        .in('parent_id', ids);
+      if (sessionId) aQuery = aQuery.eq('session_id', sessionId);
+      const { data: aRows, error: aErr } = await aQuery;
+      if (aErr) {
+        if (process.env.NODE_ENV !== 'production') console.error('[admin.events] assistant_query error:', aErr.message || aErr);
+      } else {
+        assistants = aRows ?? [];
+      }
+    }
+
+    const items = [...(users ?? []), ...assistants];
+    return NextResponse.json({ items, total: userCount ?? 0, offset, limit }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
   } catch (e: any) {
     if (process.env.NODE_ENV !== 'production') console.error('[admin.events] unexpected:', e?.message || e);
     return NextResponse.json({ error: 'unexpected', message: process.env.NODE_ENV !== 'production' ? (e?.message || String(e)) : undefined }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
