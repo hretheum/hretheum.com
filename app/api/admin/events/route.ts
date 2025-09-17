@@ -28,13 +28,13 @@ export async function GET(req: NextRequest) {
       email = await getUserEmail();
     } catch (e: any) {
       if (process.env.NODE_ENV !== 'production') console.error('[admin.events] getUserEmail failed:', e?.message || e);
-      return NextResponse.json({ error: 'auth_error', message: 'Failed to resolve user session' }, { status: 401 });
+      return NextResponse.json({ error: 'auth_error', message: 'Failed to resolve user session' }, { status: 401, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
     }
     if (!email) {
-      return NextResponse.json({ error: 'auth_error', message: 'No active session' }, { status: 401 });
+      return NextResponse.json({ error: 'auth_error', message: 'No active session' }, { status: 401, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
     }
     if (!isAllowed(email)) {
-      return NextResponse.json({ error: 'forbidden', email }, { status: 403 });
+      return NextResponse.json({ error: 'forbidden', email }, { status: 403, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
     }
 
     const { searchParams } = new URL(req.url);
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const supabase = getServiceClient();
     let query = supabase
       .from('chat_events')
-      .select('id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
+      .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -56,12 +56,12 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await query;
     if (error) {
       if (process.env.NODE_ENV !== 'production') console.error('[admin.events] query error:', error.message || error);
-      return NextResponse.json({ error: 'fetch_failed', message: process.env.NODE_ENV !== 'production' ? (error.message || String(error)) : undefined }, { status: 500 });
+      return NextResponse.json({ error: 'fetch_failed', message: process.env.NODE_ENV !== 'production' ? (error.message || String(error)) : undefined }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
     }
 
-    return NextResponse.json({ items: data ?? [], total: count ?? 0, offset, limit });
+    return NextResponse.json({ items: data ?? [], total: count ?? 0, offset, limit }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
   } catch (e: any) {
     if (process.env.NODE_ENV !== 'production') console.error('[admin.events] unexpected:', e?.message || e);
-    return NextResponse.json({ error: 'unexpected', message: process.env.NODE_ENV !== 'production' ? (e?.message || String(e)) : undefined }, { status: 500 });
+    return NextResponse.json({ error: 'unexpected', message: process.env.NODE_ENV !== 'production' ? (e?.message || String(e)) : undefined }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
   }
 }

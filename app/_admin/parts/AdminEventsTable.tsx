@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 type EventRow = {
   id: string;
+  parent_id?: string | null;
   created_at: string;
   session_id: string;
   type: 'user_message' | 'assistant_answer';
@@ -16,17 +17,7 @@ type EventRow = {
 type ApiResp = { items: EventRow[]; total: number; offset: number; limit: number };
 
 function toCSV(items: EventRow[]): string {
-  const headers = [
-    'id',
-    'created_at',
-    'session_id',
-    'type',
-    'message',
-    'intent',
-    'confidence',
-    'ip',
-    'user_agent',
-  ];
+  const headers = ['id','created_at','session_id','type','message','intent','confidence','ip','user_agent'];
   const esc = (v: any) => {
     if (v == null) return '';
     const s = String(v);
@@ -36,20 +27,44 @@ function toCSV(items: EventRow[]): string {
   };
   const lines = [headers.join(',')];
   for (const r of items) {
-    const row = [
-      r.id,
-      r.created_at,
-      r.session_id,
-      r.type,
-      r.message,
-      r.intent ?? '',
-      r.confidence ?? '',
-      r.meta?.ip ?? '',
-      r.meta?.user_agent ?? '',
-    ].map(esc);
+    const row = [r.id,r.created_at,r.session_id,r.type,r.message,r.intent ?? '',r.confidence ?? '',r.meta?.ip ?? '',r.meta?.user_agent ?? ''].map(esc);
     lines.push(row.join(','));
   }
   return lines.join('\n');
+}
+
+type Pair = {
+  session_id: string;
+  created_at: string; // from user message
+  user: EventRow;
+  assistant?: EventRow | null;
+};
+
+function groupPairs(rows: EventRow[]): Pair[] {
+  const byId = new Map<string, EventRow>();
+  const userRows: EventRow[] = [];
+  for (const r of rows) {
+    byId.set(r.id, r);
+    if (r.type === 'user_message') userRows.push(r);
+  }
+  const pairs: Pair[] = userRows.map((u) => {
+    // find assistant whose parent_id points to this user id
+    const a = rows.find((r) => r.type === 'assistant_answer' && r.parent_id === u.id) || null;
+    return { session_id: u.session_id, created_at: u.created_at, user: u, assistant: a };
+  });
+  return pairs;
+}
+
+function dateLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const that = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff = Math.floor((today.getTime() - that.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff === 2) return 'Day before yesterday';
+  return that.toLocaleDateString();
 }
 
 export default function AdminEventsTable() {
@@ -61,6 +76,8 @@ export default function AdminEventsTable() {
   const [sessionId, setSessionId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [sortBy, setSortBy] = useState<'created_at'|'user_message'|'intent'|'confidence'>('created_at');
+  const [sortDir, setSortDir] = useState<'desc'|'asc'>('desc');
 
   const page = Math.floor(offset / limit) + 1;
   const pages = Math.max(1, Math.ceil(total / limit));
@@ -87,50 +104,50 @@ export default function AdminEventsTable() {
     } finally {
       setLoading(false);
     }
-
-function toCSV(items: EventRow[]): string {
-  const headers = [
-    'id',
-    'created_at',
-    'session_id',
-    'type',
-    'message',
-    'intent',
-    'confidence',
-    'ip',
-    'user_agent',
-  ];
-  const esc = (v: any) => {
-    if (v == null) return '';
-    const s = String(v);
-    // Escape double quotes by doubling them, wrap in quotes if contains comma, quote or newline
-    const needs = /[",\n]/.test(s);
-    const safe = s.replace(/"/g, '""');
-    return needs ? `"${safe}"` : safe;
-  };
-  const lines = [headers.join(',')];
-  for (const r of items) {
-    const row = [
-      r.id,
-      r.created_at,
-      r.session_id,
-      r.type,
-      r.message,
-      r.intent ?? '',
-      r.confidence ?? '',
-      r.meta?.ip ?? '',
-      r.meta?.user_agent ?? '',
-    ].map(esc);
-    lines.push(row.join(','));
-  }
-  return lines.join('\n');
-}
   }
 
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  const pairs = useMemo(() => {
+    const list = groupPairs(rows);
+    // sorting
+    const sorted = [...list].sort((a, b) => {
+      const av = (() => {
+        switch (sortBy) {
+          case 'created_at': return new Date(a.created_at).getTime();
+          case 'user_message': return a.user.message || '';
+          case 'intent': return (a.assistant?.intent || a.user.intent || '') as any;
+          case 'confidence': return (a.assistant?.confidence ?? a.user.confidence ?? -1) as any;
+        }
+      })();
+      const bv = (() => {
+        switch (sortBy) {
+          case 'created_at': return new Date(b.created_at).getTime();
+          case 'user_message': return b.user.message || '';
+          case 'intent': return (b.assistant?.intent || b.user.intent || '') as any;
+          case 'confidence': return (b.assistant?.confidence ?? b.user.confidence ?? -1) as any;
+        }
+      })();
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [rows, sortBy, sortDir]);
+
+  // group by date label
+  const groups = useMemo(() => {
+    const m = new Map<string, Pair[]>();
+    for (const p of pairs) {
+      const key = dateLabel(p.created_at);
+      if (!m.has(key)) m.set(key, []);
+      m.get(key)!.push(p);
+    }
+    return Array.from(m.entries());
+  }, [pairs]);
 
   return (
     <div>
@@ -147,6 +164,19 @@ function toCSV(items: EventRow[]): string {
           <span className="text-gray-600">Session</span>
           <input value={sessionId} onChange={(e) => { setOffset(0); setSessionId(e.target.value); }} placeholder="session_id" className="border rounded-md px-2 py-1" />
         </label>
+        <label className="inline-flex items-center gap-1">
+          <span className="text-gray-600">Sort by</span>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="border rounded-md px-2 py-1">
+            <option value="created_at">created_at</option>
+            <option value="user_message">user_message</option>
+            <option value="intent">intent</option>
+            <option value="confidence">confidence</option>
+          </select>
+          <select value={sortDir} onChange={(e) => setSortDir(e.target.value as any)} className="border rounded-md px-2 py-1">
+            <option value="desc">desc</option>
+            <option value="asc">asc</option>
+          </select>
+        </label>
         <span className="ml-auto text-gray-600">{loading ? 'Loading…' : `${total} items`}</span>
         <button
           className="rounded-md border px-2 py-1 disabled:opacity-50"
@@ -154,7 +184,6 @@ function toCSV(items: EventRow[]): string {
           onClick={async () => {
             setExporting(true);
             try {
-              // Fetch up to 1000 rows with current filters for export
               const sp = new URLSearchParams();
               sp.set('limit', '1000');
               sp.set('offset', '0');
@@ -182,57 +211,51 @@ function toCSV(items: EventRow[]): string {
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-md border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600">
-            <tr>
-              <th className="px-2 py-2 text-left">created_at</th>
-              <th className="px-2 py-2 text-left">session_id</th>
-              <th className="px-2 py-2 text-left">type</th>
-              <th className="px-2 py-2 text-left">message</th>
-              <th className="px-2 py-2 text-left">intent</th>
-              <th className="px-2 py-2 text-left">conf</th>
-              <th className="px-2 py-2 text-left">ip</th>
-              <th className="px-2 py-2 text-left">ua</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="odd:bg-white even:bg-gray-50 align-top">
-                <td className="px-2 py-1 text-gray-800 whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
-                <td className="px-2 py-1 text-gray-600 whitespace-nowrap">{r.session_id}</td>
-                <td className="px-2 py-1 text-gray-600 whitespace-nowrap">{r.type}</td>
-                <td className="px-2 py-1 text-gray-900">
-                  <div className="max-w-[520px] truncate" title={r.message}>{r.message}</div>
-                </td>
-                <td className="px-2 py-1 text-gray-600 whitespace-nowrap">{r.intent ?? ''}</td>
-                <td className="px-2 py-1 text-gray-600 whitespace-nowrap">{r.confidence != null ? Number(r.confidence).toFixed(3) : ''}</td>
-                <td className="px-2 py-1 text-gray-600 whitespace-nowrap">{(r.meta?.ip) ?? ''}</td>
-                <td className="px-2 py-1 text-gray-600">
-                  <div className="max-w-[320px] truncate" title={r.meta?.user_agent}>{r.meta?.user_agent ?? ''}</div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Grouped card view */}
+      <div className="space-y-6">
+        {groups.map(([label, items]) => (
+          <div key={label}>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</div>
+            <div className="space-y-3">
+              {items.map((p) => (
+                <div key={p.user.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                  <div className="flex items-center justify-between gap-2 text-xs text-gray-600">
+                    <div className="font-medium text-gray-800">{new Date(p.created_at).toLocaleString()}</div>
+                    <div className="truncate">Session: <span className="font-mono">{p.session_id}</span></div>
+                  </div>
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wide text-gray-500">User</div>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap break-words">{p.user.message}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wide text-gray-500">Assistant</div>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap break-words">{p.assistant?.message ?? ''}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                    <div>Intent: <span className="font-mono">{p.assistant?.intent ?? p.user.intent ?? ''}</span></div>
+                    <div>Conf: <span className="font-mono">{p.assistant?.confidence != null ? p.assistant.confidence.toFixed(3) : (p.user.confidence != null ? p.user.confidence.toFixed(3) : '')}</span></div>
+                    <div className="ml-auto" />
+                    {p.user.meta?.ip && (
+                      <div className="truncate" title={p.user.meta?.ip}>IP: {p.user.meta?.ip}</div>
+                    )}
+                    {p.user.meta?.user_agent && (
+                      <div className="max-w-[360px] truncate" title={p.user.meta?.user_agent}>UA: {p.user.meta?.user_agent}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="mt-3 flex items-center gap-2 text-sm">
-        <button
-          className="rounded-md border px-2 py-1 disabled:opacity-50"
-          disabled={offset === 0}
-          onClick={() => setOffset(Math.max(0, offset - limit))}
-        >
-          Prev
-        </button>
+      {/* Pagination */}
+      <div className="mt-4 flex items-center gap-2 text-sm">
+        <button className="rounded-md border px-2 py-1 disabled:opacity-50" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - limit))}>Prev</button>
         <div className="text-gray-600">Page {page} / {pages}</div>
-        <button
-          className="rounded-md border px-2 py-1 disabled:opacity-50"
-          disabled={offset + limit >= total}
-          onClick={() => setOffset(offset + limit)}
-        >
-          Next
-        </button>
+        <button className="rounded-md border px-2 py-1 disabled:opacity-50" disabled={offset + limit >= total} onClick={() => setOffset(offset + limit)}>Next</button>
         <div className="ml-auto" />
         <label className="inline-flex items-center gap-1">
           <span className="text-gray-600">Per page</span>

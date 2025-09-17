@@ -18,6 +18,9 @@ export default function AdminSignIn() {
       provider: 'google',
       options: {
         redirectTo: `${redirectBase}/auth/callback?next=${encodeURIComponent(next)}`,
+        queryParams: {
+          redirect_to: `${redirectBase}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
         scopes: 'openid profile email',
       },
     });
