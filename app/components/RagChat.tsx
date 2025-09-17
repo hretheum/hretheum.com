@@ -220,13 +220,26 @@ export default function RagChat() {
                   >
                     {m.role === 'assistant' ? (
                       (() => {
-                        const parts = m.content.split('\n\nNote: ');
-                        const main = parts[0];
+                        const parts = (m.content || '').split('\n\nNote: ');
+                        const main = parts[0] || '';
                         const note = parts[1] ? 'Note: ' + parts[1] : '';
+                        const isLast = idx === messages.length - 1;
+                        const isThinking = loading && isLast && (!main || main.trim().length === 0);
                         return (
                           <div>
                             <div className="prose prose-xs sm:prose-sm prose-zinc max-w-none [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{main}</ReactMarkdown>
+                              {isThinking ? (
+                                <div className="text-gray-500 select-none inline-flex items-center gap-2">
+                                  <span>Thinking</span>
+                                  <span className="inline-flex w-6 justify-between">
+                                    <span className="w-1 h-1 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0ms' }} />
+                                    <span className="w-1 h-1 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '180ms' }} />
+                                    <span className="w-1 h-1 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '360ms' }} />
+                                  </span>
+                                </div>
+                              ) : (
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{main}</ReactMarkdown>
+                              )}
                             </div>
                             {note && (
                               <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] text-amber-800">
@@ -243,13 +256,7 @@ export default function RagChat() {
                   </div>
                 </div>
               ))}
-              {loading && (
-                <div className="text-left">
-                  <div className="inline-block rounded-2xl bg-gray-100 px-3 py-2 text-sm text-gray-900">
-                    Thinking…
-                  </div>
-                </div>
-              )}
+              
               <div ref={bottomRef} />
             </div>
             <form onSubmit={onSend} className="flex items-center gap-2 border-t border-gray-200 p-2">

@@ -317,7 +317,7 @@ export async function POST(req: NextRequest) {
           const supabase = getSupabaseLoggingClient();
           await supabase
             .from('chat_events')
-            .insert({ session_id: sessionId || null, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence });
+            .insert({ session_id: sessionId || null, parent_id: chatEventId, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence });
         } catch {}
       }
       return NextResponse.json({
@@ -469,7 +469,7 @@ export async function POST(req: NextRequest) {
                 const supabase = getSupabaseLoggingClient();
                 await supabase
                   .from('chat_events')
-                  .insert({ session_id: sessionId || null, type: 'assistant_answer', message: answerBuffer, intent: intentId, confidence: intentRes.confidence });
+                  .insert({ session_id: sessionId || null, parent_id: chatEventId || null, type: 'assistant_answer', message: answerBuffer, intent: intentId, confidence: intentRes.confidence });
               }
             } catch {}
             // final meta — include citations only if feature flag enabled
