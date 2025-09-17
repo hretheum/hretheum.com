@@ -77,6 +77,7 @@ export default function RagChat() {
     e?.preventDefault();
     const message = input.trim();
     if (!message || loading) return;
+    // reset state for a new turn (no escalation state)
 
     // cancel any in-flight stream
     abortRef.current?.abort();
