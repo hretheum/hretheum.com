@@ -10,9 +10,16 @@ export default function AdminSignIn() {
 
   async function signIn() {
     const next = '/admin';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    // Force canonical base on production to avoid www/non-www mismatches in Supabase redirect allowlist
+    const isProd = origin.includes('hretheum.com');
+    const redirectBase = isProd ? 'https://hretheum.com' : origin;
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      options: {
+        redirectTo: `${redirectBase}/auth/callback?next=${encodeURIComponent(next)}`,
+        scopes: 'openid profile email',
+      },
     });
   }
 
