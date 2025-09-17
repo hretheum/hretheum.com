@@ -78,6 +78,7 @@ export default function AdminEventsTable() {
   const [exporting, setExporting] = useState(false);
   const [sortBy, setSortBy] = useState<'created_at'|'user_message'|'intent'|'confidence'>('created_at');
   const [sortDir, setSortDir] = useState<'desc'|'asc'>('desc');
+  const [q, setQ] = useState<string>('');
 
   const page = Math.floor(offset / limit) + 1;
   const pages = Math.max(1, Math.ceil(total / limit));
@@ -112,7 +113,17 @@ export default function AdminEventsTable() {
   }, [query]);
 
   const pairs = useMemo(() => {
-    const list = groupPairs(rows);
+    let list = groupPairs(rows);
+    // mini search filter (case-insensitive) across user/assistant message and intent
+    const needle = q.trim().toLowerCase();
+    if (needle) {
+      list = list.filter((p) => {
+        const um = p.user.message?.toLowerCase() || '';
+        const am = p.assistant?.message?.toLowerCase() || '';
+        const it = (p.assistant?.intent || p.user.intent || '').toLowerCase();
+        return um.includes(needle) || am.includes(needle) || it.includes(needle);
+      });
+    }
     // sorting
     const sorted = [...list].sort((a, b) => {
       const av = (() => {
@@ -163,6 +174,15 @@ export default function AdminEventsTable() {
         <label className="inline-flex items-center gap-1">
           <span className="text-gray-600">Session</span>
           <input value={sessionId} onChange={(e) => { setOffset(0); setSessionId(e.target.value); }} placeholder="session_id" className="border rounded-md px-2 py-1" />
+        </label>
+        <label className="inline-flex items-center gap-1">
+          <span className="text-gray-600">Search</span>
+          <input
+            value={q}
+            onChange={(e) => { setOffset(0); setQ(e.target.value); }}
+            placeholder="text or intent"
+            className="border rounded-md px-2 py-1"
+          />
         </label>
         <label className="inline-flex items-center gap-1">
           <span className="text-gray-600">Sort by</span>
