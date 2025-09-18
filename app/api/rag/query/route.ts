@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const mark = (label: string, t0: number) => {
       timings[label] = (timings[label] || 0) + (Date.now() - t0);
     };
-    const { message } = await req.json();
+    const { message, thread_id: threadIdBody, turn_index: turnIndexBody } = await req.json();
 
     if (typeof message !== 'string' || !message.trim()) {
       return NextResponse.json(
@@ -77,6 +77,8 @@ export async function POST(req: NextRequest) {
     // Insert initial chat_event (user_message)
     const logUseSupabase = process.env.RAG_STORE === 'supabase';
     let chatEventId: string | null = null;
+    const threadId: string | null = typeof threadIdBody === 'string' && threadIdBody ? threadIdBody : null;
+    const turnIndex: number | null = Number.isFinite(turnIndexBody) ? Number(turnIndexBody) : null;
     if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
       try {
         const supabase = getSupabaseLoggingClient();
@@ -86,6 +88,8 @@ export async function POST(req: NextRequest) {
             session_id: sessionId || null,
             type: 'user_message',
             message: message,
+            thread_id: threadId,
+            turn_index: turnIndex,
             meta: { user_agent: ua, referer, ip },
           })
           .select('id')
@@ -317,7 +321,7 @@ export async function POST(req: NextRequest) {
           const supabase = getSupabaseLoggingClient();
           await supabase
             .from('chat_events')
-            .insert({ session_id: sessionId || null, parent_id: chatEventId, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence });
+            .insert({ session_id: sessionId || null, parent_id: chatEventId, thread_id: threadId, turn_index: turnIndex, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence });
         } catch {}
       }
       return NextResponse.json({
@@ -469,7 +473,7 @@ export async function POST(req: NextRequest) {
                 const supabase = getSupabaseLoggingClient();
                 await supabase
                   .from('chat_events')
-                  .insert({ session_id: sessionId || null, parent_id: chatEventId || null, type: 'assistant_answer', message: answerBuffer, intent: intentId, confidence: intentRes.confidence });
+                  .insert({ session_id: sessionId || null, parent_id: chatEventId || null, thread_id: threadId, turn_index: turnIndex, type: 'assistant_answer', message: answerBuffer, intent: intentId, confidence: intentRes.confidence });
               }
             } catch {}
             // final meta — include citations only if feature flag enabled

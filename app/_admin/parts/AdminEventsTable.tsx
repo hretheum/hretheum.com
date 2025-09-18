@@ -38,21 +38,69 @@ type Pair = {
   created_at: string; // from user message
   user: EventRow;
   assistant?: EventRow | null;
+  assistantTimePaired?: boolean; // true when matched by time (no parent_id)
 };
 
 function groupPairs(rows: EventRow[]): Pair[] {
-  const byId = new Map<string, EventRow>();
-  const userRows: EventRow[] = [];
+  const users: EventRow[] = [];
+  const assistants: EventRow[] = [];
   for (const r of rows) {
-    byId.set(r.id, r);
-    if (r.type === 'user_message') userRows.push(r);
+    if (r.type === 'user_message') users.push(r);
+    else if (r.type === 'assistant_answer') assistants.push(r);
   }
-  const pairs: Pair[] = userRows.map((u) => {
-    // find assistant whose parent_id points to this user id
-    const a = rows.find((r) => r.type === 'assistant_answer' && r.parent_id === u.id) || null;
-    return { session_id: u.session_id, created_at: u.created_at, user: u, assistant: a };
-  });
-  return pairs;
+
+  // Index assistants by parent_id
+  const byParent = new Map<string, EventRow>();
+  for (const a of assistants) {
+    if (a.parent_id) byParent.set(a.parent_id, a);
+  }
+  // Also index assistants per session sorted by created_at for legacy rows without parent_id
+  const bySession = new Map<string, EventRow[]>();
+  for (const a of assistants) {
+    const arr = bySession.get(a.session_id) || [];
+    arr.push(a);
+    bySession.set(a.session_id, arr);
+  }
+  for (const [sid, arr] of bySession.entries()) {
+    arr.sort((x, y) => new Date(x.created_at).getTime() - new Date(y.created_at).getTime());
+  }
+  const usedAssistants = new Set<string>();
+
+  const result: Pair[] = [];
+  for (const u of users) {
+    // 1) Prefer strict parent_id link
+    let a: EventRow | null | undefined = byParent.get(u.id);
+    if (a && !usedAssistants.has(a.id)) {
+      usedAssistants.add(a.id);
+      result.push({ session_id: u.session_id, created_at: u.created_at, user: u, assistant: a, assistantTimePaired: false });
+      continue;
+    }
+    // 2) Fallback: same session, nearest assistant around user.created_at not yet used
+    const sessList = bySession.get(u.session_id) || [];
+    const uTime = new Date(u.created_at).getTime();
+    const WINDOW_MS = 10 * 60 * 1000; // 10 minutes window
+    let best: EventRow | null = null;
+    let bestDelta = Number.POSITIVE_INFINITY;
+    // Prefer future first; if none within window, allow past
+    for (const phase of ['future', 'past'] as const) {
+      for (const cand of sessList) {
+        if (usedAssistants.has(cand.id)) continue;
+        const cTime = new Date(cand.created_at).getTime();
+        const delta = Math.abs(cTime - uTime);
+        if (delta > WINDOW_MS) continue;
+        if (phase === 'future' && cTime < uTime) continue;
+        if (phase === 'past' && cTime >= uTime) continue;
+        if (delta < bestDelta) {
+          best = cand;
+          bestDelta = delta;
+        }
+      }
+      if (best) break;
+    }
+    if (best) usedAssistants.add(best.id);
+    result.push({ session_id: u.session_id, created_at: u.created_at, user: u, assistant: best, assistantTimePaired: !!best && !best.parent_id });
+  }
+  return result;
 }
 
 function dateLabel(iso: string): string {
@@ -256,6 +304,9 @@ export default function AdminEventsTable() {
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600">
                     <div>Intent: <span className="font-mono">{p.assistant?.intent ?? p.user.intent ?? ''}</span></div>
                     <div>Conf: <span className="font-mono">{p.assistant?.confidence != null ? p.assistant.confidence.toFixed(3) : (p.user.confidence != null ? p.user.confidence.toFixed(3) : '')}</span></div>
+                    {p.assistant && p.assistantTimePaired && (
+                      <div className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">paired by time</div>
+                    )}
                     <div className="ml-auto" />
                     {p.user.meta?.ip && (
                       <div className="truncate" title={p.user.meta?.ip}>IP: {p.user.meta?.ip}</div>
