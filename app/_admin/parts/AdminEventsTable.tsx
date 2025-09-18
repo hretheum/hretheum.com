@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 type EventRow = {
   id: string;
   parent_id?: string | null;
+  thread_id?: string | null;
+  turn_index?: number | null;
   created_at: string;
   session_id: string;
   type: 'user_message' | 'assistant_answer';
@@ -54,6 +56,13 @@ function groupPairs(rows: EventRow[]): Pair[] {
   for (const a of assistants) {
     if (a.parent_id) byParent.set(a.parent_id, a);
   }
+  // Index assistants by (thread_id, turn_index)
+  const byThreadTurn = new Map<string, EventRow>();
+  for (const a of assistants) {
+    if (a.thread_id && (a.turn_index ?? null) !== null) {
+      byThreadTurn.set(`${a.thread_id}|${a.turn_index}`, a);
+    }
+  }
   // Also index assistants per session sorted by created_at for legacy rows without parent_id
   const bySession = new Map<string, EventRow[]>();
   for (const a of assistants) {
@@ -68,14 +77,24 @@ function groupPairs(rows: EventRow[]): Pair[] {
 
   const result: Pair[] = [];
   for (const u of users) {
-    // 1) Prefer strict parent_id link
+    // 1) Prefer thread_id + turn_index (most robust going forward)
+    if (u.thread_id && (u.turn_index ?? null) !== null) {
+      const k = `${u.thread_id}|${u.turn_index}`;
+      const a = byThreadTurn.get(k);
+      if (a && !usedAssistants.has(a.id)) {
+        usedAssistants.add(a.id);
+        result.push({ session_id: u.session_id, created_at: u.created_at, user: u, assistant: a, assistantTimePaired: false });
+        continue;
+      }
+    }
+    // 2) Then strict parent_id link
     let a: EventRow | null | undefined = byParent.get(u.id);
     if (a && !usedAssistants.has(a.id)) {
       usedAssistants.add(a.id);
       result.push({ session_id: u.session_id, created_at: u.created_at, user: u, assistant: a, assistantTimePaired: false });
       continue;
     }
-    // 2) Fallback: same session, nearest assistant around user.created_at not yet used
+    // 3) Fallback: same session, nearest assistant around user.created_at not yet used
     const sessList = bySession.get(u.session_id) || [];
     const uTime = new Date(u.created_at).getTime();
     const WINDOW_MS = 10 * 60 * 1000; // 10 minutes window
