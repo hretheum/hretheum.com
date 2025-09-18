@@ -16,6 +16,7 @@ export type StreamOptions = {
   onDone?: (done: RagDoneEvent) => void;
   onError?: (err: unknown) => void;
   fetchImpl?: typeof fetch; // for tests
+  extraBody?: Record<string, any>; // additional fields to include in POST body (e.g., thread_id, turn_index)
 };
 
 // Async generator to iterate over SSE events
@@ -30,7 +31,7 @@ export async function* streamRag(
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, ...(opts.extraBody || {}) }),
     signal: opts.signal,
   });
   if (!res.ok || !res.body) throw new Error(`RAG stream failed: ${res.status}`);

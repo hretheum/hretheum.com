@@ -82,6 +82,35 @@ More details: `docs/CONVERSATIONAL_RAG.md` §22 and `docs/ARCHITECTURE_CHAT.md`.
 
 - GTM/GA4 Chat Telemetry: see `docs/TELEMETRY_GTM_GA4.md`
 
+## Dev Auth Setup (localhost)
+
+Localhost URLs to configure for Supabase Auth and Google OAuth when testing the Admin Console locally.
+
+### Supabase → Authentication → URL Configuration
+- **Site URL**
+  - `http://localhost:3000`
+- **Redirect URLs** (one per line)
+  - `http://localhost:3000/auth/callback`
+  - `http://localhost:3000/admin`
+  - (optional) `http://localhost:3000/`
+
+### Google Cloud Console → OAuth 2.0 Client (Web application)
+- **Authorized JavaScript origins**
+  - `http://localhost:3000`
+  - (optional) `http://127.0.0.1:3000`
+- **Authorized redirect URIs**
+  - `https://<PROJECT_REF>.supabase.co/auth/v1/callback`
+    - Replace `<PROJECT_REF>` with your Supabase project ref.
+
+Notes:
+- Supabase handles the OAuth redirect; localhost goes into "JavaScript origins" only.
+- After changes, log out and log in again at `/admin` (use incognito for clean cookies).
+
+### Env checklist (.env for local dev)
+- `NEXT_PUBLIC_SUPABASE_URL=https://<PROJECT_REF>.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>`
+- `ADMIN_EMAILS=eof@offline.pl`
+
 ## FAQ
 - 400 `Invalid input` from RPC? Ensure vectors are `vector(1536)` and payload JSON matches RPC signature.
 - `stack depth limit exceeded`? Remove wrapper functions on `(text, vector, ...)` and keep only `(vector(1536))` signatures.

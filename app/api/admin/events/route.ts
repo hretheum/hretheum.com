@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     if (type) {
       let q = supabase
         .from('chat_events')
-        .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
+        .select('id, parent_id, thread_id, turn_index, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
         .eq('type', type)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     // No type filter: paginate by user_message turns, then include matching assistant_answer by parent_id
     let userQuery = supabase
       .from('chat_events')
-      .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
+      .select('id, parent_id, thread_id, turn_index, created_at, session_id, type, message, intent, confidence, timings, meta', { count: 'exact' })
       .eq('type', 'user_message')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -78,18 +78,41 @@ export async function GET(req: NextRequest) {
 
     const ids = (users ?? []).map((u) => u.id);
     let assistants: any[] = [];
+    let aErrMsg: string | null = null;
     if (ids.length > 0) {
+      // 1) Primary: assistants linked by parent_id
       let aQuery = supabase
         .from('chat_events')
-        .select('id, parent_id, created_at, session_id, type, message, intent, confidence, timings, meta')
+        .select('id, parent_id, thread_id, turn_index, created_at, session_id, type, message, intent, confidence, timings, meta')
         .eq('type', 'assistant_answer')
         .in('parent_id', ids);
       if (sessionId) aQuery = aQuery.eq('session_id', sessionId);
       const { data: aRows, error: aErr } = await aQuery;
       if (aErr) {
-        if (process.env.NODE_ENV !== 'production') console.error('[admin.events] assistant_query error:', aErr.message || aErr);
-      } else {
-        assistants = aRows ?? [];
+        aErrMsg = aErr.message || String(aErr);
+        if (process.env.NODE_ENV !== 'production') console.error('[admin.events] assistant_query(parent) error:', aErrMsg);
+      } else if (aRows) {
+        assistants = aRows;
+      }
+
+      // 2) Fallback for legacy data: also fetch assistants by session_id and recent created_at
+      const sessionIds = Array.from(new Set((users ?? []).map((u) => u.session_id)));
+      if (sessionIds.length > 0) {
+        const oldestUser = (users ?? []).reduce((min: string, u: any) => (u.created_at < min ? u.created_at : min), users![0].created_at);
+        let afQuery = supabase
+          .from('chat_events')
+          .select('id, parent_id, thread_id, turn_index, created_at, session_id, type, message, intent, confidence, timings, meta')
+          .eq('type', 'assistant_answer')
+          .in('session_id', sessionIds)
+          .gte('created_at', oldestUser);
+        const { data: afRows, error: afErr } = await afQuery;
+        if (afErr) {
+          if (process.env.NODE_ENV !== 'production') console.error('[admin.events] assistant_query(fallback) error:', afErr.message || afErr);
+        } else if (afRows && afRows.length) {
+          // merge unique by id
+          const known = new Set(assistants.map((r: any) => r.id));
+          for (const r of afRows) if (!known.has(r.id)) assistants.push(r);
+        }
       }
     }
 

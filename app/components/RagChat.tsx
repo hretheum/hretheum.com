@@ -20,6 +20,9 @@ export default function RagChat() {
   const pauseTimerRef = useRef<number | null>(null);
   const gtmEnabled = (process.env.NEXT_PUBLIC_ENABLE_GTM ?? 'true') !== 'false';
   const chatVariant = process.env.NEXT_PUBLIC_CHAT_VARIANT || 'default';
+  // Thread management for stable pairing in admin: thread_id + turn_index
+  const threadIdRef = useRef<string>('');
+  const turnIndexRef = useRef<number>(0);
 
   // Lightweight GTM dataLayer push helper (no PII)
   function dlPush(payload: Record<string, any>) {
@@ -39,6 +42,23 @@ export default function RagChat() {
       const saved = window.localStorage.getItem('ragChatMinimized');
       if (saved === '1') setMinimized(true);
       if (saved === '0') setMinimized(false);
+    } catch {}
+  }, []);
+
+  // Initialize persistent thread_id for this chat widget (session lifetime)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      let tid = window.sessionStorage.getItem('ragThreadId') || '';
+      if (!tid) {
+        // generate UUID (best-effort)
+        const uuid = (window.crypto && (window.crypto as any).randomUUID) ? (window.crypto as any).randomUUID() : `tid_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        tid = uuid;
+        window.sessionStorage.setItem('ragThreadId', tid);
+      }
+      threadIdRef.current = tid;
+      const savedTurn = window.sessionStorage.getItem('ragTurnIndex');
+      turnIndexRef.current = savedTurn ? parseInt(savedTurn, 10) || 0 : 0;
     } catch {}
   }, []);
 
@@ -128,6 +148,10 @@ export default function RagChat() {
       });
     } catch {}
 
+    // Capture current turn index and persist increment for next turn
+    const currentTurn = turnIndexRef.current;
+    try { turnIndexRef.current = currentTurn + 1; window.sessionStorage.setItem('ragTurnIndex', String(turnIndexRef.current)); } catch {}
+
     setMessages((m) => [...m, { role: 'user', content: message }]);
     setDraft('');
     setLoading(true);
@@ -193,6 +217,7 @@ export default function RagChat() {
             return copy;
           });
         },
+        extraBody: { thread_id: threadIdRef.current || null, turn_index: currentTurn },
       })) {
         // events also handled via callbacks; loop keeps the generator flowing
       }
