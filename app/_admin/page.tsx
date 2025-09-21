@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import AdminSignIn from './parts/AdminSignIn';
 import AdminEventsTable from './parts/AdminEventsTable';
+import RedirectsDashboard from './parts/RedirectsDashboard';
 
 function isAllowed(email: string | null): boolean {
   if (!email) return false;
@@ -43,6 +44,7 @@ export default async function AdminPage() {
         </form>
       </div>
       <AdminEventsTable />
+      <RedirectsDashboard />
     </div>
   );
 }

@@ -103,7 +103,25 @@ function redirectToBrand(req: NextRequest, slug?: string) {
     return NextResponse.next()
   }
 
-  return NextResponse.redirect(url, 301)
+  // Prepare redirect response and set a short-lived cookie carrying source host + slug
+  const res = NextResponse.redirect(url, 301)
+  try {
+    const sourceHost = getHostname(req)
+    const payload = encodeURIComponent(JSON.stringify({ h: sourceHost, s: slug || '', t: Date.now() }))
+    res.cookies.set({
+      name: 'hre_rsrc',
+      value: payload,
+      domain: APEX_DOMAIN,
+      path: '/',
+      httpOnly: false,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 5, // 5 minutes
+    })
+  } catch {
+    // best-effort: if cookie setting fails, still perform redirect
+  }
+  return res
 }
 
 export const config = {
