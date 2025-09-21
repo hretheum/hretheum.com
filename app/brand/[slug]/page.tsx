@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: any): Promise<Metadata> {
   const slug = params?.slug || ''
   const canonical = `https://${APEX_DOMAIN}/brand/${encodeURIComponent(slug)}`
   return {
@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default function BrandPage({ params }: { params: { slug: string } }) {
+export default function BrandPage({ params }: any) {
   const slug = params?.slug || ''
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
