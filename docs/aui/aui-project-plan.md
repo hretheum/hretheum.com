@@ -68,11 +68,13 @@ Conventions
 
 ## Workstream B — Telemetry & Signals
 
+See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
+
 ### T6. Define telemetry schema and event catalog
 - DoD: Documented schema with common fields (`ts`, `session_id`, `anon_user_id`, `route`, `brand`, `campaign_source`, `campaign_type`, `device`, `viewport`, `locale`, `referrer`, `consent`) and events (`nav.view`, `dwell.time`, `nav.scroll`, `ui.click`, `ui.hesitation`, `ui.rage_clicks`, `form.submit`, `rag.query`, `rag.response`).
 - Metrics: 100% events validate against schema.
 - Validation: JSON schema validation in CI; sample ingestion to analytics.
-- Guardrails: no PII by default; msg hashed when applicable.
+- Guardrails: no PII by default; msg hashed when applicable; adhere to [Consent vs Signal Matrix](./consent-signal-matrix.md) for consent gating and retention.
 - Quality Gates: docs updated; schema lint.
 
 ### T7. Instrument page view & dwell time (consent‑gated)
