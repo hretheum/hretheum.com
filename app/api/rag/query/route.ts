@@ -51,24 +51,35 @@ export async function POST(req: NextRequest) {
     const mark = (label: string, t0: number) => {
       timings[label] = (timings[label] || 0) + (Date.now() - t0);
     };
-    const { message, thread_id: threadIdBody, turn_index: turnIndexBody } = await req.json();
+    // CORS: determine allowed origin and headers once per request
+    const origin = req.headers.get('origin') || '';
+    const allowOrigin = pickAllowedOrigin(origin);
+    const corsHeaders = buildCorsHeaders(allowOrigin);
+
+    const { message, thread_id: threadIdBody, turn_index: turnIndexBody, client_session_id: clientSessionIdBody } = await req.json();
 
     if (typeof message !== 'string' || !message.trim()) {
       return NextResponse.json(
         { error: 'Invalid message' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
     // Prepare session and meta; best-effort logging to Supabase chat_events
     const cookieStore: any = await (cookies() as any);
-    let sessionId = cookieStore?.get?.('chat_session_id')?.value as string | undefined;
-    if (!sessionId) {
-      try {
-        sessionId = (globalThis as any).crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
-        cookieStore?.set?.({ name: 'chat_session_id', value: sessionId, httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 365 });
-      } catch {}
-    }
+    let sessionId = undefined as string | undefined;
+    try {
+      const fromCookie = cookieStore?.get?.('chat_session_id')?.value as string | undefined;
+      sessionId = (typeof clientSessionIdBody === 'string' && clientSessionIdBody) ? clientSessionIdBody : fromCookie;
+      if (!sessionId) {
+        const uuid = (globalThis as any).crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+        sessionId = uuid;
+        // Only attempt to set cookie if client did not supply its own session id
+        if (!clientSessionIdBody) {
+          cookieStore?.set?.({ name: 'chat_session_id', value: sessionId, httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 365 });
+        }
+      }
+    } catch {}
     const ua = req.headers.get('user-agent') || '';
     const referer = req.headers.get('referer') || '';
     const fwd = req.headers.get('x-forwarded-for') || '';
@@ -90,7 +101,7 @@ export async function POST(req: NextRequest) {
             message: message,
             thread_id: threadId,
             turn_index: turnIndex,
-            meta: { user_agent: ua, referer, ip },
+            meta: { user_agent: ua, referer, ip, origin: origin || null, client_session_id: clientSessionIdBody || null },
           })
           .select('id')
           .single();
@@ -116,7 +127,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           answer: 'I do not have any indexed data yet. Please add Markdown sources to data/rag/ and run ingestion.',
           citations: [],
-        });
+        }, { headers: corsHeaders });
       }
     }
     // Query Expansion (2–4 paraphrases based on intent synonyms) + aggregation
@@ -327,7 +338,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         answer: clarification,
         intent: { id: intentId, confidence: intentRes.confidence },
-      });
+      }, { headers: corsHeaders });
     }
 
     // Try LLM rerank if top-2 candidates are close (delta < 10%)
@@ -523,6 +534,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'text/event-stream; charset=utf-8',
           'Cache-Control': 'no-cache, no-transform',
           Connection: 'keep-alive',
+          ...corsHeaders,
         },
       });
     } else {
@@ -559,11 +571,17 @@ export async function POST(req: NextRequest) {
             .eq('id', chatEventId);
         } catch {}
       }
-      return NextResponse.json(returnCitations ? { answer, intent: { id: intentId, confidence: intentRes.confidence }, citations } : { answer, intent: { id: intentId, confidence: intentRes.confidence } });
+      return NextResponse.json(
+        returnCitations ? { answer, intent: { id: intentId, confidence: intentRes.confidence }, citations } : { answer, intent: { id: intentId, confidence: intentRes.confidence } },
+        { headers: corsHeaders }
+      );
     }
   } catch (err: any) {
     console.error('[rag.query:error]', err?.message || err);
-    return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
+    // Best-effort: include CORS headers so clients can read error details
+    const origin = (err as any)?.origin || '';
+    const corsHeaders = buildCorsHeaders(pickAllowedOrigin(origin));
+    return NextResponse.json({ error: 'Unexpected error' }, { status: 500, headers: corsHeaders });
   }
 
 }
@@ -673,4 +691,41 @@ function getOpenAIClientLocal() {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY');
   return new OpenAI({ apiKey });
+}
+
+// CORS utilities and preflight handler
+export async function OPTIONS(req: NextRequest) {
+  const origin = req.headers.get('origin') || '';
+  const allowOrigin = pickAllowedOrigin(origin);
+  const headers: Record<string, string> = {
+    ...buildCorsHeaders(allowOrigin),
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept',
+    'Access-Control-Max-Age': '86400',
+  };
+  return new NextResponse(null, { status: 204, headers });
+}
+
+function pickAllowedOrigin(origin: string) {
+  try {
+    const u = new URL(origin);
+    const host = (u.hostname || '').toLowerCase();
+    if (!host) return '';
+    if (host === 'hretheum.com' || host.endsWith('.hretheum.com')) return `${u.protocol}//${u.host}`;
+    if (host === 'localhost' || host === '127.0.0.1') return `${u.protocol}//${u.host}`;
+    const extra = (process.env.CORS_EXTRA_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (extra.includes(`${u.protocol}//${u.host}`)) return `${u.protocol}//${u.host}`;
+    return '';
+  } catch {
+    return '';
+  }
+}
+
+function buildCorsHeaders(allowOrigin: string): Record<string, string> {
+  const h: Record<string, string> = { Vary: 'Origin' };
+  if (allowOrigin) h['Access-Control-Allow-Origin'] = allowOrigin;
+  return h;
 }
