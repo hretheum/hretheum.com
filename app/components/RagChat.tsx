@@ -216,6 +216,22 @@ export default function RagChat() {
             }
             return copy;
           });
+          // GTM: chat_answer_done (no PII)
+          try {
+            const intentId = (d as any)?.intent?.id || '';
+            const intentConf = (d as any)?.intent?.confidence;
+            const lowConf = !!(d as any)?.lowConfidence;
+            dlPush({
+              event: 'chat_interaction',
+              chat_action: 'chat_answer_done',
+              intent_id: intentId,
+              intent_confidence: typeof intentConf === 'number' ? Number(intentConf.toFixed(3)) : null,
+              low_confidence: lowConf,
+              citations_count: Array.isArray(d.citations) ? d.citations.length : 0,
+              chat_widget: 'custom-react',
+              chat_variant: chatVariant,
+            });
+          } catch {}
         },
         extraBody: { thread_id: threadIdRef.current || null, turn_index: currentTurn },
       })) {
@@ -223,6 +239,17 @@ export default function RagChat() {
       }
     } catch (err) {
       console.error(err);
+      // GTM: chat_error (no PII)
+      try {
+        dlPush({
+          event: 'chat_interaction',
+          chat_action: 'chat_error',
+          phase: 'stream',
+          reason: (err as any)?.message ? String((err as any)?.message).slice(0, 80) : 'unknown',
+          chat_widget: 'custom-react',
+          chat_variant: chatVariant,
+        });
+      } catch {}
       setMessages((m) => {
         const copy = m.slice();
         const last = copy[assistantIndex];
