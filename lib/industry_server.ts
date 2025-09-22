@@ -16,11 +16,16 @@ function getAnon() {
 const ALLOWED: Industry[] = getAllowedIndustries()
 const NON_GENERIC = ALLOWED.filter((x) => String(x).toLowerCase() !== 'generic')
 
-async function classifyIndustryLLM(slug: string, timeoutMs = 1500): Promise<{ industry: Industry; confidence: number } | null> {
+export type IndustrySource = 'deterministic' | 'db' | 'llm' | 'llm_auto' | 'generic'
+export type SSRIndustryResult = { industry: Industry; source: IndustrySource }
+
+async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ industry: Industry; confidence: number } | null> {
   try {
     const client = getOpenAIClient()
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), Math.max(500, timeoutMs))
+    const requested = Number(timeoutMs ?? process.env.INDUSTRY_LLM_TIMEOUT_MS ?? 5000)
+    const effTimeout = Number.isFinite(requested) ? Math.max(500, requested) : 5000
+    const timer = setTimeout(() => controller.abort(), effTimeout)
     const sys = `Classify the company brand into one of these industries: ${NON_GENERIC.join(', ')}. Respond ONLY JSON: {"industry":"<one>", "confidence":<0..1>}. Use brand name context only; do not hallucinate logos/claims. If uncertain, pick the closest from the list.`
     const user = `brand: ${slug}`
     const res = await client.chat.completions.create({
@@ -86,20 +91,20 @@ async function autopromote(slug: string, industry: Industry, confidence: number)
   } catch {}
 }
 
-export async function resolveIndustrySSR(slug: string): Promise<Industry> {
+export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResult> {
   const s = (slug || '').trim().toLowerCase()
-  if (!s) return 'Generic'
+  if (!s) return { industry: 'Generic', source: 'generic' }
   // 1) Deterministic mapping file
   const det = resolveDeterministic(s)
   if (det && det !== 'Generic') {
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'deterministic', industry: det }) } catch {}
-    return det
+    return { industry: det, source: 'deterministic' }
   }
   // 2) DB mapping (auto/manual/locked)
   const fromDb = await fetchIndustryFromDB(s)
   if (fromDb) {
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'db', industry: fromDb }) } catch {}
-    return fromDb
+    return { industry: fromDb, source: 'db' }
   }
   // 3) Runtime LLM (guarded)
   const enabled = String(process.env.INDUSTRY_AUTOPROMOTE_ENABLED || 'true').toLowerCase() !== 'false'
@@ -109,11 +114,11 @@ export async function resolveIndustrySSR(slug: string): Promise<Industry> {
     if (enabled && res.confidence >= minConf) {
       await autopromote(s, res.industry, res.confidence)
       try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm_auto', industry: res.industry, confidence: res.confidence }) } catch {}
-      return res.industry
+      return { industry: res.industry, source: 'llm_auto' }
     }
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm', industry: res.industry, confidence: res.confidence }) } catch {}
-    return res.industry
+    return { industry: res.industry, source: 'llm' }
   }
   try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'generic', industry: 'Generic' }) } catch {}
-  return 'Generic'
+  return { industry: 'Generic', source: 'generic' }
 }

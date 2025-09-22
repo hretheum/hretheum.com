@@ -2,6 +2,7 @@
 import React from 'react'
 import type { Industry } from '@/lib/industry'
 import { getAllowedIndustries } from '@/lib/industry'
+import type { IndustrySource } from '@/lib/industry_server'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -12,7 +13,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function IndustryHero({ industry, slug }: { industry: Industry; slug: string }) {
+export function IndustryHero({ industry, slug, source }: { industry: Industry; slug: string; source?: IndustrySource }) {
   // When adding a new industry in data/brand_industries.json → allowed[],
   // remember to add a deterministic template below, and update DB CHECK constraints via migration.
   const allowed = new Set(getAllowedIndustries())
@@ -106,8 +107,9 @@ export function IndustryHero({ industry, slug }: { industry: Industry; slug: str
   return (
     <section className="mb-8">
       <h1 className="text-3xl font-semibold">{c.headline}</h1>
-      <div className="mt-2 text-xs text-neutral-600">
-        <strong>Industry template:</strong> {safeIndustry}
+      <div className="mt-2 text-xs text-neutral-600 flex items-center gap-3">
+        <div><strong>Industry template:</strong> {safeIndustry}</div>
+        <div><strong>Source:</strong> {source || 'n/a'}</div>
       </div>
       <p className="mt-3 text-neutral-600">{c.sub}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
