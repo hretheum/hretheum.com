@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import RedirectBeacon from './RedirectBeacon'
+import { resolveIndustry } from '@/lib/industry'
+import { IndustryHero } from '../_components/IndustryHero'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
 
@@ -15,21 +17,17 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
 export default function BrandPage({ params }: any) {
   const slug = params?.slug || ''
+  const industry = resolveIndustry(slug)
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <RedirectBeacon />
-      <section className="mb-8">
-        <h1 className="text-3xl font-semibold">Tailored overview for “{slug}”</h1>
-        <p className="mt-3 text-neutral-600">
-          This is a brand-aware, server-rendered landing. Content is neutral and template-based (no trademarked assets).
-        </p>
-      </section>
+      <IndustryHero industry={industry} slug={slug} />
 
       <section className="space-y-4">
         <div className="rounded-lg border p-4">
           <h2 className="text-xl font-medium">Value proposition</h2>
           <p className="mt-2 text-neutral-700">
-            We adapt the above-the-fold experience for your context while preserving performance, privacy and SEO.
+            We adapt the experience for your context while preserving performance, privacy and SEO.
           </p>
         </div>
         <div className="rounded-lg border p-4">

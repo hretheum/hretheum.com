@@ -49,7 +49,7 @@ Conventions
 - Quality Gates: review + tests.
 
 ### T3. Canonical brand route `/brand/[slug]` (SSR) with industry templates (hero/CTA)
-- DoD: SSR page renders neutral, industry‑templated hero and CTA; no flicker; self‑canonical.
+- DoD: SSR page renders neutral, deterministic industry templates (no LLM at runtime) for hero/CTA; no flicker; self‑canonical. Deterministic mapping via `data/brand_industries.json` with fallback to `Generic`.
 - Metrics: LCP ≤ 2.5s p75 on `/brand/<slug>` (lab); zero CLS above‑the‑fold.
 - Validation: Lighthouse/PSI lab runs; visual QA.
 - Guardrails: no trademark assets; disclaimer block available.
