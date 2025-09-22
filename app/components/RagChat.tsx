@@ -305,6 +305,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
           turn_index: currentTurn,
           brand_slug: brandSlug || null,
           campaign_source: campaignSource || null,
+          campaign_type: campaignSource === 'subdomain' ? 'employer-subdomain' : 'brand-route',
         },
       })) {
         // events also handled via callbacks; loop keeps the generator flowing

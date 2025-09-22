@@ -1,6 +1,6 @@
 # AUI Project Plan (Atomic Tasks, DoD, Metrics, Validation, Guardrails, Quality Gates)
 
-Last updated: 2025-09-22
+Last updated: 2025-09-23
 Status: Draft (for review)
 
 See also: [AUI Task DAG](./AUI_DAG.md).
@@ -51,6 +51,7 @@ Conventions
 - Quality Gates: review + tests.
 
 ### T3. Canonical brand route `/brand/[slug]` (SSR) with runtime industry resolution
+- Status: Completed — `app/brand/[slug]/page.tsx` renders `IndustryHero` w/ runtime industry (`resolveIndustrySSR`), self‑canonical metadata, and feature‑flagged debug caption; campaign accent overrides passed to hero.
 - DoD: SSR brand route renders hero with runtime industry resolution (deterministic JSON → DB mapping → LLM classifier) and no flicker; self‑canonical. Deterministic mappings persisted to DB for admin visibility; optional debug caption is feature‑flagged on production.
 - Metrics: LCP ≤ 2.5s p75 on `/brand/<slug>` (lab); zero CLS above‑the‑fold.
 - Validation: Lighthouse/PSI lab runs; visual QA.
@@ -114,6 +115,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Quality Gates: performance check, privacy check.
 
 ### T11. RAG telemetry augmentation
+- Status: Completed — `app/components/RagChat.tsx` wysyła `brand_slug`, `campaign_source`, `campaign_type`; `app/api/rag/query/route.ts` zapisuje w `chat_events.meta` (insert + low‑conf update + SSE/non‑SSE final update).
 - DoD: `app/api/rag/query/route.ts` logs `brand`, `campaign_source`, `campaign_type` with existing fields (`msg`, `intent`, `confidence`, `selectedCount`, `top1Boosted`, `lowConfidence`).
 - Metrics: ≥99% of RAG events with brand when on brand route.
 - Validation: unit test; log sampling.
@@ -311,7 +313,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Guardrails: no unapproved logos; consent‑gated telemetry; per‑brand activation via `data/campaigns/index.json`.
 
 ### T33. Industry theme tokens and brand overrides
-- Status: In Progress — core tokens implemented (accent, headlineCase, slashAngle/Offset) + integrated in `IndustryHero`; pending: gradient tokens, captionStyle, ctaVariant.
+- Status: Completed — tokeny (`accent`, `headlineCase`, `slashAngle/Offset`, `gradient*`, `captionStyle`, `ctaVariant`) zaimplementowane w `lib/theme/industryTheme.ts`; użyte w `IndustryHero` i w rendererze kampanii (`CampaignThemeProvider` + theming dla komponentów MDX: CTA, Metrics, Timeline, CaseStudy, Playbook, Gallery). Frontmatter `accent` nadpisuje akcent.
 - DoD: `getIndustryTheme(industry)` returns tokens (accent, gradient, headlineCase, slashAngle/Offset, captionStyle, ctaVariant); campaign frontmatter can override `accent` etc.
 
 ### T34. Campaign renderer and routing integration
