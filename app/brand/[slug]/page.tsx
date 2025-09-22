@@ -10,6 +10,7 @@ import { IndustryHero } from '../_components/IndustryHero'
 import Content from '@/app/components/Content'
 import { getCampaignAccentForBrand, hasCampaignForBrand } from '@/lib/campaigns'
 import { CampaignRenderer } from './_components/CampaignRenderer'
+import RagChat from '@/app/components/RagChat'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
 
@@ -40,6 +41,8 @@ export default async function BrandPage({ params }: any) {
       ) : (
         <Content />
       )}
+      {/* AI Chat widget (fixed position) */}
+      <RagChat />
     </>
   )
 }
