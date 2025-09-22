@@ -108,6 +108,35 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     } catch {}
   }, [minimized]);
 
+  // Auto-minimize when rotating into portrait on compact screens
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const getOrientation = (): 'portrait' | 'landscape' => {
+      try {
+        const mq = window.matchMedia('(orientation: portrait)');
+        if (mq && typeof mq.matches === 'boolean') return mq.matches ? 'portrait' : 'landscape';
+        return window.innerWidth <= window.innerHeight ? 'portrait' : 'landscape';
+      } catch {
+        return 'portrait';
+      }
+    };
+    let last: 'portrait' | 'landscape' = getOrientation();
+    const handler = () => {
+      const cur: 'portrait' | 'landscape' = getOrientation();
+      if (cur === 'portrait' && last === 'landscape') {
+        const isCompact = window.innerWidth <= 768;
+        if (isCompact) setMinimized(true);
+      }
+      last = cur;
+    };
+    window.addEventListener('orientationchange', handler);
+    window.addEventListener('resize', handler);
+    return () => {
+      window.removeEventListener('orientationchange', handler);
+      window.removeEventListener('resize', handler);
+    };
+  }, []);
+
   // Fire chat_open once per session when panel is first shown
   useEffect(() => {
     if (typeof window === 'undefined') return;
