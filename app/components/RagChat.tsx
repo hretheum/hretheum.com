@@ -348,7 +348,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                 –
               </button>
             </div>
-            <div ref={listRef} className="max-h-56 sm:max-h-60 overflow-y-auto p-2 sm:p-2.5 space-y-3">
+            <div ref={listRef} className="max-h-[21rem] sm:max-h-[22.5rem] overflow-y-auto p-2 sm:p-2.5 space-y-3">
               {messages.length === 0 && (
                 <div className="text-sm text-gray-500">
                   Ask about competencies, experience, leadership approach, or case studies.
