@@ -28,6 +28,8 @@ test.describe('Subdomain redirect middleware', () => {
       maxRedirects: 0,
     })
     expect(res.status()).not.toBe(301)
+    // should set noindex on reserved
+    expect(res.headers()['x-robots-tag'] || res.headers()['X-Robots-Tag']).toContain('noindex')
   })
 
   test('multi-label subdomain redirects to /brand (no slug)', async ({ request }) => {
@@ -39,6 +41,10 @@ test.describe('Subdomain redirect middleware', () => {
     expect(res.status()).toBe(301)
     const loc = res.headers()['location'] || res.headers()['Location']
     expect(loc).toBe(`https://${APEX}/brand?q=1`)
+    // noindex and short cache on 301
+    expect(res.headers()['x-robots-tag'] || res.headers()['X-Robots-Tag']).toContain('noindex')
+    const cc = res.headers()['cache-control'] || res.headers()['Cache-Control']
+    expect((cc || '').toLowerCase()).toContain('max-age=300')
   })
 
   test('IDN/punycode label redirects to /brand (no slug)', async ({ request }) => {

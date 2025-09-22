@@ -47,11 +47,16 @@ export function normalizeSlug(label: string): string | null {
 }
 
 export function getHostname(req: NextRequest): string {
-  // Prefer x-forwarded-host (may be a comma-separated list), then Host header, then URL hostname
+  const hostHeader = (req.headers.get('host') || '').trim()
+  const fromUrl = req.nextUrl.hostname
+  // In production, do NOT trust x-forwarded-host from client; rely on Host/URL
+  if (process.env.NODE_ENV === 'production') {
+    const candidate = (hostHeader || fromUrl).trim()
+    return candidate.replace(/:\d+$/, '')
+  }
+  // In dev/test, prefer x-forwarded-host to simulate subdomains locally
   const fwd = req.headers.get('x-forwarded-host') || ''
-  const hostHeader = req.headers.get('host') || ''
-  const candidate = (fwd.split(',')[0] || hostHeader || req.nextUrl.hostname).trim()
-  // Remove port if present
+  const candidate = (fwd.split(',')[0] || hostHeader || fromUrl).trim()
   return candidate.replace(/:\d+$/, '')
 }
 
@@ -75,7 +80,8 @@ export function middleware(req: NextRequest) {
   // Only accept a single-label subdomain for brand routing (e.g., foo.hretheum.com)
   if (subdomainParts.length !== 1) {
     // Multiple labels (e.g., a.b.hretheum.com) → treat as invalid brand; redirect to /brand (no slug)
-    return redirectToBrand(req, undefined, isNoindexHost)
+    // Mark as noindex to avoid indexing accidental multi-label hosts
+    return redirectToBrand(req, undefined, true)
   }
 
   const label = subdomainParts[0]
@@ -119,21 +125,26 @@ function redirectToBrand(req: NextRequest, slug?: string, noindex?: boolean) {
   if (noindex) {
     res.headers.set('X-Robots-Tag', 'noindex, nofollow')
   }
+  // Encourage caches/robots to converge on canonical quickly
+  res.headers.set('Cache-Control', 'public, max-age=300')
   try {
     const sourceHost = getHostname(req)
     const mw = Math.max(0, Date.now() - t0)
     res.headers.set('Server-Timing', `mw;dur=${mw}`)
-    const payload = encodeURIComponent(JSON.stringify({ h: sourceHost, s: slug || '', t: Date.now(), m: mw }))
-    res.cookies.set({
-      name: 'hre_rsrc',
-      value: payload,
-      domain: APEX_DOMAIN,
-      path: '/',
-      httpOnly: false,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 60 * 5, // 5 minutes
-    })
+    // Skip cookie when response is marked noindex
+    if (!noindex) {
+      const payload = encodeURIComponent(JSON.stringify({ h: sourceHost, s: slug || '', t: Date.now(), m: mw }))
+      res.cookies.set({
+        name: 'hre_rsrc',
+        value: payload,
+        domain: APEX_DOMAIN,
+        path: '/',
+        httpOnly: false,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 60 * 5, // 5 minutes
+      })
+    }
   } catch {
     // best-effort: if cookie setting fails, still perform redirect
   }
