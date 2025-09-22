@@ -3,6 +3,9 @@ Użycie AI i LangChain to przejście od logiki "jeśli-to" (`if-then`) do system
 ------
 
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
+
 
 ### Jak można wykorzystać dedykowany model AI?
 

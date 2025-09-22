@@ -3,6 +3,8 @@
 Status: Draft (for review)
 Last updated: 2025-09-22
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 This document describes how brand subdomains can render employer‑specific campaigns using MDX while reusing the same UI components and the AUI engine across all industries. It also covers how brand accents (e.g., T‑Mobile magenta) can override industry theme tokens safely.
 
 ## Modes of operation

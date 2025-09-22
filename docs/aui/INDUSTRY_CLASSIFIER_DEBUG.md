@@ -3,6 +3,8 @@
 Status: Draft (for review)
 Last updated: 2025-09-22
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 This document explains how industry classification runs at request time, how to debug it, and what safeguards are in place.
 
 ## Runtime resolution flow (SSR)

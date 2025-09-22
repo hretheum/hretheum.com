@@ -3,6 +3,8 @@
 Last updated: 2025-09-22
 Status: Draft (for review)
 
+ See also: [AUI Task DAG](./AUI_DAG.md).
+
 ## 1) Executive Summary
 - Default-allow policy for employer-oriented subdomains: any `<brand>.hretheum.com` is treated as a campaign entry unless blacklisted.
 - Canonicalization: 301 redirect from subdomains to `https://hretheum.com/brand/<slug>` (if slug validation fails, redirect to `https://hretheum.com/brand`).

@@ -1,5 +1,7 @@
 publikacja na linkedin:
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 We HAVE to talk about ChatGPT and how it might be quietly changing our brains.
 
 This study from MIT’s Media Lab is one of the first neuroscience investigations into how generative AI affects us.

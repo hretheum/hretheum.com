@@ -3,6 +3,8 @@
 Last updated: 2025-09-22
 Status: Draft (for review)
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 This plan enumerates atomic tasks to deliver the Adaptive UI (AUI) roadmap. Each task includes: Definition of Done, measurable success metrics with validation methods, guardrails, and quality gates.
 
 Conventions

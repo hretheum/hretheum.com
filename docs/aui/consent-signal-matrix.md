@@ -3,6 +3,8 @@
 Last updated: 2025-09-21
 Status: Draft (for review)
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 This document summarizes which signals we collect with and without user consent. It is a product/engineering guideline, not legal advice. When in doubt, prefer minimization and seek legal review.
 
 Guiding principles

@@ -3,6 +3,8 @@
 Status: Draft (for review)
 Last updated: 2025-09-22
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 This document describes how redirect telemetry (subdomain → canonical brand route) is implemented, how consent gating works, and how to operate/debug it. It complements the Consent vs Signal Matrix.
 
 ## Goals

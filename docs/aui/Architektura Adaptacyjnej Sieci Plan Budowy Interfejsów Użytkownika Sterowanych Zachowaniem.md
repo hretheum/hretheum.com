@@ -1,5 +1,7 @@
 # **Architektura Adaptacyjnej Sieci: Plan Budowy Interfejsów Użytkownika Sterowanych Zachowaniem**
 
+See also: [AUI Task DAG](./AUI_DAG.md).
+
 ## **Wprowadzenie: Przejście od Statycznych do Żyjących Interfejsów**
 
 Współczesna przestrzeń cyfrowa przechodzi fundamentalną transformację, odchodząc od statycznych, jednolitych doświadczeń na rzecz dynamicznych, inteligentnych interfejsów, które uczą się i ewoluują wraz z użytkownikiem. Centralnym elementem tej ewolucji jest koncepcja Adaptacyjnego Interfejsu Użytkownika (AUI), która wykracza daleko poza prostą personalizację treści.
