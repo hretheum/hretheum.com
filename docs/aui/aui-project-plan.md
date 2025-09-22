@@ -16,25 +16,28 @@ Conventions
 ## Workstream A — Routing & Canonicalization
 
 ### T1. Implement default-allow subdomain routing with 301 to /brand/<slug>
+- Status: In Progress — Functional complete; tests/metrics pending
 - Rationale: Single canonical per brand; consistent entry for campaigns.
 - Inputs/Deps: blacklist list, slug regex, `middleware.ts` infra.
 - Steps: parse host, validate slug, enforce blacklist, build target URL, 301 redirect; preserve UTM.
 - Definition of Done (DoD)
-  - Requests to `<brand>.hretheum.com` (not blacklisted) 301 to `https://hretheum.com/brand/<slug>`; preserves path `/` and query/UTM.
-  - Blacklisted subdomains bypass 301 and render neutral apex route.
-  - Slug normalization: lowercase; `[a-z0-9-]{1,63}`; collapse multiple dashes.
-  - Unit tests and e2e tests cover sample cases (zendesk, bayer, invalid idn/punycode, blacklist).
+  - [x] Requests to `<brand>.hretheum.com` (not blacklisted) 301 to `https://hretheum.com/brand/<slug>`; preserves path `/` and query/UTM.
+  - [x] Blacklisted subdomains bypass 301 and render neutral apex route.
+  - [x] Slug normalization: lowercase; `[a-z0-9-]{1,63}`; collapse multiple dashes.
+  - [ ] Unit tests and e2e tests cover sample cases (zendesk, bayer, invalid idn/punycode, blacklist).
 - Metrics
-  - Redirect correctness ≥ 99.9% (no loops, correct target).
-  - Middleware added latency p95 ≤ 5ms.
-  - Error rate (<500s) ≤ 0.1% of subdomain requests.
+  - [ ] Redirect correctness ≥ 99.9% (no loops, correct target) — instrumented via redirect_events; threshold evaluation pending.
+  - [ ] Middleware added latency p95 ≤ 5ms — mw_ms captured per event; aggregate monitoring pending.
+  - [ ] Error rate (<500s) ≤ 0.1% of subdomain requests — monitoring pending.
 - Validation
-  - Automated e2e via Playwright/Cypress; curl test matrix; server logs.
-  - SEO check (no duplicate indexable subdomains).
+  - [ ] Automated e2e via Playwright/Cypress.
+  - [x] curl test matrix; server logs spot-check.
+  - [ ] SEO check (no duplicate indexable subdomains).
 - Guardrails
-  - No user data written pre-consent; preserve query params; no infinite redirects.
+  - [x] No user data written pre-consent; preserve query params; no infinite redirects.
 - Quality Gates
-  - Code review, unit+e2e tests passing, type-check clean, lint/format clean, manual QA on preview.
+  - [x] Type-check clean; lint/format clean; manual QA on preview.
+  - [ ] Code review; unit+e2e tests passing.
 
 ### T2. Reserved subdomain blacklist enforcement
 - DoD: Config holds reserved items (`www`, `app`, `admin`, `api`, `auth`, `static`, `cdn`, `assets`, `img`, `mail`, `ftp`, `m`, `stage`, `dev`); tests ensure denial.
