@@ -1,6 +1,7 @@
 "use client";
 import React from 'react'
 import type { Industry } from '@/lib/industry'
+import { getAllowedIndustries } from '@/lib/industry'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -12,6 +13,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function IndustryHero({ industry, slug }: { industry: Industry; slug: string }) {
+  // When adding a new industry in data/brand_industries.json → allowed[],
+  // remember to add a deterministic template below, and update DB CHECK constraints via migration.
+  const allowed = new Set(getAllowedIndustries())
+  const safeIndustry = allowed.has(industry) ? industry : ('Generic' as Industry)
   // Deterministic, template-based copy per industry (no trademarks)
   const copy: Record<Industry, { headline: string; sub: string; bullets: string[]; cta: string }> = {
     SaaS: {
@@ -86,7 +91,7 @@ export function IndustryHero({ industry, slug }: { industry: Industry; slug: str
     },
   }
 
-  const c = copy[industry]
+  const c = copy[safeIndustry]
 
   return (
     <section className="mb-8">

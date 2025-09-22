@@ -1,20 +1,23 @@
-import mapping from '@/data/brand_industries.json'
+import brandConfig from '@/data/brand_industries.json'
 
-export type Industry = 'SaaS' | 'Pharma' | 'FinTech' | 'Commerce' | 'Manufacturing' | 'Public' | 'Generic'
+// Flexible runtime type; UI components must handle unknown by falling back to Generic.
+export type Industry = string
 
-const VALID: Record<string, Industry> = {
-  SaaS: 'SaaS',
-  Pharma: 'Pharma',
-  FinTech: 'FinTech',
-  Commerce: 'Commerce',
-  Manufacturing: 'Manufacturing',
-  Public: 'Public',
+export function getAllowedIndustries(): string[] {
+  const raw = (brandConfig as any)?.allowed
+  const arr = Array.isArray(raw) ? raw.filter((s) => typeof s === 'string') : []
+  const uniq = Array.from(new Set(arr))
+  return uniq.length ? uniq : ['SaaS', 'Pharma', 'FinTech', 'Commerce', 'Manufacturing', 'Public', 'Generic']
+}
+
+export function isAllowedIndustry(v: string): boolean {
+  return getAllowedIndustries().includes(v)
 }
 
 export function resolveIndustry(slug: string): Industry {
   const s = (slug || '').trim().toLowerCase()
   if (!s) return 'Generic'
-  const key = Object.prototype.hasOwnProperty.call(mapping, s) ? s : ''
-  const val = key ? (mapping as Record<string, string>)[key] : ''
-  return (VALID[val] as Industry) || 'Generic'
+  const mapping = (brandConfig as any)?.mapping || {}
+  const val = typeof mapping[s] === 'string' ? mapping[s] : ''
+  return isAllowedIndustry(val) ? (val as Industry) : 'Generic'
 }

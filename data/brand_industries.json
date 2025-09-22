@@ -1,11 +1,24 @@
 {
-  "zendesk": "SaaS",
-  "bayer": "Pharma",
-  "stripe": "FinTech",
-  "ikea": "Commerce",
-  "siemens": "Manufacturing",
-  "govuk": "Public",
-  "bayer": "Pharma",
-  "revolut": "FinTech",
-  "allegro": "Commerce"
+  "__note": "Allowed industries are defined here. When adding a new industry, also add a deterministic template in app/brand/_components/IndustryHero.tsx and update DB CHECK constraints via a migration.",
+  "allowed": [
+    "SaaS",
+    "Pharma",
+    "FinTech",
+    "Commerce",
+    "Manufacturing",
+    "Public",
+    "Generic",
+    "eLearning"
+  ],
+  "mapping": {
+    "zendesk": "SaaS",
+    "bayer": "Pharma",
+    "stripe": "FinTech",
+    "ikea": "Commerce",
+    "siemens": "Manufacturing",
+    "govuk": "Public",
+    "revolut": "FinTech",
+    "allegro": "Commerce",
+    "ascent": "eLearning"
+  }
 }

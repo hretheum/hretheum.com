@@ -1,4 +1,4 @@
-import { resolveIndustry as resolveDeterministic, type Industry } from '@/lib/industry'
+import { resolveIndustry as resolveDeterministic, type Industry, getAllowedIndustries, isAllowedIndustry } from '@/lib/industry'
 import { getOpenAIClient } from '@/lib/llm'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
@@ -13,14 +13,15 @@ function getAnon() {
   return createSupabaseClient(url, key, { auth: { persistSession: false } })
 }
 
-const INDUSTRIES: Industry[] = ['SaaS','Pharma','FinTech','Commerce','Manufacturing','Public','Generic']
+const ALLOWED: Industry[] = getAllowedIndustries()
+const NON_GENERIC = ALLOWED.filter((x) => String(x).toLowerCase() !== 'generic')
 
 async function classifyIndustryLLM(slug: string, timeoutMs = 1500): Promise<{ industry: Industry; confidence: number } | null> {
   try {
     const client = getOpenAIClient()
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), Math.max(500, timeoutMs))
-    const sys = `You classify company brands into one of these industries: ${INDUSTRIES.slice(0, -1).join(', ')}. Respond ONLY JSON: {"industry":"<one>", "confidence":<0..1>}. Use brand name context only; do not hallucinate logos/claims. If uncertain, pick the closest.`
+    const sys = `Classify the company brand into one of these industries: ${NON_GENERIC.join(', ')}. Respond ONLY JSON: {"industry":"<one>", "confidence":<0..1>}. Use brand name context only; do not hallucinate logos/claims. If uncertain, pick the closest from the list.`
     const user = `brand: ${slug}`
     const res = await client.chat.completions.create({
       model: process.env.AI_MODEL_GENERATION || 'gpt-4o-mini',
@@ -42,7 +43,12 @@ async function classifyIndustryLLM(slug: string, timeoutMs = 1500): Promise<{ in
         'saas':'SaaS','software':'SaaS','pharma':'Pharma','pharmaceutical':'Pharma','fintech':'FinTech','finance':'FinTech','banking':'FinTech','commerce':'Commerce','retail':'Commerce','manufacturing':'Manufacturing','public':'Public','government':'Public'
       }
       const k = v.toLowerCase()
-      return (m[k] || (INDUSTRIES.includes(v as Industry) ? v as Industry : 'Generic'))
+      const viaSyn = m[k]
+      if (viaSyn && isAllowedIndustry(viaSyn)) return viaSyn
+      // exact case-insensitive hit in allowed
+      const hit = ALLOWED.find((it) => String(it).toLowerCase() === k)
+      if (hit && isAllowedIndustry(hit)) return hit
+      return 'Generic'
     }
     const industry = norm(ind)
     return { industry, confidence: Math.max(0, Math.min(1, conf)) }
@@ -58,7 +64,7 @@ async function fetchIndustryFromDB(slug: string): Promise<Industry | null> {
     const { data, error } = await anon.from('brand_industries').select('industry').eq('brand_slug', slug).maybeSingle()
     if (error) return null
     const ind = String(data?.industry || '') as Industry
-    return (INDUSTRIES.includes(ind) ? ind : null)
+    return (ALLOWED.includes(ind) ? ind : null)
   } catch { return null }
 }
 
