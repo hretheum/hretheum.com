@@ -24,80 +24,89 @@ function dlog(...a: any[]) { if (DBG) console.log('[industry]', ...a) }
 
 async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ industry: Industry; confidence: number } | null> {
   try {
-    dlog('LLM classify start', { slug, timeoutMs: timeoutMs ?? process.env.INDUSTRY_LLM_TIMEOUT_MS ?? 5000 })
+    const requestedModel = process.env.AI_MODEL_GENERATION || 'gpt-4o-mini'
+    const modelCandidates = Array.from(new Set([requestedModel, 'gpt-4o-mini', 'gpt-4o', 'o4-mini', 'gpt-4.1-mini']))
+    dlog('LLM classify start', { slug, timeoutMs: timeoutMs ?? process.env.INDUSTRY_LLM_TIMEOUT_MS ?? 5000, modelCandidates })
     const client = getOpenAIClient()
-    const controller = new AbortController()
     const requested = Number(timeoutMs ?? process.env.INDUSTRY_LLM_TIMEOUT_MS ?? 5000)
     const effTimeout = Number.isFinite(requested) ? Math.max(500, requested) : 5000
-    const timer = setTimeout(() => controller.abort(), effTimeout)
     const sys = `Classify the company brand into one of these industries: ${NON_GENERIC.join(', ')}. Respond ONLY JSON: {"industry":"<one>", "confidence":<0..1>}. Use brand name context only; do not hallucinate logos/claims. If uncertain, pick the closest from the list.`
     const user = `brand: ${slug}`
-    const basePayload: any = {
-      model: process.env.AI_MODEL_GENERATION || 'gpt-4o-mini',
-      temperature: 0,
-      messages: [
-        { role: 'system', content: sys },
-        { role: 'user', content: user },
-      ],
-    }
-    let res = await client.chat.completions.create({ ...basePayload, response_format: { type: 'json_object' } }, { signal: controller.signal as any })
-    clearTimeout(timer)
-    let txt = res.choices?.[0]?.message?.content || ''
-    dlog('LLM raw txt', String(txt).slice(0, 200))
-    let parsed: any
-    try {
-      // Strip code fences if present
-      const fenceMatch = String(txt).match(/\{[\s\S]*\}/)
-      const jsonish = fenceMatch ? fenceMatch[0] : String(txt)
-      parsed = JSON.parse(jsonish)
-    } catch (e1) {
-      // Second attempt: call without response_format
-      dlog('LLM parse failed, retrying without response_format')
-      const controller2 = new AbortController()
-      const timer2 = setTimeout(() => controller2.abort(), effTimeout)
-      res = await client.chat.completions.create({ ...basePayload }, { signal: controller2.signal as any })
-      clearTimeout(timer2)
-      txt = res.choices?.[0]?.message?.content || ''
-      dlog('LLM raw txt retry', String(txt).slice(0, 200))
+
+    for (const model of modelCandidates) {
       try {
-        const fenceMatch2 = String(txt).match(/\{[\s\S]*\}/)
-        const jsonish2 = fenceMatch2 ? fenceMatch2[0] : String(txt)
-        parsed = JSON.parse(jsonish2)
-      } catch (e2) {
-        // Fallback: very loose extraction of fields
-        const indMatch = String(txt).match(/industry\"?\s*[:=]\s*\"?([A-Za-z]+)\"?/i)
-        const confMatch = String(txt).match(/confidence\"?\s*[:=]\s*([0-9]*\.?[0-9]+)/i)
-        parsed = {
-          industry: indMatch ? indMatch[1] : '',
-          confidence: confMatch ? Number(confMatch[1]) : 0.5,
+        dlog('LLM try model', model)
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), effTimeout)
+        const basePayload: any = {
+          model,
+          temperature: 0,
+          messages: [
+            { role: 'system', content: sys },
+            { role: 'user', content: user },
+          ],
         }
+        let res = await client.chat.completions.create({ ...basePayload, response_format: { type: 'json_object' } }, { signal: controller.signal as any })
+        clearTimeout(timer)
+        let txt = res.choices?.[0]?.message?.content || ''
+        dlog('LLM raw txt', String(txt).slice(0, 200))
+        let parsed: any
+        try {
+          const fenceMatch = String(txt).match(/\{[\s\S]*\}/)
+          const jsonish = fenceMatch ? fenceMatch[0] : String(txt)
+          parsed = JSON.parse(jsonish)
+        } catch (e1) {
+          dlog('LLM parse failed, retrying without response_format')
+          const controller2 = new AbortController()
+          const timer2 = setTimeout(() => controller2.abort(), effTimeout)
+          res = await client.chat.completions.create({ ...basePayload }, { signal: controller2.signal as any })
+          clearTimeout(timer2)
+          txt = res.choices?.[0]?.message?.content || ''
+          dlog('LLM raw txt retry', String(txt).slice(0, 200))
+          try {
+            const fenceMatch2 = String(txt).match(/\{[\s\S]*\}/)
+            const jsonish2 = fenceMatch2 ? fenceMatch2[0] : String(txt)
+            parsed = JSON.parse(jsonish2)
+          } catch (e2) {
+            const indMatch = String(txt).match(/industry\"?\s*[:=]\s*\"?([A-Za-z]+)\"?/i)
+            const confMatch = String(txt).match(/confidence\"?\s*[:=]\s*([0-9]*\.?[0-9]+)/i)
+            parsed = { industry: indMatch ? indMatch[1] : '', confidence: confMatch ? Number(confMatch[1]) : 0.5 }
+          }
+        }
+        let ind = String(parsed?.industry || '').trim()
+        let conf = Number(parsed?.confidence)
+        if (!Number.isFinite(conf)) conf = 0
+        const norm = (v: string): Industry => {
+          const m: Record<string, Industry> = {
+            'saas':'SaaS','software':'SaaS',
+            'pharma':'Pharma','pharmaceutical':'Pharma',
+            'fintech':'FinTech','finance':'FinTech','banking':'FinTech',
+            'commerce':'Commerce','retail':'Commerce',
+            'manufacturing':'Manufacturing',
+            'public':'Public','government':'Public','gov':'Public',
+            'elearning':'eLearning','edtech':'eLearning','education':'eLearning'
+          }
+          const k = v.toLowerCase()
+          const viaSyn = m[k]
+          if (viaSyn && isAllowedIndustry(viaSyn)) return viaSyn
+          const hit = ALLOWED.find((it) => String(it).toLowerCase() === k)
+          if (hit && isAllowedIndustry(hit)) return hit
+          return 'Generic'
+        }
+        const industry = norm(ind)
+        const out = { industry, confidence: Math.max(0, Math.min(1, conf)) }
+        dlog('LLM classify done', { ...out, model })
+        return out
+      } catch (err: any) {
+        // If invalid model id, continue to next candidate
+        if (err?.status === 400 && String(err?.type || err?.error?.type || '').includes('invalid')) {
+          dlog('LLM invalid model, fallback to next', { model })
+          continue
+        }
+        throw err
       }
     }
-    let ind = String(parsed?.industry || '').trim()
-    let conf = Number(parsed?.confidence)
-    if (!Number.isFinite(conf)) conf = 0
-    const norm = (v: string): Industry => {
-      const m: Record<string, Industry> = {
-        'saas':'SaaS','software':'SaaS',
-        'pharma':'Pharma','pharmaceutical':'Pharma',
-        'fintech':'FinTech','finance':'FinTech','banking':'FinTech',
-        'commerce':'Commerce','retail':'Commerce',
-        'manufacturing':'Manufacturing',
-        'public':'Public','government':'Public','gov':'Public',
-        'elearning':'eLearning','edtech':'eLearning','education':'eLearning'
-      }
-      const k = v.toLowerCase()
-      const viaSyn = m[k]
-      if (viaSyn && isAllowedIndustry(viaSyn)) return viaSyn
-      // exact case-insensitive hit in allowed
-      const hit = ALLOWED.find((it) => String(it).toLowerCase() === k)
-      if (hit && isAllowedIndustry(hit)) return hit
-      return 'Generic'
-    }
-    const industry = norm(ind)
-    const out = { industry, confidence: Math.max(0, Math.min(1, conf)) }
-    dlog('LLM classify done', out)
-    return out
+    return null
   } catch (err) {
     console.error('[industry] LLM classify error', err)
     return null
