@@ -3,6 +3,7 @@ import React from 'react'
 import type { Industry } from '@/lib/industry'
 import { getAllowedIndustries } from '@/lib/industry'
 import type { IndustrySource } from '@/lib/industry_server'
+import FitText from '@/app/components/ui/FitText'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -139,9 +140,11 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
 
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
-        <h1 className="max-w-4xl mx-auto text-[clamp(2.125rem,8.5vw,3.25rem)] md:text-[5rem] lg:text-[7.5rem] font-black text-gray-900 leading-[0.96] tracking-tight mb-6 break-words [text-wrap:balance]">
-          {c.headline}
-        </h1>
+        <div className="mb-6">
+          <FitText min={28} max={120} className="max-w-6xl mx-auto text-gray-900">
+            {c.headline}
+          </FitText>
+        </div>
         <p className="mt-3 text-neutral-700 text-base sm:text-lg max-w-2xl mx-auto">{c.sub}</p>
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           {c.bullets.map((b, i) => (

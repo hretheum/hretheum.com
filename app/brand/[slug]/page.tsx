@@ -26,11 +26,10 @@ export default async function BrandPage({ params }: any) {
   const { industry, source, confidence } = await resolveIndustrySSR(slug)
   return (
     <>
-      <main className="mx-auto max-w-3xl px-6 py-12">
-        <RedirectBeacon />
-        <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} />
-      </main>
-      {/* Full homepage content below brand hero */}
+      <RedirectBeacon />
+      {/* Full-bleed hero like root CoverPage */}
+      <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} />
+      {/* Homepage content below hero */}
       <Content />
     </>
   )
