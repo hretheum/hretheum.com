@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     const allowOrigin = pickAllowedOrigin(origin);
     const corsHeaders = buildCorsHeaders(allowOrigin);
 
-    const { message, thread_id: threadIdBody, turn_index: turnIndexBody, client_session_id: clientSessionIdBody } = await req.json();
+    const { message, thread_id: threadIdBody, turn_index: turnIndexBody, client_session_id: clientSessionIdBody, brand_slug: brandSlugBody, campaign_source: campaignSourceBody } = await req.json();
 
     if (typeof message !== 'string' || !message.trim()) {
       return NextResponse.json(
@@ -90,6 +90,8 @@ export async function POST(req: NextRequest) {
     let chatEventId: string | null = null;
     const threadId: string | null = typeof threadIdBody === 'string' && threadIdBody ? threadIdBody : null;
     const turnIndex: number | null = Number.isFinite(turnIndexBody) ? Number(turnIndexBody) : null;
+    const brandSlug: string | null = typeof brandSlugBody === 'string' && brandSlugBody ? String(brandSlugBody) : null;
+    const campaignSource: string | null = typeof campaignSourceBody === 'string' && campaignSourceBody ? String(campaignSourceBody) : null;
     if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
       try {
         const supabase = getSupabaseLoggingClient();
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
             message: message,
             thread_id: threadId,
             turn_index: turnIndex,
-            meta: { user_agent: ua, referer, ip, origin: origin || null, client_session_id: clientSessionIdBody || null },
+            meta: { user_agent: ua, referer, ip, origin: origin || null, client_session_id: clientSessionIdBody || null, brand_slug: brandSlug, campaign_source: campaignSource },
           })
           .select('id')
           .single();
@@ -317,7 +319,7 @@ export async function POST(req: NextRequest) {
           const supabase = getSupabaseLoggingClient();
           const { error } = await supabase
             .from('chat_events')
-            .update({ intent: intentId, confidence: intentRes.confidence, meta: { lowConfidence: true } })
+            .update({ intent: intentId, confidence: intentRes.confidence, meta: { lowConfidence: true, brand_slug: brandSlug, campaign_source: campaignSource } })
             .eq('id', chatEventId);
           if (error && process.env.NODE_ENV !== 'production') {
             console.warn('[chat_events:update-lowconf]', { error: error.message || error });
@@ -332,7 +334,7 @@ export async function POST(req: NextRequest) {
           const supabase = getSupabaseLoggingClient();
           await supabase
             .from('chat_events')
-            .insert({ session_id: sessionId || null, parent_id: chatEventId, thread_id: threadId, turn_index: turnIndex, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence });
+            .insert({ session_id: sessionId || null, parent_id: chatEventId, thread_id: threadId, turn_index: turnIndex, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence, meta: { brand_slug: brandSlug, campaign_source: campaignSource } });
         } catch {}
       }
       return NextResponse.json({
@@ -521,7 +523,7 @@ export async function POST(req: NextRequest) {
               intent: intentId,
               confidence: intentRes.confidence,
               timings,
-              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1 },
+              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1, brand_slug: brandSlug, campaign_source: campaignSource },
             })
             .eq('id', chatEventId);
           if (error && process.env.NODE_ENV !== 'production') {
@@ -566,7 +568,7 @@ export async function POST(req: NextRequest) {
               intent: intentId,
               confidence: intentRes.confidence,
               timings,
-              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1 },
+              meta: { lowConfidence, selectedCount: selected.length, top1Boosted: top1, brand_slug: brandSlug, campaign_source: campaignSource },
             })
             .eq('id', chatEventId);
         } catch {}

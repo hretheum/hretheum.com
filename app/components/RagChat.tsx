@@ -7,7 +7,7 @@ import { streamRag } from '@/lib/client/streamRag';
 
 type Citation = { quote: string; source_name: string; link?: string };
 
-export default function RagChat() {
+export default function RagChat(props: { brandSlug?: string; campaignSource?: 'subdomain' | 'brand-route' }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; citations?: Citation[] }[]>([]);
@@ -23,6 +23,39 @@ export default function RagChat() {
   // Thread management for stable pairing in admin: thread_id + turn_index
   const threadIdRef = useRef<string>('');
   const turnIndexRef = useRef<number>(0);
+  const apexDomain = (process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com').toLowerCase();
+
+  // Derive brand slug and campaign source (subdomain vs brand-route)
+  const brandSlug = React.useMemo<string | undefined>(() => {
+    if (props.brandSlug) return props.brandSlug;
+    if (typeof window === 'undefined') return undefined;
+    try {
+      const host = window.location.hostname.toLowerCase();
+      if (host.endsWith('.' + apexDomain)) {
+        const sub = host.slice(0, -('.' + apexDomain).length);
+        if (sub && sub !== 'www') return sub;
+      }
+      // On brand-route we can derive slug from pathname: /brand/<slug>
+      const path = window.location.pathname || '';
+      const m = path.match(/\/brand\/([a-z0-9-]+)/i);
+      if (m && m[1]) return m[1].toLowerCase();
+    } catch {}
+    return undefined;
+  }, [props.brandSlug, apexDomain]);
+  const campaignSource = React.useMemo<undefined | 'subdomain' | 'brand-route'>(() => {
+    if (props.campaignSource) return props.campaignSource;
+    if (typeof window === 'undefined') return undefined;
+    try {
+      const host = window.location.hostname.toLowerCase();
+      if (host.endsWith('.' + apexDomain)) {
+        const sub = host.slice(0, -('.' + apexDomain).length);
+        if (sub && sub !== 'www') return 'subdomain';
+      }
+      return 'brand-route';
+    } catch {
+      return undefined;
+    }
+  }, [props.campaignSource, apexDomain]);
 
   // Lightweight GTM dataLayer push helper (no PII)
   const dlPush = React.useCallback((payload: Record<string, any>) => {
@@ -233,7 +266,12 @@ export default function RagChat() {
             });
           } catch {}
         },
-        extraBody: { thread_id: threadIdRef.current || null, turn_index: currentTurn },
+        extraBody: {
+          thread_id: threadIdRef.current || null,
+          turn_index: currentTurn,
+          brand_slug: brandSlug || null,
+          campaign_source: campaignSource || null,
+        },
       })) {
         // events also handled via callbacks; loop keeps the generator flowing
       }

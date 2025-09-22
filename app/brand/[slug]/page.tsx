@@ -42,7 +42,7 @@ export default async function BrandPage({ params }: any) {
         <Content />
       )}
       {/* AI Chat widget (fixed position) */}
-      <RagChat />
+      <RagChat brandSlug={slug} campaignSource={'brand-route'} />
     </>
   )
 }
