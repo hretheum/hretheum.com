@@ -39,7 +39,7 @@ Conventions
 - Quality Gates
   - [x] Type-check clean; lint/format clean; manual QA on preview.
   - [x] Unit + e2e tests passing locally.
-  - [ ] Code review.
+  - [x] Code review.
 
 ### T2. Reserved subdomain blacklist enforcement
 - DoD: Config holds reserved items (`www`, `app`, `admin`, `api`, `auth`, `static`, `cdn`, `assets`, `img`, `mail`, `ftp`, `m`, `stage`, `dev`); tests ensure denial.

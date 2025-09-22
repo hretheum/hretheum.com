@@ -200,4 +200,42 @@ Notes:
 ## FAQ
 - 400 `Invalid input` from RPC? Ensure vectors are `vector(1536)` and payload JSON matches RPC signature.
 - `stack depth limit exceeded`? Remove wrapper functions on `(text, vector, ...)` and keep only `(vector(1536))` signatures.
-- Slow first run? Cold start (embeddings/model/gateway). Subsequent runs are faster; tune `RAG_VEC_K`/`RAG_EXPANSIONS`.
+- Slow first run? Cold start (embeddings/model/gateway). Subsequent runs are faster; tune `RAG_vec_K`/`RAG_EXPANSIONS`.
+
+## Backlog
+
+### SEO Crawl (Screaming Frog)
+
+How we verify routing/canonicalization and indexability with Screaming Frog SEO Spider.
+
+1) Prepare URL list (TXT, one per line) — examples:
+   - `https://admin.hretheum.com/`
+   - `https://static.hretheum.com/`
+   - `https://acme.hretheum.com/?utm_source=test&utm_medium=crawl`
+   - `https://a.b.hretheum.com/`
+   - `https://xn--idn.hretheum.com/`
+   - `https://hretheum.com/brand/acme`
+
+2) Screaming Frog → Mode: List → Upload the TXT → Start
+
+3) Recommended config
+   - Configuration → Spider → enable “Always Follow Redirects”.
+   - (Optional) Configuration → User-Agent → Googlebot.
+   - (Optional) Configuration → Robots.txt obey on (default). For QA you can toggle off if needed.
+
+4) What to check
+   - Response Codes → Redirection (3xx): brand subdomains 301 → `https://hretheum.com/brand/<slug>` in a single hop; UTM preserved; HTTPS enforced.
+   - Directives → `Indexability` and `X-Robots-Tag`:
+     - Reserved (`www, app, admin, api, auth, static, cdn, assets, img, mail, ftp, m, stage, dev`) and hosts in `NOINDEX_HOSTS` must be Non-Indexable with `noindex, nofollow`.
+     - Multi-label (e.g., `a.b.hretheum.com`) 301 to `/brand` with `X-Robots-Tag: noindex, nofollow` and short cache.
+   - Canonicals (later in T3/T4): `/brand/[slug]` self‑canonical if/when implemented.
+
+5) Export
+   - Reports → Redirect Chains (CSV)
+   - Bulk Export → Response Codes, Directives (CSV)
+   - Store under `docs/seo/crawl-YYYY-MM-DD/`
+
+6) Acceptance
+   - No indexable technical subdomains.
+   - Brand subdomains canonicalize to `/brand/<slug>`.
+   - No multi-hop redirect chains.
