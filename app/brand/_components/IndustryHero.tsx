@@ -142,7 +142,15 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
       {/* Tiny caption pinned near the top edge (feature-flagged) */}
       {showCaption && (
         <div className="pointer-events-none absolute top-3 left-0 right-0 flex justify-center">
-          <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-white/50 backdrop-blur px-3 py-1 text-[10px] text-neutral-600 shadow-sm border border-neutral-300/60">
+          <div
+            className={
+              'pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur px-3 py-1 text-[10px] shadow-sm border ' +
+              (theme.captionStyle === 'badge'
+                ? 'bg-white/80'
+                : 'bg-white/50')
+            }
+            style={theme.captionStyle === 'badge' ? { borderColor: theme.accent, color: theme.accent } : {}}
+          >
             <span className="font-medium">Industry: {safeIndustry}</span>
             <span>Source: {source || 'n/a'}</span>
             {typeof confidence === 'number' && (
@@ -172,7 +180,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
         <div
           className="w-[200%] h-2 opacity-90"
           style={{
-            background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${theme.accent} 50%, rgba(0,0,0,0) 100%)`,
+            background: `linear-gradient(90deg, ${theme.gradientFrom} 0%, ${theme.gradientVia} 50%, ${theme.gradientTo} 100%)`,
             transform: `translateY(${theme.slashOffsetYRem}rem) rotate(${theme.slashAngleDeg}deg)`,
           }}
         ></div>
@@ -194,7 +202,13 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
               target="_blank"
               rel="noopener noreferrer"
               onClick={onCTAClick}
-              className="inline-block border border-gray-300 text-gray-600 px-5 py-3 text-sm md:text-base font-medium hover:border-gray-400 hover:text-gray-700 transition-all duration-200"
+              className={
+                'inline-block px-5 py-3 text-sm md:text-base font-medium transition-all duration-200 border ' +
+                (theme.ctaVariantPrimary === 'filled'
+                  ? 'text-white'
+                  : 'text-gray-600 border-gray-300 hover:border-gray-400 hover:text-gray-700')
+              }
+              style={theme.ctaVariantPrimary === 'filled' ? { backgroundColor: theme.accent, borderColor: theme.accent } : {}}
             >
               Schedule a meeting
             </a>
