@@ -95,9 +95,49 @@ export async function GET(req: NextRequest) {
       const idx = Math.min(mws.length - 1, Math.max(0, Math.round((p / 100) * (mws.length - 1))));
       return mws[idx];
     };
-    const mwStats = { count: mws.length, p50: q(50), p95: q(95) };
+    const threshold = Number.parseInt(process.env.REDIRECT_MW_P95_THRESHOLD_MS || '5', 10);
+    const p95 = q(95);
+    const mwStats = { count: mws.length, p50: q(50), p95 };
+    const mwPass95 = p95 == null ? null : p95 <= threshold;
 
-    return NextResponse.json({ total, days, bySlug, bySource, byDay, mwStats }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+    // Redirect correctness
+    const apex = (process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com').toLowerCase();
+    const isApexHost = (h: string) => h.toLowerCase().endsWith('.' + apex);
+    const normalize = (label: string): string | null => {
+      if (!label) return null;
+      const lower = label.toLowerCase();
+      if (lower.startsWith('xn--')) return null;
+      let cleaned = lower.replace(/[^a-z0-9-]/g, '');
+      cleaned = cleaned.replace(/-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
+      if (!cleaned) return null;
+      if (cleaned.length > 63) return null;
+      if (!/^[a-z0-9-]{1,63}$/.test(cleaned)) return null;
+      return cleaned;
+    };
+    let eligible = 0;
+    let correct = 0;
+    for (const r of rows as any[]) {
+      const sh: string = r.source_host || '';
+      if (!isApexHost(sh)) continue;
+      // extract labels before apex
+      const parts = sh.split('.');
+      const apexParts = apex.split('.');
+      if (parts.length <= apexParts.length) continue;
+      const subParts = parts.slice(0, parts.length - apexParts.length);
+      eligible++;
+      if (subParts.length !== 1) {
+        // expected no slug
+        if ((r.dest_slug || '') === '(none)') correct++;
+        continue;
+      }
+      const expected = normalize(subParts[0]);
+      if ((expected && r.dest_slug === expected) || (!expected && (r.dest_slug || '') === '(none)')) correct++;
+    }
+    const correctnessPct = eligible > 0 ? (correct / eligible) * 100 : null;
+    const corrThreshold = Number.parseFloat(process.env.REDIRECT_CORRECTNESS_THRESHOLD_PCT || '99.9');
+    const correctnessPass = correctnessPct == null ? null : correctnessPct >= corrThreshold;
+
+    return NextResponse.json({ total, days, bySlug, bySource, byDay, mwStats, mwPass95, mwThresholdMs: threshold, correctness: { eligible, correct, pct: correctnessPct }, correctnessPass, correctnessThresholdPct: corrThreshold }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
   } catch (e: any) {
     if (process.env.NODE_ENV !== 'production') console.error('[admin.redirects] unexpected:', e?.message || e);
     return NextResponse.json({ error: 'unexpected' }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });

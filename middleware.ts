@@ -22,7 +22,7 @@ const RESERVED_SUBDOMAINS = new Set([
 ])
 
 // Validate and normalize a single-label brand slug
-function normalizeSlug(label: string): string | null {
+export function normalizeSlug(label: string): string | null {
   if (!label) return null
   const lower = label.toLowerCase()
   // Reject IDN/punycode and invalid characters
@@ -38,7 +38,7 @@ function normalizeSlug(label: string): string | null {
   return cleaned
 }
 
-function getHostname(req: NextRequest): string {
+export function getHostname(req: NextRequest): string {
   // Prefer x-forwarded-host (may be a comma-separated list), then Host header, then URL hostname
   const fwd = req.headers.get('x-forwarded-host') || ''
   const hostHeader = req.headers.get('host') || ''

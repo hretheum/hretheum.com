@@ -8,6 +8,11 @@ type Summary = {
   bySource: { host: string; count: number }[];
   byDay: { date: string; count: number }[];
   mwStats?: { count: number; p50: number | null; p95: number | null };
+  mwPass95?: boolean | null;
+  mwThresholdMs?: number;
+  correctness?: { eligible: number; correct: number; pct: number | null };
+  correctnessPass?: boolean | null;
+  correctnessThresholdPct?: number;
 };
 
 export default function RedirectsDashboard() {
@@ -66,6 +71,12 @@ export default function RedirectsDashboard() {
                     <span className="text-gray-500">p95</span>
                     <span className="font-mono">{data.mwStats.p95 ?? '—'} ms</span>
                   </span>
+                  {data.mwPass95 != null && (
+                    <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${data.mwPass95 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}
+                      title={`Threshold p95 ≤ ${data.mwThresholdMs ?? '-'} ms`}>
+                      p95 {data.mwPass95 ? 'PASS' : 'FAIL'}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -95,6 +106,24 @@ export default function RedirectsDashboard() {
               ))}
             </div>
           </div>
+
+          {/* Correctness summary */}
+          {data.correctness && (
+            <div className="rounded border p-3">
+              <div className="text-xs text-gray-500 mb-1">Redirect correctness</div>
+              <div className="text-sm text-gray-800 flex items-center gap-3">
+                <span>eligible: <span className="font-mono">{data.correctness.eligible}</span></span>
+                <span>correct: <span className="font-mono">{data.correctness.correct}</span></span>
+                <span>pct: <span className="font-mono">{data.correctness.pct != null ? data.correctness.pct.toFixed(3) + '%' : '—'}</span></span>
+                {data.correctnessPass != null && (
+                  <span className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${data.correctnessPass ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}
+                    title={`Threshold ≥ ${data.correctnessThresholdPct ?? 99.9}%`}>
+                    {data.correctnessPass ? 'PASS' : 'FAIL'}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
