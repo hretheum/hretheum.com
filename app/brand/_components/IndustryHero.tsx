@@ -100,45 +100,61 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
       ],
       cta: 'See how it works',
     },
-  }
+  };
 
   const c = copy[safeIndustry] || copy['Generic']
 
   return (
-    <section className="mb-8">
-      <h1 className="text-3xl font-semibold">{c.headline}</h1>
-      <div className="mt-2 text-xs text-neutral-600 flex items-center gap-3">
-        <div><strong>Industry template:</strong> {safeIndustry}</div>
-        <div><strong>Source:</strong> {source || 'n/a'}</div>
-        {typeof confidence === 'number' && (
-          <span
-            className={
-              'inline-flex items-center gap-1 rounded px-1.5 py-0.5 ' +
-              (confidence >= 0.8
-                ? 'bg-emerald-100 text-emerald-800'
-                : confidence >= 0.5
-                ? 'bg-amber-100 text-amber-800'
-                : 'bg-rose-100 text-rose-800')
-            }
-            title="LLM confidence"
-          >
-            confidence {confidence.toFixed(2)}
-          </span>
-        )}
+    <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden bg-white mb-8">
+      {/* Tiny caption pinned near the top edge */}
+      <div className="pointer-events-none absolute top-2 left-0 right-0 flex justify-center">
+        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-white/70 backdrop-blur px-3 py-1 text-[10px] text-neutral-600 shadow-sm border border-neutral-200">
+          <span className="font-medium">Industry: {safeIndustry}</span>
+          <span>Source: {source || 'n/a'}</span>
+          {typeof confidence === 'number' && (
+            <span className="inline-flex items-center gap-1">
+              <span>Conf:</span>
+              <span
+                className={
+                  'inline-flex items-center gap-1 rounded px-1 py-0.5 ' +
+                  (confidence >= 0.8
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : confidence >= 0.5
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-rose-100 text-rose-800')
+                }
+                title="LLM confidence"
+              >
+                {confidence.toFixed(2)}
+              </span>
+            </span>
+          )}
+        </div>
       </div>
-      <p className="mt-3 text-neutral-600">{c.sub}</p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        {c.bullets.map((b, i) => (
-          <Section key={i} title={['Value', 'Focus', 'Outcome'][i] || `Point ${i + 1}`}>
-            {b}
-          </Section>
-        ))}
+
+      {/* Neon Slash background like CoverPage */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform rotate-12 opacity-90"></div>
       </div>
-      <div className="mt-6">
-        <a className="inline-flex items-center rounded bg-black px-4 py-2 text-white hover:bg-neutral-800" href="#">
-          {c.cta}
-        </a>
+
+      {/* Main content */}
+      <div className="text-center z-10 px-4 sm:px-6">
+        <h1 className="text-[clamp(2rem,8vw,3.5rem)] md:text-[5rem] lg:text-[6.5rem] font-black text-gray-900 leading-[0.95] tracking-tight mb-6 break-words [text-wrap:balance]">
+          {c.headline}
+        </h1>
+        <p className="mt-3 text-neutral-700 text-base sm:text-lg max-w-2xl mx-auto">{c.sub}</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {c.bullets.map((b, i) => (
+            <Section key={i} title={['Value', 'Focus', 'Outcome'][i] || `Point ${i + 1}`}>
+              {b}
+            </Section>
+          ))}
+        </div>
+        <div className="mt-8">
+          <a className="inline-block border border-gray-300 text-gray-700 px-5 py-2.5 text-sm font-medium hover:border-gray-400 hover:text-gray-800 transition-all duration-200" href="#">
+            {c.cta}
+          </a>
+        </div>
       </div>
     </section>
   )
-}
