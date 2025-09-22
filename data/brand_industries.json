@@ -4,5 +4,8 @@
   "stripe": "FinTech",
   "ikea": "Commerce",
   "siemens": "Manufacturing",
-  "govuk": "Public"
+  "govuk": "Public",
+  "bayer": "Pharma",
+  "revolut": "FinTech",
+  "allegro": "Commerce"
 }

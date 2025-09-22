@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import RedirectBeacon from './RedirectBeacon'
-import { resolveIndustry } from '@/lib/industry'
+import { resolveIndustrySSR } from '@/lib/industry_server'
 import { IndustryHero } from '../_components/IndustryHero'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
@@ -15,9 +15,9 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   }
 }
 
-export default function BrandPage({ params }: any) {
+export default async function BrandPage({ params }: any) {
   const slug = params?.slug || ''
-  const industry = resolveIndustry(slug)
+  const industry = await resolveIndustrySSR(slug)
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <RedirectBeacon />
