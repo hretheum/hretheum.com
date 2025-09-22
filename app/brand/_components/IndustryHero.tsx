@@ -158,3 +158,4 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
       </div>
     </section>
   )
+}
