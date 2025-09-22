@@ -5,6 +5,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminEventsTable from './AdminEventsTable';
 import RedirectsDashboard from './RedirectsDashboard';
+import RedirectsRawTable from './RedirectsRawTable';
 
 function getInitialTab(): 'conversations' | 'redirects' {
   if (typeof window === 'undefined') return 'conversations';
@@ -42,7 +43,15 @@ export default function AdminTabs() {
       </div>
 
       {tab === 'conversations' && <AdminEventsTable />}
-      {tab === 'redirects' && <RedirectsDashboard />}
+      {tab === 'redirects' && (
+        <div>
+          <RedirectsDashboard />
+          <details className="mt-4">
+            <summary className="cursor-pointer select-none text-sm text-gray-700">Raw events</summary>
+            <RedirectsRawTable />
+          </details>
+        </div>
+      )}
     </div>
   );
 }

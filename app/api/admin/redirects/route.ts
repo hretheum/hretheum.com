@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     const svc = getServiceClient();
     const { data, error } = await svc
       .from('redirect_events')
-      .select('created_at, source_host, dest_slug')
+      .select('created_at, source_host, dest_slug, meta')
       .gte('created_at', sinceIso)
       .order('created_at', { ascending: false })
       .limit(20000);
@@ -83,7 +83,21 @@ export async function GET(req: NextRequest) {
     }
     const byDay = Array.from(byDayMap.entries()).map(([date, count]) => ({ date, count })).sort((a, b) => (a.date < b.date ? -1 : 1));
 
-    return NextResponse.json({ total, days, bySlug, bySource, byDay }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+    // Latency stats from meta.mw_ms
+    const mws: number[] = [];
+    for (const r of rows) {
+      const v = (r as any)?.meta?.mw_ms;
+      if (typeof v === 'number' && isFinite(v) && v >= 0) mws.push(Math.floor(v));
+    }
+    mws.sort((a, b) => a - b);
+    const q = (p: number) => {
+      if (mws.length === 0) return null as number | null;
+      const idx = Math.min(mws.length - 1, Math.max(0, Math.round((p / 100) * (mws.length - 1))));
+      return mws[idx];
+    };
+    const mwStats = { count: mws.length, p50: q(50), p95: q(95) };
+
+    return NextResponse.json({ total, days, bySlug, bySource, byDay, mwStats }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
   } catch (e: any) {
     if (process.env.NODE_ENV !== 'production') console.error('[admin.redirects] unexpected:', e?.message || e);
     return NextResponse.json({ error: 'unexpected' }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });

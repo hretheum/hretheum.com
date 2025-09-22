@@ -7,6 +7,7 @@ type Summary = {
   bySlug: { slug: string; count: number }[];
   bySource: { host: string; count: number }[];
   byDay: { date: string; count: number }[];
+  mwStats?: { count: number; p50: number | null; p95: number | null };
 };
 
 export default function RedirectsDashboard() {
@@ -55,6 +56,18 @@ export default function RedirectsDashboard() {
             <div className="rounded border p-3">
               <div className="text-xs text-gray-500">Total redirects</div>
               <div className="text-2xl font-semibold">{data.total}</div>
+              {data.mwStats && data.mwStats.count > 0 && (
+                <div className="mt-1 text-xs text-gray-600 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5">
+                    <span className="text-gray-500">p50</span>
+                    <span className="font-mono">{data.mwStats.p50 ?? '—'} ms</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5">
+                    <span className="text-gray-500">p95</span>
+                    <span className="font-mono">{data.mwStats.p95 ?? '—'} ms</span>
+                  </span>
+                </div>
+              )}
             </div>
             <div className="rounded border p-3">
               <div className="text-xs text-gray-500">Top slugs</div>
