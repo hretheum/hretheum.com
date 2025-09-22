@@ -7,6 +7,9 @@
 import fs from 'fs/promises'
 import path from 'path'
 import matter from 'gray-matter'
+import React from 'react'
+import { compileMDX } from 'next-mdx-remote/rsc'
+import remarkGfm from 'remark-gfm'
 
 const ROOT = process.cwd()
 const CAMPAIGNS_DIR = path.join(ROOT, 'data', 'campaigns')
@@ -76,4 +79,30 @@ export async function getCampaignAccentForBrand(brandSlug: string): Promise<stri
   if (!found) return undefined
   const fm = await loadCampaignFrontmatter(found.filePath)
   return fm?.accent || undefined
+}
+
+export async function hasCampaignForBrand(brandSlug: string): Promise<boolean> {
+  const found = await findCampaignForBrand(brandSlug)
+  return !!found
+}
+
+export async function compileCampaignForBrand(
+  brandSlug: string,
+  components: Record<string, React.ComponentType<any>>
+): Promise<{ content: React.ReactElement; frontmatter: CampaignFrontmatter } | null> {
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) return null
+  const raw = await fs.readFile(found.filePath, 'utf8')
+  const { content, frontmatter } = await compileMDX<CampaignFrontmatter>({
+    source: raw,
+    options: {
+      parseFrontmatter: true,
+      mdxOptions: {
+        remarkPlugins: [remarkGfm],
+        rehypePlugins: [],
+      },
+    },
+    components,
+  })
+  return { content, frontmatter }
 }
