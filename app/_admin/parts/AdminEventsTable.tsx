@@ -214,7 +214,7 @@ export default function AdminEventsTable() {
       return 0;
     });
     return sorted;
-  }, [rows, sortBy, sortDir]);
+  }, [rows, sortBy, sortDir, q]);
 
   // group by date label
   const groups = useMemo(() => {

@@ -88,6 +88,7 @@ export function middleware(req: NextRequest) {
 }
 
 function redirectToBrand(req: NextRequest, slug?: string) {
+  const t0 = Date.now()
   // Preserve protocol from the incoming request
   const proto = req.nextUrl.protocol // includes trailing ':'
   const search = req.nextUrl.search // preserves ?query
@@ -107,7 +108,9 @@ function redirectToBrand(req: NextRequest, slug?: string) {
   const res = NextResponse.redirect(url, 301)
   try {
     const sourceHost = getHostname(req)
-    const payload = encodeURIComponent(JSON.stringify({ h: sourceHost, s: slug || '', t: Date.now() }))
+    const mw = Math.max(0, Date.now() - t0)
+    res.headers.set('Server-Timing', `mw;dur=${mw}`)
+    const payload = encodeURIComponent(JSON.stringify({ h: sourceHost, s: slug || '', t: Date.now(), m: mw }))
     res.cookies.set({
       name: 'hre_rsrc',
       value: payload,

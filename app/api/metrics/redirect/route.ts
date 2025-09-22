@@ -16,10 +16,12 @@ export async function POST(req: NextRequest) {
 
     let sourceHost = ''
     let slug = ''
+    let mw = null as null | number
     try {
       const parsed = JSON.parse(decodeURIComponent(raw))
       sourceHost = String(parsed?.h || '')
       slug = String(parsed?.s || '')
+      if (typeof parsed?.m === 'number' && isFinite(parsed.m)) mw = Math.max(0, Math.floor(parsed.m))
     } catch {
       /* ignore parse errors */
     }
@@ -37,7 +39,8 @@ export async function POST(req: NextRequest) {
         ;(async () => {
           try {
             const supabase = getServiceClient()
-            await supabase.from('redirect_events').insert({ source_host: sourceHost, dest_slug: slug || '(none)', referer, user_agent: ua })
+            const meta = mw != null ? { mw_ms: mw } : null
+            await supabase.from('redirect_events').insert({ source_host: sourceHost, dest_slug: slug || '(none)', referer, user_agent: ua, meta })
           } catch (e) {
             if (process.env.NODE_ENV !== 'production') console.warn('[redirect.log] insert failed', e)
           }
