@@ -89,11 +89,10 @@ export function middleware(req: NextRequest) {
 
 function redirectToBrand(req: NextRequest, slug?: string) {
   const t0 = Date.now()
-  // Preserve protocol from the incoming request
-  const proto = req.nextUrl.protocol // includes trailing ':'
   const search = req.nextUrl.search // preserves ?query
   const destPath = slug ? `/brand/${slug}` : '/brand'
-  const url = new URL(`${proto}//${APEX_DOMAIN}${destPath}${search}`)
+  // Always redirect to HTTPS on apex domain
+  const url = new URL(`https://${APEX_DOMAIN}${destPath}${search}`)
 
   // Prevent redirect loops: if already at the target apex + path, just continue
   if (
