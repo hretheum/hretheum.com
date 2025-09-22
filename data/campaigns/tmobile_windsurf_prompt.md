@@ -17,30 +17,7 @@ The goal: Present **Eryk Orłowski** as the ideal candidate for **Go2Market, UX 
 
 ---
 
-## 📌 Job Posting Context — T-Mobile
-**Role:** Go2Market, UX & UI Lead — One Portal Tribe  
-**Location:** Warsaw, Mokotów (Hybrid)  
-**Contract:** B2B, full-time  
-**Period:** 9 Sept 2025 – 9 Oct 2025  
-
-### Requirements
-- 5–6 years UX/UI & Go2Market experience.  
-- 2+ years leading UX teams.  
-- International strategy deployment.  
-- Strong analytical + creative mix.  
-- Figma, Miro, Jira, Confluence expertise.  
-- English fluency.  
-
-### Responsibilities
-- Define & deliver UX/UI & GTM strategy for One Portal.  
-- Lead UX/UI team + coordinate markets.  
-- Shape roadmap with UX insights.  
-- Ensure cross-market visual & functional consistency.  
-- Oversee UX research, prototyping, testing.  
-- Drive GTM comms, onboarding, training.  
-- Track performance & feedback loops.  
-
----
+ 
 
 ## 👤 Candidate Profile — Eryk Orłowski
 - **Design Leader & Builder**  
@@ -288,7 +265,6 @@ through structured interviews, workshops, and journey mapping, we uncovered late
 ## 💡 Visual Component Recommendations
 - **Hero Section**: Magenta gradient background, bold headline *“Designing Telecom’s Future: Eryk Orłowski”*.  
 - **Case Studies Carousel**: Interactive horizontal scroll with 6+ case cards.  
-- **Metrics Grid**: Animated counters (conversion uplift %, adoption increase, cost reduction).  
 - **Leadership Playbook Diagram**: SVG flow diagram of Discovery → Delivery → Ops → Research → AI Future.  
 - **Quote Blocks**: Oversized pull quotes in magenta blocks.  
 - **CTA Banner**: Sticky bottom magenta ribbon with both CTA buttons.  
@@ -297,7 +273,6 @@ through structured interviews, workshops, and journey mapping, we uncovered late
 
 ## 🔗 Calls to Action
 - [Schedule the Interview](https://calendly.com/eorlowski-theeventa/short-intro)  
-- [Talk to my AI](https://hretheum.com)  
 
 ---
 
