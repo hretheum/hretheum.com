@@ -84,11 +84,15 @@ async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ 
             'commerce':'Commerce','retail':'Commerce',
             'manufacturing':'Manufacturing',
             'public':'Public','government':'Public','gov':'Public',
-            'elearning':'eLearning','edtech':'eLearning','education':'eLearning'
+            'elearning':'eLearning','edtech':'eLearning','education':'eLearning',
+            'telecom':'Telecom','telecommunications':'Telecom','telco':'Telecom','carrier':'Telecom','isp':'Telecom','wireless':'Telecom','mobilecarrier':'Telecom','mobileoperator':'Telecom','5g':'Telecom'
           }
           const k = v.toLowerCase()
           const viaSyn = m[k]
           if (viaSyn && isAllowedIndustry(viaSyn)) return viaSyn
+          const nk = k.replace(/[^a-z]/g, '')
+          const viaSyn2 = m[nk]
+          if (viaSyn2 && isAllowedIndustry(viaSyn2)) return viaSyn2
           const hit = ALLOWED.find((it) => String(it).toLowerCase() === k)
           if (hit && isAllowedIndustry(hit)) return hit
           return 'Generic'

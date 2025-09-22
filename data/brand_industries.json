@@ -8,6 +8,7 @@
     "Manufacturing",
     "Public",
     "eLearning",
+    "Telecom",
     "Generic"
   ],
   "mapping": {
@@ -19,6 +20,7 @@
     "govuk": "Public",
     "revolut": "FinTech",
     "allegro": "Commerce",
-    "ascent": "eLearning"
+    "ascent": "eLearning",
+    "tmobile": "Telecom"
   }
 }

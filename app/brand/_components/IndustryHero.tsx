@@ -81,6 +81,16 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
       ],
       cta: 'See Public playbook',
     },
+    Telecom: {
+      headline: `Network & Telecom hiring signals`,
+      sub: <>Neutral, template-based content for telecommunications operators and carriers — contextualized for <strong className="font-semibold">{slug}</strong>.</>,
+      bullets: [
+        'Network reliability, 5G rollout, and edge infrastructure',
+        'ARPU, churn, and customer lifecycle operations',
+        'Regulatory compliance, spectrum, and privacy policies',
+      ],
+      cta: 'See Telecom playbook',
+    },
     eLearning: {
       headline: `Education & eLearning hiring signals`,
       sub: <>Neutral, template-based content for education technology and online learning — contextualized for <strong className="font-semibold">{slug}</strong>.</>,
@@ -140,13 +150,13 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
 
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
-        <div className="mb-6">
-          <FitText min={28} max={120} className="max-w-6xl mx-auto text-gray-900">
+        <div className="mb-8">
+          <FitText min={32} max={192} className="mx-auto text-gray-900" textClassName="leading-[0.95] tracking-tight break-words [text-wrap:balance]">
             {c.headline}
           </FitText>
         </div>
         <p className="mt-3 text-neutral-700 text-base sm:text-lg max-w-2xl mx-auto">{c.sub}</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 max-w-5xl mx-auto grid gap-4 sm:grid-cols-3">
           {c.bullets.map((b, i) => (
             <Section key={i} title={['Value', 'Focus', 'Outcome'][i] || `Point ${i + 1}`}>
               {b}

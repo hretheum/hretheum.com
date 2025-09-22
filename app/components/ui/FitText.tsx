@@ -11,9 +11,10 @@ type FitTextProps = {
   max?: number; // max font size in px
   step?: number; // binary search iterations
   className?: string;
+  textClassName?: string; // classes for inner text (line-height, tracking)
 };
 
-export default function FitText({ children, min = 12, max = 48, step = 6, className = '' }: FitTextProps) {
+export default function FitText({ children, min = 12, max = 48, step = 6, className = '', textClassName }: FitTextProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState<number>(max);
@@ -65,7 +66,7 @@ export default function FitText({ children, min = 12, max = 48, step = 6, classN
 
   return (
     <div ref={boxRef} className={`w-full ${className}`}> 
-      <div ref={textRef} style={{ fontSize }} className="font-black leading-tight break-words [text-wrap:balance]">
+      <div ref={textRef} style={{ fontSize }} className={`font-black ${textClassName || 'leading-[0.95] tracking-tight break-words [text-wrap:balance]'}`}>
         {children}
       </div>
     </div>
