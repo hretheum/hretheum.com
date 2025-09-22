@@ -123,6 +123,23 @@ REDIRECT_CORRECTNESS_THRESHOLD_PCT=99.9
 # REDIRECT_E2E_BASE=http://localhost:3000
 ```
 
+### Vercel Drains (error rate via logs)
+
+To enable error-rate PASS/FAIL in Admin using Vercel logs:
+
+1) Create a Custom HTTP Drain in Vercel Dashboard → Team Settings → Drains
+   - Destination URL: `https://<your-domain>/api/_drain/vercel`
+   - Header: `Authorization: Bearer <VERCEL_DRAIN_TOKEN>`
+
+2) Set env variables:
+
+```bash
+VERCEL_DRAIN_TOKEN=<secret>
+REDIRECT_ERROR_RATE_THRESHOLD_PCT=0.1
+```
+
+3) Admin → Redirects Dashboard will show “Error rate (5xx / total)” with PASS/FAIL badge for the last N days window.
+
 ### DB migrations (redirect events)
 
 Apply:

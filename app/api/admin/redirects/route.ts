@@ -137,7 +137,34 @@ export async function GET(req: NextRequest) {
     const corrThreshold = Number.parseFloat(process.env.REDIRECT_CORRECTNESS_THRESHOLD_PCT || '99.9');
     const correctnessPass = correctnessPct == null ? null : correctnessPct >= corrThreshold;
 
-    return NextResponse.json({ total, days, bySlug, bySource, byDay, mwStats, mwPass95, mwThresholdMs: threshold, correctness: { eligible, correct, pct: correctnessPct }, correctnessPass, correctnessThresholdPct: corrThreshold }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
+    // Error rate via Vercel drain events (5xx / total)
+    let errorRatePct: number | null = null;
+    let errorRatePass: boolean | null = null;
+    let errorCount: number | null = null;
+    let totalDrainCount: number | null = null;
+    try {
+      const drainBase = svc.from('vercel_drain_events').select('*', { count: 'exact', head: true }).gte('created_at', sinceIso);
+      const { count: totalCount, error: e1 } = await drainBase;
+      if (e1) throw e1;
+      totalDrainCount = totalCount ?? 0;
+      const { count: errCount, error: e2 } = await svc
+        .from('vercel_drain_events')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', sinceIso)
+        .gte('status', 500)
+        .lt('status', 600);
+      if (e2) throw e2;
+      errorCount = errCount ?? 0;
+      if ((totalDrainCount || 0) > 0) {
+        errorRatePct = (Number(errorCount) / Number(totalDrainCount)) * 100;
+        const errThr = Number.parseFloat(process.env.REDIRECT_ERROR_RATE_THRESHOLD_PCT || '0.1');
+        errorRatePass = errorRatePct <= errThr;
+      }
+    } catch (e: any) {
+      if (process.env.NODE_ENV !== 'production') console.warn('[admin.redirects] drain stats failed:', e?.message || e);
+    }
+
+    return NextResponse.json({ total, days, bySlug, bySource, byDay, mwStats, mwPass95, mwThresholdMs: threshold, correctness: { eligible, correct, pct: correctnessPct }, correctnessPass, correctnessThresholdPct: corrThreshold, errorRate: { total: totalDrainCount, errors: errorCount, pct: errorRatePct }, errorRatePass }, { status: 200, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });
   } catch (e: any) {
     if (process.env.NODE_ENV !== 'production') console.error('[admin.redirects] unexpected:', e?.message || e);
     return NextResponse.json({ error: 'unexpected' }, { status: 500, headers: { 'X-Robots-Tag': 'noindex, nofollow' } });

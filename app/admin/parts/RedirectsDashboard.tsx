@@ -13,6 +13,8 @@ type Summary = {
   correctness?: { eligible: number; correct: number; pct: number | null };
   correctnessPass?: boolean | null;
   correctnessThresholdPct?: number;
+  errorRate?: { total: number | null; errors: number | null; pct: number | null };
+  errorRatePass?: boolean | null;
 };
 
 export default function RedirectsDashboard() {
@@ -119,6 +121,24 @@ export default function RedirectsDashboard() {
                   <span className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${data.correctnessPass ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}
                     title={`Threshold ≥ ${data.correctnessThresholdPct ?? 99.9}%`}>
                     {data.correctnessPass ? 'PASS' : 'FAIL'}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Error rate summary */}
+          {data.errorRate && (
+            <div className="rounded border p-3">
+              <div className="text-xs text-gray-500 mb-1">Error rate (5xx / total)</div>
+              <div className="text-sm text-gray-800 flex items-center gap-3">
+                <span>total: <span className="font-mono">{data.errorRate.total ?? '—'}</span></span>
+                <span>errors: <span className="font-mono">{data.errorRate.errors ?? '—'}</span></span>
+                <span>pct: <span className="font-mono">{data.errorRate.pct != null ? data.errorRate.pct.toFixed(3) + '%' : '—'}</span></span>
+                {data.errorRatePass != null && (
+                  <span className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${data.errorRatePass ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}
+                  >
+                    {data.errorRatePass ? 'PASS' : 'FAIL'}
                   </span>
                 )}
               </div>
