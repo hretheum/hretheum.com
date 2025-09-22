@@ -21,6 +21,14 @@ const RESERVED_SUBDOMAINS = new Set([
   'dev',
 ])
 
+// Optional: exact hostnames that should be marked noindex (comma-separated)
+const NOINDEX_HOSTS = new Set(
+  (process.env.NOINDEX_HOSTS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+)
+
 // Validate and normalize a single-label brand slug
 export function normalizeSlug(label: string): string | null {
   if (!label) return null
@@ -49,6 +57,7 @@ export function getHostname(req: NextRequest): string {
 
 export function middleware(req: NextRequest) {
   const hostname = getHostname(req)
+  const isNoindexHost = NOINDEX_HOSTS.has(hostname.toLowerCase())
 
   // Only act on subdomains of the APEX_DOMAIN
   if (!hostname.endsWith('.' + APEX_DOMAIN)) {
@@ -66,28 +75,30 @@ export function middleware(req: NextRequest) {
   // Only accept a single-label subdomain for brand routing (e.g., foo.hretheum.com)
   if (subdomainParts.length !== 1) {
     // Multiple labels (e.g., a.b.hretheum.com) → treat as invalid brand; redirect to /brand (no slug)
-    return redirectToBrand(req)
+    return redirectToBrand(req, undefined, isNoindexHost)
   }
 
   const label = subdomainParts[0]
 
-  // Skip reserved subdomains entirely (render neutral apex route)
+  // Skip reserved subdomains entirely (render neutral apex route) but disallow indexing
   if (RESERVED_SUBDOMAINS.has(label.toLowerCase())) {
-    return NextResponse.next()
+    const res = NextResponse.next()
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow')
+    return res
   }
 
   const slug = normalizeSlug(label)
 
   // Build destination: always root brand route; preserve query/UTM; avoid loops
   if (slug) {
-    return redirectToBrand(req, slug)
+    return redirectToBrand(req, slug, isNoindexHost)
   } else {
     // Invalid slug → redirect to /brand (no slug)
-    return redirectToBrand(req)
+    return redirectToBrand(req, undefined, isNoindexHost)
   }
 }
 
-function redirectToBrand(req: NextRequest, slug?: string) {
+function redirectToBrand(req: NextRequest, slug?: string, noindex?: boolean) {
   const t0 = Date.now()
   const search = req.nextUrl.search // preserves ?query
   const destPath = slug ? `/brand/${slug}` : '/brand'
@@ -105,6 +116,9 @@ function redirectToBrand(req: NextRequest, slug?: string) {
 
   // Prepare redirect response and set a short-lived cookie carrying source host + slug
   const res = NextResponse.redirect(url, 301)
+  if (noindex) {
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  }
   try {
     const sourceHost = getHostname(req)
     const mw = Math.max(0, Date.now() - t0)

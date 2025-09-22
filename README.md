@@ -57,6 +57,7 @@ More details: `docs/CONVERSATIONAL_RAG.md` §22 and `docs/ARCHITECTURE_CHAT.md`.
 ## Architecture & Docs
 - Architecture: `docs/ARCHITECTURE_CHAT.md`
 - Conversational RAG Guide: `docs/CONVERSATIONAL_RAG.md`
+- AUI Redirects & Consent: `docs/aui/REDIRECT_TELEMETRY_CONSENT.md`
 - Playbooks:
   - Retrieval: `docs/playbooks/RETRIEVAL_PLAYBOOK.md`
   - Content Authoring: `docs/playbooks/CONTENT_PLAYBOOK.md`
@@ -64,6 +65,74 @@ More details: `docs/CONVERSATIONAL_RAG.md` §22 and `docs/ARCHITECTURE_CHAT.md`.
   - Validation/Smoke: `docs/playbooks/VALIDATION_PLAYBOOK.md`
   - Gateway: `docs/playbooks/GATEWAY_PLAYBOOK.md`
   - Operations/Security: `docs/playbooks/OPERATIONS_SECURITY_PLAYBOOK.md`
+
+## AUI: Subdomain Routing & Redirect Telemetry
+
+This app implements default-allow employer subdomain routing and canonicalization to `https://<APEX>/brand/<slug>`, plus minimal, consent‑gated telemetry for redirects.
+
+- Canonicalization
+  - Default-allow: any `<brand>.hretheum.com` (unless blacklisted) 301 → `https://hretheum.com/brand/<slug>`.
+  - Reserved subdomains are excluded (e.g., `www, app, admin, api, auth, static, cdn, assets, img, mail, ftp, m, stage, dev`).
+  - Slug normalization: lowercase, `[a-z0-9-]{1,63}`, collapse dashes; IDN/punycode rejected.
+  - Redirects always force HTTPS on the apex domain.
+
+- Redirect telemetry (consent‑gated)
+  - Middleware sets a short‑lived cookie `hre_rsrc` (non‑PII: source host, slug, timestamp, mw duration). No network writes pre‑consent.
+  - Client beacon on `/brand` reads the cookie and POSTs to `/api/metrics/redirect` only if consent is granted.
+  - Consent can be controlled via cookie (see env vars below) and admin helper.
+
+- Admin
+  - Visit `/admin` (Supabase Auth Google, allowlist via `ADMIN_EMAILS`).
+  - Tabs: `Redirects` shows dashboard (p50/p95, pass/fail vs threshold, correctness pass/fail) and raw events (filters/pagination).
+  - Admin-only helper: `window.hreSetConsent(true|false)` available on `/admin` with small UI widget to grant/revoke consent quickly.
+
+### Local E2E for redirects
+
+1) Run the app
+
+```bash
+npm run dev
+# http://localhost:3000
+```
+
+2) Run tests
+
+```bash
+REDIRECT_E2E_BASE=http://localhost:3000 npm run test:e2e
+```
+
+Tests send `x-forwarded-host` to simulate subdomains locally. They verify:
+- valid single-label → 301 to `/brand/<slug>` with UTM
+- reserved → no 301
+- multi-label/IDN → 301 to `/brand`
+
+### Production testing note
+
+In production, CDN/edge infrastructure manages `x-forwarded-host` (client cannot set it). To test redirects in prod, configure a real subdomain (e.g., `acme.hretheum.com`) to point to this app (Vercel Domains) and hit it directly. Requests to the apex with a custom header will return 200 by design.
+
+### Environment (AUI)
+
+Copy from `.env.example` as needed:
+
+```bash
+NEXT_PUBLIC_APEX_DOMAIN=hretheum.com
+NEXT_PUBLIC_REDIRECT_BEACON_REQUIRES_CONSENT=true
+NEXT_PUBLIC_CONSENT_COOKIE_NAME=hre_consent_analytics
+REDIRECT_MW_P95_THRESHOLD_MS=5
+REDIRECT_CORRECTNESS_THRESHOLD_PCT=99.9
+# REDIRECT_E2E_BASE=http://localhost:3000
+```
+
+### DB migrations (redirect events)
+
+Apply:
+
+```sql
+-- 0007_redirect_events.sql
+-- 0008_redirect_events_meta.sql
+```
+
+See `docs/aui/REDIRECT_TELEMETRY_CONSENT.md` for full details.
 
 ## Supabase Setup (RPC & Security)
 - Required functions (pgvector):
