@@ -6,25 +6,73 @@ import { useEffect, useRef } from 'react';
 
 export default function RedirectBeacon() {
   const sent = useRef(false);
-  useEffect(() => {
-    if (sent.current) return;
-    const requiresConsent = (process.env.NEXT_PUBLIC_REDIRECT_BEACON_REQUIRES_CONSENT ?? 'true') !== 'false';
-    const consentCookie = process.env.NEXT_PUBLIC_CONSENT_COOKIE_NAME || 'hre_consent_analytics';
-    const hasConsent = (() => {
-      try {
-        const cookies = (typeof document !== 'undefined' ? document.cookie : '') || '';
-        const m = cookies.match(new RegExp(`(?:^|; )${consentCookie}=([^;]*)`));
-        const v = m ? decodeURIComponent(m[1]) : '';
-        return v === '1' || v === 'true';
-      } catch {
-        return false;
-      }
-    })();
-    if (!requiresConsent || hasConsent) {
-      sent.current = true;
-      // Fire-and-forget; do not block rendering
-      fetch('/api/metrics/redirect', { method: 'POST', cache: 'no-store' }).catch(() => {});
+  const lastConsentRef = useRef<boolean>(false);
+  const pollTimerRef = useRef<number | null>(null);
+  const pollStopRef = useRef<number | null>(null);
+
+  function hasConsentNow(): boolean {
+    try {
+      const consentCookie = process.env.NEXT_PUBLIC_CONSENT_COOKIE_NAME || 'hre_consent_analytics';
+      const cookies = (typeof document !== 'undefined' ? document.cookie : '') || '';
+      const m = cookies.match(new RegExp(`(?:^|; )${consentCookie}=([^;]*)`));
+      const v = m ? decodeURIComponent(m[1]) : '';
+      return v === '1' || v === 'true';
+    } catch {
+      return false;
     }
+  }
+
+  function canSend(): boolean {
+    const requiresConsent = (process.env.NEXT_PUBLIC_REDIRECT_BEACON_REQUIRES_CONSENT ?? 'true') !== 'false';
+    return !requiresConsent || hasConsentNow();
+  }
+
+  function sendOnce() {
+    if (sent.current) return;
+    if (!canSend()) return;
+    sent.current = true;
+    fetch('/api/metrics/redirect', { method: 'POST', cache: 'no-store' }).catch(() => {});
+  }
+
+  useEffect(() => {
+    // initial try on mount
+    lastConsentRef.current = hasConsentNow();
+    sendOnce();
+
+    // event listener approach: custom events from consent manager
+    const handler = () => {
+      lastConsentRef.current = hasConsentNow();
+      sendOnce();
+    };
+    window.addEventListener('hre:consent-changed', handler as EventListener);
+    window.addEventListener('consent-changed', handler as EventListener);
+
+    // fallback polling for up to 2 minutes to catch async consent set after UI interaction
+    pollTimerRef.current = window.setInterval(() => {
+      const now = hasConsentNow();
+      if (now && !lastConsentRef.current) {
+        lastConsentRef.current = now;
+        sendOnce();
+      }
+      // stop early if already sent
+      if (sent.current) {
+        if (pollTimerRef.current) window.clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    }, 1500) as unknown as number;
+    pollStopRef.current = window.setTimeout(() => {
+      if (pollTimerRef.current) window.clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }, 120000) as unknown as number; // 2 minutes
+
+    return () => {
+      window.removeEventListener('hre:consent-changed', handler as EventListener);
+      window.removeEventListener('consent-changed', handler as EventListener);
+      if (pollTimerRef.current) window.clearInterval(pollTimerRef.current);
+      if (pollStopRef.current) window.clearTimeout(pollStopRef.current);
+      pollTimerRef.current = null;
+      pollStopRef.current = null;
+    };
   }, []);
   return null;
 }
