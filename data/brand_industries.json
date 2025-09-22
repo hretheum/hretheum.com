@@ -7,8 +7,8 @@
     "Commerce",
     "Manufacturing",
     "Public",
-    "Generic",
-    "eLearning"
+    "eLearning",
+    "Generic"
   ],
   "mapping": {
     "zendesk": "SaaS",

@@ -79,6 +79,16 @@ export function IndustryHero({ industry, slug }: { industry: Industry; slug: str
       ],
       cta: 'See Public playbook',
     },
+    eLearning: {
+      headline: `Education & eLearning hiring signals`,
+      sub: `Neutral, template-based content for education technology and online learning — contextualized for {${slug}}.`,
+      bullets: [
+        'Emphasize learner outcomes and course completion signals',
+        'Content operations, assessment integrity, and scalability',
+        'Privacy, accessibility (WCAG), and academic integrity policies',
+      ],
+      cta: 'See eLearning playbook',
+    },
     Generic: {
       headline: `Adaptive hiring signals for your context`,
       sub: `Neutral, template-based overview — brand-safe for {${slug}}.`,

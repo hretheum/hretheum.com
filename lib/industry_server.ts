@@ -40,7 +40,13 @@ async function classifyIndustryLLM(slug: string, timeoutMs = 1500): Promise<{ in
     if (!Number.isFinite(conf)) conf = 0
     const norm = (v: string): Industry => {
       const m: Record<string, Industry> = {
-        'saas':'SaaS','software':'SaaS','pharma':'Pharma','pharmaceutical':'Pharma','fintech':'FinTech','finance':'FinTech','banking':'FinTech','commerce':'Commerce','retail':'Commerce','manufacturing':'Manufacturing','public':'Public','government':'Public'
+        'saas':'SaaS','software':'SaaS',
+        'pharma':'Pharma','pharmaceutical':'Pharma',
+        'fintech':'FinTech','finance':'FinTech','banking':'FinTech',
+        'commerce':'Commerce','retail':'Commerce',
+        'manufacturing':'Manufacturing',
+        'public':'Public','government':'Public','gov':'Public',
+        'elearning':'eLearning','edtech':'eLearning','education':'eLearning'
       }
       const k = v.toLowerCase()
       const viaSyn = m[k]
