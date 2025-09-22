@@ -6,81 +6,103 @@ Last updated: 2025-09-22
 This document provides a high-level DAG for executing the AUI workstreams (A–K). It identifies critical dependencies and where tasks can run in parallel.
 
 ## Diagram (Mermaid)
+
 ```mermaid
-graph LR
-  %% Workstream A — Routing & Canonicalization
-  A1[T1 Routing 301] --> A3[T3 Brand SSR + runtime industry]
-  A2[T2 Blacklist] --> A4[T4 SEO canonical & sitemap]
-  A1 --> A4
-  A3 --> A4
-  A5[T5 Legal disclaimers]
+flowchart LR
+A1[T1 Routing 301]
+A2[T2 Blacklist]
+A3[T3 Brand SSR + runtime industry]
+A4[T4 SEO canonical and sitemap]
+A5[T5 Legal disclaimers]
+B1[T6 Telemetry schema]
+B2[T7 Page view and dwell]
+B3[T8 Scroll depth and velocity]
+B4[T9 CTA clicks]
+B5[T10 Hesitation Rage Dead]
+B6[T11 RAG telemetry]
+C1[T12 Consent gating]
+D1[T14 Rules engine - minimal]
+D2[T15 Three rules wired]
+E1[T16 Tooltip]
+E2[T17 Suggested queries]
+E3[T18 Progressive disclosure]
+F1[T19 Redirects Dashboard]
+F2[T20 Mapping management]
+F3[T21 Locks and disclaimers toggles]
+G1[T22 SSR A/B flags]
+G2[T23 First SSR A/B]
+H1[T24 LLM industry classifier - active]
+H2[T25 Session interpreter - shadow]
+H3[T26 Promote safe actions]
+I1[T27 Perf budgets and monitoring]
+I2[T28 Subdomain regex and rate-limit]
+I3[T29 Accessibility AA]
+J1[T30 Dev docs and runbooks]
+J2[T31 Kill-switch and rollback]
+K1[T32 MDX loader]
+K2[T33 Industry theme tokens]
+K3[T34 Campaign renderer and routing]
+K4[T35 T-Mobile MDX]
 
-  %% Workstream B — Telemetry & Signals (+ Consent C)
-  B1[T6 Telemetry schema] --> C1
-  C1[T12 Consent gating] --> B2[T7 Page view & dwell]
-  C1 --> B3[T8 Scroll depth/velocity]
-  C1 --> B4[T9 CTA clicks]
-  C1 --> B5[T10 Hesitation/Rage/Dead]
-  B1 --> B6[T11 RAG telemetry]
-  C1 --> B6
+A1 --> A3
+A2 --> A4
+A1 --> A4
+A3 --> A4
 
-  %% Workstream D/E — Decision + Micro-adaptations
-  B1 --> D1[T14 Rules engine (minimal)]
-  C1 --> D1
-  D1 --> E1[T16 Tooltip]
-  D1 --> E2[T17 Suggested queries]
-  D1 --> E3[T18 Progressive disclosure]
-  E1 --> D2[T15 3 rules wired]
-  E2 --> D2
-  E3 --> D2
-  B2 --> D2
-  B5 --> D2
-  J2 --> D2
+B1 --> C1
+C1 --> B2
+C1 --> B3
+C1 --> B4
+C1 --> B5
+B1 --> B6
+C1 --> B6
 
-  %% Workstream F — Admin & Governance
-  A1 --> F1[T19 Redirects Dashboard]
-  B2 --> F1
-  B3 --> F1
-  B4 --> F1
-  B5 --> F1
-  H1 --> F2[T20 Mapping management]
-  A3 --> F2
-  F1 --> F3[T21 Locks & disclaimers toggles]
+B1 --> D1
+C1 --> D1
+D1 --> E1
+D1 --> E2
+D1 --> E3
+E1 --> D2
+E2 --> D2
+E3 --> D2
+B2 --> D2
+B5 --> D2
+J2 --> D2
 
-  %% Workstream G — Experimentation
-  A3 --> G1[T22 SSR A/B flags]
-  B1 --> G1
-  G1 --> G2[T23 First SSR A/B]
-  B4 --> G2
+A1 --> F1
+B2 --> F1
+B3 --> F1
+B4 --> F1
+B5 --> F1
+H1 --> F2
+A3 --> F2
+F1 --> F3
 
-  %% Workstream H — AI/LLM
-  A3 --> H1[T24 LLM industry classifier (active)]
-  B2 --> H2[T25 Session interpreter (shadow)]
-  B3 --> H2
-  B4 --> H2
-  B5 --> H2
-  H2 --> H3[T26 Promote safe actions]
-  D1 --> H3
-  J2 --> H3
+A3 --> G1
+B1 --> G1
+G1 --> G2
+B4 --> G2
 
-  %% Workstream I — Perf, Security, A11y
-  I1[T27 Perf budgets/monitoring]
-  A1 --> I2[T28 Subdomain regex + rate-limit]
-  A3 --> I3[T29 Accessibility AA]
-  E1 --> I3
-  E2 --> I3
-  E3 --> I3
+A3 --> H1
+B2 --> H2
+B3 --> H2
+B4 --> H2
+B5 --> H2
+H2 --> H3
+D1 --> H3
+J2 --> H3
 
-  %% Workstream J — Docs & Rollback
-  J1[T30 Dev docs & runbooks]
-  J2[T31 Kill-switch & rollback]
+A1 --> I2
+A3 --> I3
+E1 --> I3
+E2 --> I3
+E3 --> I3
 
-  %% Workstream K — Campaigns & Theming (MDX)
-  A3 --> K1[T32 MDX loader]
-  A3 --> K2[T33 Industry theme tokens]
-  K1 --> K3[T34 Campaign renderer + routing]
-  K2 --> K3
-  K3 --> K4[T35 T‑Mobile MDX]
+A3 --> K1
+A3 --> K2
+K1 --> K3
+K2 --> K3
+K3 --> K4
 ```
 
 ## Critical path

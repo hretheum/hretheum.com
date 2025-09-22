@@ -8,6 +8,7 @@ import RedirectBeacon from './RedirectBeacon'
 import { resolveIndustrySSR } from '@/lib/industry_server'
 import { IndustryHero } from '../_components/IndustryHero'
 import Content from '@/app/components/Content'
+import { getCampaignAccentForBrand } from '@/lib/campaigns'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
 
@@ -24,11 +25,13 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 export default async function BrandPage({ params }: any) {
   const slug = params?.slug || ''
   const { industry, source, confidence } = await resolveIndustrySSR(slug)
+  // Optional: campaign accent override if a campaign exists (T32 skeleton)
+  const accent = await getCampaignAccentForBrand(slug)
   return (
     <>
       <RedirectBeacon />
       {/* Full-bleed hero like root CoverPage */}
-      <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} />
+      <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} accent={accent} />
       {/* Homepage content below hero */}
       <Content />
     </>

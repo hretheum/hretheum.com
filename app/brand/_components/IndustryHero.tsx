@@ -4,6 +4,7 @@ import type { Industry } from '@/lib/industry'
 import { getAllowedIndustries } from '@/lib/industry'
 import type { IndustrySource } from '@/lib/industry_server'
 import FitText from '@/app/components/ui/FitText'
+import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -14,7 +15,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function IndustryHero({ industry, slug, source, confidence }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number }) {
+export function IndustryHero({ industry, slug, source, confidence, accent }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number; accent?: string }) {
   // When adding a new industry in data/brand_industries.json → allowed[],
   // remember to add a deterministic template below, and update DB CHECK constraints via migration.
   const allowed = new Set(getAllowedIndustries())
@@ -115,6 +116,12 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
 
   const c = copy[safeIndustry] || copy['Generic']
 
+  // Industry theme tokens with optional campaign override (accent)
+  const baseTheme = getIndustryTheme(safeIndustry)
+  const theme = withOverrides(baseTheme, accent ? { accent } : undefined)
+
+  const headlineCaseCls = theme.headlineCase === 'uppercase' ? 'uppercase' : ''
+
   // Feature flag: show debug caption by default in non-production, require explicit enable on production
   const IS_PROD = (process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV) === 'production'
   const showCaption = String(process.env.NEXT_PUBLIC_INDUSTRY_DEBUG_BADGE ?? (IS_PROD ? 'false' : 'true')).toLowerCase() === 'true'
@@ -162,13 +169,19 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
 
       {/* Neon Slash background like CoverPage (match root) */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform -translate-y-2 md:-translate-y-3 rotate-12 opacity-90"></div>
+        <div
+          className="w-[200%] h-2 opacity-90"
+          style={{
+            background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${theme.accent} 50%, rgba(0,0,0,0) 100%)`,
+            transform: `translateY(${theme.slashOffsetYRem}rem) rotate(${theme.slashAngleDeg}deg)`,
+          }}
+        ></div>
       </div>
 
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
-          <FitText min={32} max={192} className="mx-auto text-gray-900" textClassName="uppercase leading-[0.92] tracking-tight break-words [text-wrap:balance]">
+          <FitText min={32} max={192} className="mx-auto text-gray-900" textClassName={`${headlineCaseCls} leading-[0.92] tracking-tight break-words [text-wrap:balance]`}>
             {c.headline}
           </FitText>
         </div>
