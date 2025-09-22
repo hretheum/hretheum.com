@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 type Summary = {
   total: number;
@@ -22,7 +22,7 @@ export default function RedirectsDashboard() {
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/redirects?days=${days}`, { cache: 'no-store' });
@@ -34,9 +34,9 @@ export default function RedirectsDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [days]);
 
-  useEffect(() => { load(); }, [days]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="mt-8 rounded-lg border p-4">

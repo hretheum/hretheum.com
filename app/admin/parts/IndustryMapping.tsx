@@ -43,7 +43,7 @@ export default function IndustryMapping() {
   return (
     <div className="mt-6">
       <h2 className="text-lg font-semibold mb-2">Industry Mapping</h2>
-      <div className="text-sm text-gray-600 mb-3">Deterministic mapping source of truth. Auto‑promoted entries are marked as status "auto". You can lock or revert them.</div>
+      <div className="text-sm text-gray-600 mb-3">Deterministic mapping source of truth. Auto‑promoted entries are marked as status <code>auto</code>. You can lock or revert them.</div>
       {loading && <div className="text-sm">Loading…</div>}
       {error && <div className="text-sm text-red-700">{error}</div>}
 

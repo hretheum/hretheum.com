@@ -25,7 +25,7 @@ export default function RagChat() {
   const turnIndexRef = useRef<number>(0);
 
   // Lightweight GTM dataLayer push helper (no PII)
-  function dlPush(payload: Record<string, any>) {
+  const dlPush = React.useCallback((payload: Record<string, any>) => {
     if (!gtmEnabled) return;
     try {
       // ensure event name present and push to dataLayer
@@ -33,7 +33,7 @@ export default function RagChat() {
       (window as any).dataLayer = (window as any).dataLayer || [];
       (window as any).dataLayer.push(payload);
     } catch {}
-  }
+  }, [gtmEnabled]);
 
   // Load minimized state from localStorage on mount
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function RagChat() {
         }
       } catch {}
     }
-  }, [minimized]);
+  }, [minimized, dlPush, gtmEnabled, chatVariant]);
 
   // Load input draft from localStorage on mount
   useEffect(() => {

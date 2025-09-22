@@ -101,7 +101,7 @@ export function IndustryHero({ industry, slug }: { industry: Industry; slug: str
     },
   }
 
-  const c = copy[safeIndustry]
+  const c = copy[safeIndustry] || copy['Generic']
 
   return (
     <section className="mb-8">

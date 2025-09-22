@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 type Row = {
   id: string;
@@ -38,7 +38,7 @@ export default function RedirectsRawTable() {
     return sp.toString();
   }, [limit, offset, slug, host, since, until]);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/redirects/raw?${query}`, { cache: 'no-store' });
@@ -51,9 +51,9 @@ export default function RedirectsRawTable() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [query]);
 
-  useEffect(() => { load(); }, [query]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="mt-6">

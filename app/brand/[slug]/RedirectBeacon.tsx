@@ -2,7 +2,7 @@
 // Client-side redirect logging beacon.
 // Posts to /api/metrics/redirect once on mount. Server route clears the cookie to avoid duplicates.
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 export default function RedirectBeacon() {
   const sent = useRef(false);
@@ -10,7 +10,7 @@ export default function RedirectBeacon() {
   const pollTimerRef = useRef<number | null>(null);
   const pollStopRef = useRef<number | null>(null);
 
-  function hasConsentNow(): boolean {
+  const hasConsentNow = useCallback((): boolean => {
     try {
       const consentCookie = process.env.NEXT_PUBLIC_CONSENT_COOKIE_NAME || 'hre_consent_analytics';
       const cookies = (typeof document !== 'undefined' ? document.cookie : '') || '';
@@ -20,19 +20,19 @@ export default function RedirectBeacon() {
     } catch {
       return false;
     }
-  }
+  }, []);
 
-  function canSend(): boolean {
+  const canSend = useCallback((): boolean => {
     const requiresConsent = (process.env.NEXT_PUBLIC_REDIRECT_BEACON_REQUIRES_CONSENT ?? 'true') !== 'false';
     return !requiresConsent || hasConsentNow();
-  }
+  }, [hasConsentNow]);
 
-  function sendOnce() {
+  const sendOnce = useCallback(() => {
     if (sent.current) return;
     if (!canSend()) return;
     sent.current = true;
     fetch('/api/metrics/redirect', { method: 'POST', cache: 'no-store' }).catch(() => {});
-  }
+  }, [canSend]);
 
   useEffect(() => {
     // initial try on mount
@@ -73,6 +73,6 @@ export default function RedirectBeacon() {
       pollTimerRef.current = null;
       pollStopRef.current = null;
     };
-  }, []);
+  }, [hasConsentNow, sendOnce]);
   return null;
 }
