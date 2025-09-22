@@ -3,6 +3,7 @@ import Link from 'next/link';
 import AdminSignIn from './parts/AdminSignIn';
 import AdminSessionBridge from './parts/AdminSessionBridge';
 import AdminTabs from './parts/AdminTabs';
+import ConsentHelper from './parts/ConsentHelper';
 
 export const metadata = {
   robots: {
@@ -63,6 +64,7 @@ export default async function AdminPage() {
           <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">Sign out</button>
         </form>
       </div>
+      <ConsentHelper />
       <AdminTabs />
     </div>
   );
