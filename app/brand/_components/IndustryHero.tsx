@@ -106,6 +106,9 @@ export function IndustryHero({ industry, slug }: { industry: Industry; slug: str
   return (
     <section className="mb-8">
       <h1 className="text-3xl font-semibold">{c.headline}</h1>
+      <div className="mt-2 text-xs text-neutral-600">
+        <strong>Industry template:</strong> {safeIndustry}
+      </div>
       <p className="mt-3 text-neutral-600">{c.sub}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {c.bullets.map((b, i) => (
