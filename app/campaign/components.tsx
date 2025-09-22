@@ -105,3 +105,13 @@ export function CTAGroup({ ctas }: { ctas: Array<{ label: string; href: string; 
     </div>
   )
 }
+
+export function Quote({ text, author, role }: { text: string; author?: string; role?: string }) {
+  return (
+    <section className="my-10">
+      <blockquote className="border-l-4 pl-4 italic text-neutral-800">“{text}”</blockquote>
+      {(author || role) && (
+        <div className="mt-2 text-sm text-neutral-600">{author}{author && role ? ' — ' : ''}{role}</div>
+      )}
+    </section>
+  )}
