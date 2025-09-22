@@ -1,8 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import AdminSignIn from './parts/AdminSignIn';
-import AdminEventsTable from './parts/AdminEventsTable';
 import AdminSessionBridge from './parts/AdminSessionBridge';
+import AdminTabs from './parts/AdminTabs';
 
 export const metadata = {
   robots: {
@@ -30,8 +30,7 @@ export default async function AdminPage() {
   const { data } = await supabase.auth.getUser();
   const email = data.user?.email ?? null;
   const allowed = isAllowed(email);
-  const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search);
-  const errorParam = params.get('error') || '';
+  const errorParam = '';
 
   if (!email || !allowed) {
     return (
@@ -64,7 +63,7 @@ export default async function AdminPage() {
           <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">Sign out</button>
         </form>
       </div>
-      <AdminEventsTable />
+      <AdminTabs />
     </div>
   );
 }
