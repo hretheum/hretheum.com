@@ -306,12 +306,12 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream K — Campaigns & Theming (MDX)
 
 ### T32. MDX campaign support and loader
-- Status: Planned — architecture and docs prepared (`docs/aui/CAMPAIGNS_MDX.md`).
+- Status: In Progress — index + frontmatter loader + accent injection on brand page done; pending: MDX compile + component map + SSR renderer.
 - DoD: `next-mdx-remote` (or equivalent) loader with frontmatter parsing, component map, and SSR compilation.
 - Guardrails: no unapproved logos; consent‑gated telemetry; per‑brand activation via `data/campaigns/index.json`.
 
 ### T33. Industry theme tokens and brand overrides
-- Status: Planned — tokens defined in docs; implementation pending.
+- Status: In Progress — core tokens implemented (accent, headlineCase, slashAngle/Offset) + integrated in `IndustryHero`; pending: gradient tokens, captionStyle, ctaVariant.
 - DoD: `getIndustryTheme(industry)` returns tokens (accent, gradient, headlineCase, slashAngle/Offset, captionStyle, ctaVariant); campaign frontmatter can override `accent` etc.
 
 ### T34. Campaign renderer and routing integration
