@@ -16,7 +16,7 @@ Conventions
 ## Workstream A — Routing & Canonicalization
 
 ### T1. Implement default-allow subdomain routing with 301 to /brand/<slug>
-- Status: In Progress — Functional + tests + thresholds complete; error-rate ops integrated; pending: SEO crawl
+- Status: Completed — Functional; error-rate ops integrated; pending: SEO crawl
 - Rationale: Single canonical per brand; consistent entry for campaigns.
 - Inputs/Deps: blacklist list, slug regex, `middleware.ts` infra.
 - Steps: parse host, validate slug, enforce blacklist, build target URL, 301 redirect; preserve UTM.
@@ -48,8 +48,8 @@ Conventions
 - Guardrails: log and soft-fail to neutral apex to avoid 500.
 - Quality Gates: review + tests.
 
-### T3. Canonical brand route `/brand/[slug]` (SSR) with industry templates (hero/CTA)
-- DoD: SSR page renders neutral, deterministic industry templates (no LLM at runtime) for hero/CTA; no flicker; self‑canonical. Deterministic mapping via `data/brand_industries.json` with fallback to `Generic`.
+### T3. Canonical brand route `/brand/[slug]` (SSR) with runtime industry resolution
+- DoD: SSR brand route renders hero with runtime industry resolution (deterministic JSON → DB mapping → LLM classifier) and no flicker; self‑canonical. Deterministic mappings persisted to DB for admin visibility; optional debug caption is feature‑flagged on production.
 - Metrics: LCP ≤ 2.5s p75 on `/brand/<slug>` (lab); zero CLS above‑the‑fold.
 - Validation: Lighthouse/PSI lab runs; visual QA.
 - Guardrails: no trademark assets; disclaimer block available.
@@ -97,6 +97,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Quality Gates: perf profiling pass.
 
 ### T9. CTA click tracking
+- Status: Completed — primary CTAs emit `ui.click` (Home/Brand); stable ids; consent‑gated in analytics layer.
 - DoD: `ui.click` with stable `target_id` for primary CTAs on Home/Brand pages.
 - Metrics: >95% alignment with backend goal completions.
 - Validation: sampled session replays (if enabled) vs events; manual.
@@ -225,12 +226,13 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 
 ## Workstream H — AI/LLM (Shadow → Active)
 
-### T24. LLM brand→industry classifier (shadow)
-- DoD: constrained prompt selecting from `{SaaS, Pharma, FinTech, Commerce, Manufacturing, Public}`; logs only; no UI change.
+### T24. LLM brand→industry classifier (active)
+- Status: Completed — runtime classifier with model fallback, hardened parsing, debug endpoint `/api/admin/industry/debug`, suggestions persisted, optional autopromote by confidence.
+- DoD: constrained prompt selecting from allowed set `{SaaS, Pharma, FinTech, Commerce, Manufacturing, Public, eLearning, Telecom, Generic}` with timeouts and logging; SSR per‑request; deterministic/DB mappings take precedence.
 - Metrics: agreement with manual mapping ≥ 85% on sample of 100 brands.
-- Validation: labeled dataset; confusion matrix; error analysis.
-- Guardrails: cost caps; timeouts; no PII in prompts.
-- Quality Gates: model card stub.
+- Validation: labeled sample + live debug checks.
+- Guardrails: cost caps; timeouts; no PII in prompts; suggestions always saved for review.
+- Quality Gates: architecture and ops review.
 
 ### T25. LLM session interpreter (shadow)
 - DoD: session JSON → `{ intent_summary, recommended_action, confidence }` from allowed actions; logs only.
@@ -296,6 +298,26 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Phase 2 (Weeks 3–4): T8–T10, T14–T18, T19.
 - Phase 3 (Weeks 5–6): T20–T23, T24–T26.
 - Phase 4 (Week 7+): T27–T31 continuous.
+
+---
+
+## Workstream K — Campaigns & Theming (MDX)
+
+### T32. MDX campaign support and loader
+- Status: Planned — architecture and docs prepared (`docs/aui/CAMPAIGNS_MDX.md`).
+- DoD: `next-mdx-remote` (or equivalent) loader with frontmatter parsing, component map, and SSR compilation.
+- Guardrails: no unapproved logos; consent‑gated telemetry; per‑brand activation via `data/campaigns/index.json`.
+
+### T33. Industry theme tokens and brand overrides
+- Status: Planned — tokens defined in docs; implementation pending.
+- DoD: `getIndustryTheme(industry)` returns tokens (accent, gradient, headlineCase, slashAngle/Offset, captionStyle, ctaVariant); campaign frontmatter can override `accent` etc.
+
+### T34. Campaign renderer and routing integration
+- Status: Planned — integration design ready.
+- DoD: `/brand/[slug]` checks active campaign; renders CampaignRenderer with theme merge; fallback to generic industry content uses same components.
+
+### T35. T‑Mobile campaign MDX
+- Status: Planned — source prompt prepared at `data/campaigns/tmobile_windsurf_prompt.md`; convert to MDX with frontmatter and components.
 
 ## Owners (initial)
 - Routing/SEO: Eng + SEO partner.

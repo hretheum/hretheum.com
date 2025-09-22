@@ -1,6 +1,6 @@
 # Adaptive UI (AUI) Roadmap for hretheum-bolt
 
-Last updated: 2025-09-21
+Last updated: 2025-09-22
 Status: Draft (for review)
 
 ## 1) Executive Summary
@@ -9,6 +9,8 @@ Status: Draft (for review)
 - SSR for above-the-fold personalization (hero, headline, CTA, module order) to avoid flicker; CSR for in-session micro-adaptations (tooltips on hesitation, suggested queries, progressive disclosure).
 - Unified telemetry (including RAG): brand and campaign metadata emitted consistently for cohort analytics.
 - Privacy, SEO, security and performance guardrails baked in from day one.
+- Campaign-first MDX support: when a brand has an active MDX campaign, we render campaign content with reusable components; otherwise we fall back to industry-first generic content using the same components and industry theme tokens.
+- Runtime industry resolution on brand routes: deterministic JSON mapping → DB mapping → LLM classifier (constrained) with debug endpoint and autopromotion guardrails.
 
 ## 2) Objectives & Non-goals
 - Objectives
@@ -58,6 +60,11 @@ Status: Draft (for review)
   - If `intent_confidence < threshold` then show 3 brand-aware suggested queries.
   - If `hesitation>2s` on brand CTA then show tooltip with brand-specific reassurance.
 
+### 6.1) Industry themes and brand overrides
+- Each industry provides theme tokens: `accent`, `gradientFrom/Via/To`, `headlineCase`, `slashAngle`, `slashOffsetY`, `captionStyle`, `ctaVariantPrimary`.
+- Campaign MDX may override selected tokens (e.g., `accent: #e20074` for T‑Mobile magenta) while preserving industry defaults elsewhere.
+- All campaign and generic surfaces share the same components, styled via the current theme.
+
 ## 7) RAG Integration
 - Inputs: add `brand` (and derived `industry`) to RAG telemetry and optional retrieval boosts.
 - Retrieval: apply light industry/brand boost while maintaining MMR to avoid filter bubbles; keep dynamic thresholding.
@@ -65,8 +72,9 @@ Status: Draft (for review)
 
 ## 8) Content Generation Strategy (Safe-by-default)
 - Brand→industry mapping:
-  - Layer 1: maintained dictionary (e.g., `zendesk`→`SaaS/support`, `bayer`→`Pharma/regulated`).
-  - Layer 2 (fallback): constrained LLM classification: select from a closed set `{SaaS, Pharma, FinTech, Commerce, Manufacturing, Public}`.
+  - Layer 1: maintained dictionary in `data/brand_industries.json`.
+  - Layer 2: DB mapping (manual/auto/locked) visible in Admin.
+  - Layer 3 (runtime): constrained LLM classification from a closed set `{SaaS, Pharma, FinTech, Commerce, Manufacturing, Public, eLearning, Telecom, Generic}` with timeouts, model fallback and strict parsing; suggestions are always stored; optional autopromote above a confidence threshold; debug endpoint `/api/admin/industry/debug`.
 - Templates per industry:
   - Predefined hero/CTA copy and module ordering; no use of trademark assets; neutral wording (“for <Brand>-like environments”).
 - Governance:
@@ -92,22 +100,26 @@ Status: Draft (for review)
 
 ## 12) Performance & Caching
 - SSR edge/middleware minimal: parse/validate only.
-- `/brand/<slug>`: enable ISR with short revalidation for auto-generated content; prerender top brands.
+- `/brand/<slug>`: runtime SSR enforced (`runtime='nodejs'`, `dynamic='force-dynamic'`, `revalidate=0`) so LLM classification and mappings run per-request.
 - CSR micro-adaptations: keep light; no heavy third-party scripts.
 - Guardrails: monitor LCP/CLS/INP; no client-side flicker.
 
 ## 13) Rollout Plan (Phased)
 - Phase 1 (Foundation)
   - Routing: default-allow, blacklist, 301 to `/brand/<slug>`; canonical setup.
-  - SSR hero/CTA using industry templates; baseline telemetry per brand.
+  - SSR hero using industry templates; baseline telemetry per brand; runtime industry resolution with LLM shadow → active.
 - Phase 2 (Micro-adaptations & Admin)
   - CSR hesitation tooltips; RAG suggested queries per brand/industry.
-  - Admin read-only dashboard for brand cohorts and mapping.
+  - Admin read-only dashboard for brand cohorts and mapping; industry debug endpoint.
 - Phase 3 (AI Assist, Shadow Mode)
-  - LLM-based brand→industry classification (constrained); generate safe templated copy; mark `needs-review`.
+  - LLM-based brand→industry classification (constrained) — implemented active with suggestions/autopromote; generate safe templated copy; mark `needs-review` where applicable.
   - Compare AI suggestions with rules; lock high-traffic brands.
 - Phase 4 (Optimization)
   - A/B test hero/CTA per brand; RAG retrieval boosts; iterate on metrics.
+
+## 13a) Campaigns MDX
+- Brands with active campaigns render MDX content with reusable components; brands without campaigns render generic industry-adaptive content.
+- See `docs/aui/CAMPAIGNS_MDX.md` for full architecture and examples.
 
 ## 14) Metrics & Success Criteria
 - Task success: time-to-first-value in RAG; completion rate of key actions.
