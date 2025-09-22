@@ -94,7 +94,21 @@ export default function IndustryMapping() {
               <tr key={s.id} className="border-t">
                 <td className="px-3 py-2 font-mono">{s.brand_slug}</td>
                 <td className="px-3 py-2">{s.industry}</td>
-                <td className="px-3 py-2">{(s.confidence ?? 0).toFixed(2)}</td>
+                <td className="px-3 py-2">
+                  {(() => {
+                    const c = Math.max(0, Math.min(1, Number(s.confidence ?? 0)))
+                    const cls = c >= 0.8
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : c >= 0.5
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-rose-100 text-rose-800'
+                    return (
+                      <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 ${cls}`} title="LLM confidence">
+                        {c.toFixed(2)}
+                      </span>
+                    )
+                  })()}
+                </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <button className="rounded border px-2 py-1 hover:bg-gray-50" onClick={() => action('/api/admin/industry/accept', { id: s.id })}>Accept</button>
