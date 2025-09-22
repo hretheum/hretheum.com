@@ -1,6 +1,6 @@
 # AUI Project Plan (Atomic Tasks, DoD, Metrics, Validation, Guardrails, Quality Gates)
 
-Last updated: 2025-09-21
+Last updated: 2025-09-22
 Status: Draft (for review)
 
 This plan enumerates atomic tasks to deliver the Adaptive UI (AUI) roadmap. Each task includes: Definition of Done, measurable success metrics with validation methods, guardrails, and quality gates.
@@ -16,7 +16,7 @@ Conventions
 ## Workstream A — Routing & Canonicalization
 
 ### T1. Implement default-allow subdomain routing with 301 to /brand/<slug>
-- Status: In Progress — Functional + tests + thresholds complete; pending: error-rate ops + SEO crawl
+- Status: In Progress — Functional + tests + thresholds complete; error-rate ops integrated; pending: SEO crawl
 - Rationale: Single canonical per brand; consistent entry for campaigns.
 - Inputs/Deps: blacklist list, slug regex, `middleware.ts` infra.
 - Steps: parse host, validate slug, enforce blacklist, build target URL, 301 redirect; preserve UTM.
@@ -28,13 +28,14 @@ Conventions
 - Metrics
   - [x] Redirect correctness ≥ 99.9% (no loops, correct target) — computed in admin API with pass/fail.
   - [x] Middleware added latency p95 ≤ 5ms — computed in admin API with pass/fail.
-  - [ ] Error rate (<500s) ≤ 0.1% of subdomain requests — requires provider logs/Sentry; integration pending.
+  - [x] Error rate (<500s) ≤ 0.1% of subdomain requests — integrated via Vercel Custom HTTP Drain → `vercel_drain_events`; PASS/FAIL surfaced in Admin.
 - Validation
   - [x] Automated e2e via Playwright.
   - [x] curl test matrix; server logs spot-check.
   - [ ] SEO check (no duplicate indexable subdomains).
 - Guardrails
   - [x] No user data written pre-consent; preserve query params; no infinite redirects.
+  - [x] Reserved subdomains and explicit hosts (via `NOINDEX_HOSTS`) emit `X-Robots-Tag: noindex, nofollow`; 301s to brand preserve UTM and force HTTPS on apex.
 - Quality Gates
   - [x] Type-check clean; lint/format clean; manual QA on preview.
   - [x] Unit + e2e tests passing locally.
