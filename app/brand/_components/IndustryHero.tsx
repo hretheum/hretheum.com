@@ -132,14 +132,14 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
         </div>
       </div>
 
-      {/* Neon Slash background like CoverPage */}
+      {/* Neon Slash background like CoverPage (wider to match root) */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform rotate-12 opacity-90"></div>
+        <div className="w-[240%] h-2 md:h-3 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform rotate-12 opacity-90"></div>
       </div>
 
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
-        <h1 className="text-[clamp(2rem,8vw,3.5rem)] md:text-[5rem] lg:text-[6.5rem] font-black text-gray-900 leading-[0.95] tracking-tight mb-6 break-words [text-wrap:balance]">
+        <h1 className="text-[clamp(2.25rem,10vw,3.75rem)] md:text-[8rem] lg:text-[12rem] font-black text-gray-900 leading-[0.95] tracking-tight mb-6 break-words [text-wrap:balance]">
           {c.headline}
         </h1>
         <p className="mt-3 text-neutral-700 text-base sm:text-lg max-w-2xl mx-auto">{c.sub}</p>
