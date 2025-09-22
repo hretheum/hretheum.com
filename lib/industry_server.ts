@@ -17,7 +17,7 @@ const ALLOWED: Industry[] = getAllowedIndustries()
 const NON_GENERIC = ALLOWED.filter((x) => String(x).toLowerCase() !== 'generic')
 
 export type IndustrySource = 'deterministic' | 'db' | 'llm' | 'llm_auto' | 'generic'
-export type SSRIndustryResult = { industry: Industry; source: IndustrySource }
+export type SSRIndustryResult = { industry: Industry; source: IndustrySource; confidence?: number }
 
 async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ industry: Industry; confidence: number } | null> {
   try {
@@ -114,7 +114,7 @@ export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResul
     if (enabled && res.confidence >= minConf) {
       await autopromote(s, res.industry, res.confidence)
       try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm_auto', industry: res.industry, confidence: res.confidence }) } catch {}
-      return { industry: res.industry, source: 'llm_auto' }
+      return { industry: res.industry, source: 'llm_auto', confidence: res.confidence }
     }
     // Always surface a suggestion in Admin, even if below autopromote threshold
     try {
@@ -127,7 +127,7 @@ export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResul
       })
     } catch {}
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm', industry: res.industry, confidence: res.confidence }) } catch {}
-    return { industry: res.industry, source: 'llm' }
+    return { industry: res.industry, source: 'llm', confidence: res.confidence }
   }
   try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'generic', industry: 'Generic' }) } catch {}
   return { industry: 'Generic', source: 'generic' }

@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
 export default async function BrandPage({ params }: any) {
   const slug = params?.slug || ''
-  const { industry, source } = await resolveIndustrySSR(slug)
+  const { industry, source, confidence } = await resolveIndustrySSR(slug)
   return (
     <>
       <main className="mx-auto max-w-3xl px-6 py-12">
         <RedirectBeacon />
-        <IndustryHero industry={industry} slug={slug} source={source} />
+        <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} />
 
         <section className="space-y-4">
           <div className="rounded-lg border p-4">

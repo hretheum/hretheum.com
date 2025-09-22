@@ -13,16 +13,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function IndustryHero({ industry, slug, source }: { industry: Industry; slug: string; source?: IndustrySource }) {
+export function IndustryHero({ industry, slug, source, confidence }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number }) {
   // When adding a new industry in data/brand_industries.json → allowed[],
   // remember to add a deterministic template below, and update DB CHECK constraints via migration.
   const allowed = new Set(getAllowedIndustries())
   const safeIndustry = allowed.has(industry) ? industry : ('Generic' as Industry)
   // Deterministic, template-based copy per industry (no trademarks)
-  const copy: Record<Industry, { headline: string; sub: string; bullets: string[]; cta: string }> = {
+  const copy: Record<Industry, { headline: string; sub: React.ReactNode; bullets: string[]; cta: string }> = {
     SaaS: {
       headline: `Faster hiring signals for SaaS teams`,
-      sub: `Template-based overview tailored to software product organizations — neutral copy for {${slug}}.`,
+      sub: <>Template-based overview tailored to software product organizations — neutral copy for <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Highlight product usage narratives and trial-to-paid signals',
         'Emphasize iterative delivery and multi-tenant security posture',
@@ -32,7 +32,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     Pharma: {
       headline: `Compliance-aware hiring insights for Pharma`,
-      sub: `Neutral, regulated-friendly content — contextualized for {${slug}} without trademarks.`,
+      sub: <>Neutral, regulated-friendly content — contextualized for <strong className="font-semibold">{slug}</strong> without trademarks.</>,
       bullets: [
         'Surface qualification aligned with GxP scenarios',
         'Stress privacy and auditability of data flows',
@@ -42,7 +42,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     FinTech: {
       headline: `Signal-driven recruiting for FinTech`,
-      sub: `Template copy for financial services and payments — brand-safe for {${slug}}.`,
+      sub: <>Template copy for financial services and payments — brand-safe for <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Feature risk & compliance-aware qualification',
         'Latency and reliability insights by role',
@@ -52,7 +52,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     Commerce: {
       headline: `Conversion-focused hiring for Commerce`,
-      sub: `Industry template for retail & e-commerce — safe, brand-neutral for {${slug}}.`,
+      sub: <>Industry template for retail & e-commerce — safe, brand-neutral for <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Prioritize customer journey and fulfillment skill sets',
         'Operational resilience and seasonality readiness',
@@ -62,7 +62,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     Manufacturing: {
       headline: `Operational excellence in Manufacturing roles`,
-      sub: `Neutral template tuned for manufacturing contexts — adapted for {${slug}}.`,
+      sub: <>Neutral template tuned for manufacturing contexts — adapted for <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Safety and quality systems awareness',
         'Plant readiness and shift operations',
@@ -72,7 +72,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     Public: {
       headline: `Public sector hiring signals`,
-      sub: `Template-based content suitable for agencies and public bodies — {${slug}}.`,
+      sub: <>Template-based content suitable for agencies and public bodies — <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Procurement and transparency constraints',
         'Security & residency requirements',
@@ -82,7 +82,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     eLearning: {
       headline: `Education & eLearning hiring signals`,
-      sub: `Neutral, template-based content for education technology and online learning — contextualized for {${slug}}.`,
+      sub: <>Neutral, template-based content for education technology and online learning — contextualized for <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Emphasize learner outcomes and course completion signals',
         'Content operations, assessment integrity, and scalability',
@@ -92,7 +92,7 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
     },
     Generic: {
       headline: `Adaptive hiring signals for your context`,
-      sub: `Neutral, template-based overview — brand-safe for {${slug}}.`,
+      sub: <>Neutral, template-based overview — brand-safe for <strong className="font-semibold">{slug}</strong>.</>,
       bullets: [
         'Above-the-fold SSR to avoid flicker',
         'Consent-gated telemetry and privacy-first defaults',
@@ -110,6 +110,21 @@ export function IndustryHero({ industry, slug, source }: { industry: Industry; s
       <div className="mt-2 text-xs text-neutral-600 flex items-center gap-3">
         <div><strong>Industry template:</strong> {safeIndustry}</div>
         <div><strong>Source:</strong> {source || 'n/a'}</div>
+        {typeof confidence === 'number' && (
+          <span
+            className={
+              'inline-flex items-center gap-1 rounded px-1.5 py-0.5 ' +
+              (confidence >= 0.8
+                ? 'bg-emerald-100 text-emerald-800'
+                : confidence >= 0.5
+                ? 'bg-amber-100 text-amber-800'
+                : 'bg-rose-100 text-rose-800')
+            }
+            title="LLM confidence"
+          >
+            confidence {confidence.toFixed(2)}
+          </span>
+        )}
       </div>
       <p className="mt-3 text-neutral-600">{c.sub}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
