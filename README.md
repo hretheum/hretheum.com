@@ -128,7 +128,7 @@ REDIRECT_CORRECTNESS_THRESHOLD_PCT=99.9
 To enable error-rate PASS/FAIL in Admin using Vercel logs:
 
 1) Create a Custom HTTP Drain in Vercel Dashboard → Team Settings → Drains
-   - Destination URL: `https://<your-domain>/api/_drain/vercel`
+   - Destination URL: `https://<your-domain>/api/drain/vercel`
    - Header: `Authorization: Bearer <VERCEL_DRAIN_TOKEN>`
 
 2) Set env variables:
