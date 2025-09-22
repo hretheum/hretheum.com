@@ -306,7 +306,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream K — Campaigns & Theming (MDX)
 
 ### T32. MDX campaign support and loader
-- Status: In Progress — index + frontmatter loader + accent injection on brand page done; pending: MDX compile + component map + SSR renderer.
+- Status: Completed — index + frontmatter loader + MDX compile (RSC) + component map + CampaignRenderer; accent injected on brand page.
 - DoD: `next-mdx-remote` (or equivalent) loader with frontmatter parsing, component map, and SSR compilation.
 - Guardrails: no unapproved logos; consent‑gated telemetry; per‑brand activation via `data/campaigns/index.json`.
 
@@ -315,11 +315,11 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - DoD: `getIndustryTheme(industry)` returns tokens (accent, gradient, headlineCase, slashAngle/Offset, captionStyle, ctaVariant); campaign frontmatter can override `accent` etc.
 
 ### T34. Campaign renderer and routing integration
-- Status: Planned — integration design ready.
+- Status: Completed — `/brand/[slug]` sprawdza aktywną kampanię i renderuje `CampaignRenderer`; fallback do generycznego `Content` gdy brak kampanii; theme accent merge przez `IndustryHero`.
 - DoD: `/brand/[slug]` checks active campaign; renders CampaignRenderer with theme merge; fallback to generic industry content uses same components.
 
 ### T35. T‑Mobile campaign MDX
-- Status: Planned — source prompt prepared at `data/campaigns/tmobile_windsurf_prompt.md`; convert to MDX with frontmatter and components.
+- Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` z frontmatter i sekcjami (MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup); do dopracowania copy i QA.
 
 ## Owners (initial)
 - Routing/SEO: Eng + SEO partner.
