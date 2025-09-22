@@ -115,53 +115,77 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
 
   const c = copy[safeIndustry] || copy['Generic']
 
+  // Feature flag: show debug caption by default in non-production, require explicit enable on production
+  const IS_PROD = (process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV) === 'production'
+  const showCaption = String(process.env.NEXT_PUBLIC_INDUSTRY_DEBUG_BADGE ?? (IS_PROD ? 'false' : 'true')).toLowerCase() === 'true'
+
+  function onCTAClick() {
+    if (typeof window !== 'undefined' && (window as any).dataLayer) {
+      (window as any).dataLayer.push({
+        event: 'cta_click',
+        event_category: 'engagement',
+        event_label: 'brand_hero_cta',
+        value: 1,
+      })
+    }
+  }
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden bg-white mb-8">
-      {/* Tiny caption pinned near the top edge */}
-      <div className="pointer-events-none absolute top-2 left-0 right-0 flex justify-center">
-        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-white/70 backdrop-blur px-3 py-1 text-[10px] text-neutral-600 shadow-sm border border-neutral-200">
-          <span className="font-medium">Industry: {safeIndustry}</span>
-          <span>Source: {source || 'n/a'}</span>
-          {typeof confidence === 'number' && (
-            <span className="inline-flex items-center gap-1">
-              <span>Conf:</span>
-              <span
-                className={
-                  'inline-flex items-center gap-1 rounded px-1 py-0.5 ' +
-                  (confidence >= 0.8
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : confidence >= 0.5
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-rose-100 text-rose-800')
-                }
-                title="LLM confidence"
-              >
-                {confidence.toFixed(2)}
+      {/* Tiny caption pinned near the top edge (feature-flagged) */}
+      {showCaption && (
+        <div className="pointer-events-none absolute top-3 left-0 right-0 flex justify-center">
+          <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-white/50 backdrop-blur px-3 py-1 text-[10px] text-neutral-600 shadow-sm border border-neutral-300/60">
+            <span className="font-medium">Industry: {safeIndustry}</span>
+            <span>Source: {source || 'n/a'}</span>
+            {typeof confidence === 'number' && (
+              <span className="inline-flex items-center gap-1">
+                <span>Conf:</span>
+                <span
+                  className={
+                    'inline-flex items-center gap-1 rounded px-1 py-0.5 ' +
+                    (confidence >= 0.8
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : confidence >= 0.5
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-rose-100 text-rose-800')
+                  }
+                  title="LLM confidence"
+                >
+                  {confidence.toFixed(2)}
+                </span>
               </span>
-            </span>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Neon Slash background like CoverPage (match root) */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform rotate-12 opacity-90"></div>
+        <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform -translate-y-2 md:-translate-y-3 rotate-12 opacity-90"></div>
       </div>
 
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
-          <FitText min={32} max={192} className="mx-auto text-gray-900" textClassName="leading-[0.95] tracking-tight break-words [text-wrap:balance]">
+          <FitText min={32} max={192} className="mx-auto text-gray-900" textClassName="uppercase leading-[0.92] tracking-tight break-words [text-wrap:balance]">
             {c.headline}
           </FitText>
         </div>
-        <p className="mt-3 text-neutral-700 text-base sm:text-lg max-w-2xl mx-auto">{c.sub}</p>
-        <div className="mt-6 max-w-5xl mx-auto grid gap-4 sm:grid-cols-3">
-          {c.bullets.map((b, i) => (
-            <Section key={i} title={['Value', 'Focus', 'Outcome'][i] || `Point ${i + 1}`}>
-              {b}
-            </Section>
-          ))}
+        <div className="mt-8 md:mt-12 space-y-3 md:space-y-4">
+          <p className="text-xl md:text-4xl font-black text-gray-700">ERYK ORŁOWSKI</p>
+          <p className="text-lg md:text-2xl font-bold text-gray-500">PRODUCT DESIGN LEADER</p>
+          <div className="mt-8">
+            <a
+              href="https://calendly.com/eorlowski-theeventa/short-intro"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onCTAClick}
+              className="inline-block border border-gray-300 text-gray-600 px-5 py-3 text-sm md:text-base font-medium hover:border-gray-400 hover:text-gray-700 transition-all duration-200"
+            >
+              Schedule a meeting
+            </a>
+          </div>
         </div>
       </div>
     </section>
