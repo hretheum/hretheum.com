@@ -10,6 +10,15 @@ function getServiceClient() {
   return createSupabaseClient(url, key, { auth: { persistSession: false } })
 }
 
+// Health/test endpoint for Vercel Drains UI (may send GET/HEAD)
+export async function GET() {
+  return NextResponse.json({ ok: true, endpoint: 'vercel_drain', method: 'GET' }, { status: 200 })
+}
+
+export async function HEAD() {
+  return new NextResponse(null, { status: 200 })
+}
+
 function extractHost(rec: any): string | null {
   // Try common fields; drains may send different shapes depending on product
   const candidates = [
@@ -66,14 +75,26 @@ export async function POST(req: NextRequest) {
     const token = auth.replace(/^Bearer\s+/i, '')
     if (token !== DRAIN_TOKEN) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
-    let body: any
+    const ctype = (req.headers.get('content-type') || '').toLowerCase()
+    let records: any[] = []
     try {
-      body = await req.json()
+      if (ctype.includes('application/json')) {
+        const body = await req.json()
+        records = Array.isArray(body) ? body : [body]
+      } else {
+        // Fallback: NDJSON or text where each line is a JSON object
+        const text = await req.text()
+        for (const line of text.split(/\r?\n/)) {
+          const s = line.trim()
+          if (!s) continue
+          try { records.push(JSON.parse(s)) } catch { /* ignore bad line */ }
+        }
+      }
     } catch {
-      return NextResponse.json({ error: 'invalid_json' }, { status: 400 })
+      return NextResponse.json({ error: 'invalid_payload' }, { status: 400 })
     }
 
-    const records: any[] = Array.isArray(body) ? body : [body]
+    if (records.length === 0) return NextResponse.json({ ingested: 0 }, { status: 200 })
     const rows: { host: string; status: number; method: string | null; path: string | null; user_agent: string | null; created_at?: string }[] = []
 
     for (const rec of records) {
