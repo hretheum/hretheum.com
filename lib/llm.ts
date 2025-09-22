@@ -1,10 +1,14 @@
 import OpenAI from 'openai'
 
-// Shared LLM client factory. Uses AI_GATEWAY_API_KEY if present, otherwise OPENAI_API_KEY.
+// Shared LLM client factory.
+// By default uses AI_GATEWAY_API_KEY; set INDUSTRY_FORCE_OPENAI=true to bypass gateway and use OPENAI_API_KEY directly.
 export function getOpenAIClient() {
-  const gatewayKey = process.env.AI_GATEWAY_API_KEY
-  if (gatewayKey) {
-    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' })
+  const forceDirect = String(process.env.INDUSTRY_FORCE_OPENAI || '').toLowerCase() === 'true'
+  if (!forceDirect) {
+    const gatewayKey = process.env.AI_GATEWAY_API_KEY
+    if (gatewayKey) {
+      return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' })
+    }
   }
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY')

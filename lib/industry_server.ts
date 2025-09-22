@@ -32,18 +32,47 @@ async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ 
     const timer = setTimeout(() => controller.abort(), effTimeout)
     const sys = `Classify the company brand into one of these industries: ${NON_GENERIC.join(', ')}. Respond ONLY JSON: {"industry":"<one>", "confidence":<0..1>}. Use brand name context only; do not hallucinate logos/claims. If uncertain, pick the closest from the list.`
     const user = `brand: ${slug}`
-    const res = await client.chat.completions.create({
+    const basePayload: any = {
       model: process.env.AI_MODEL_GENERATION || 'gpt-4o-mini',
       temperature: 0,
       messages: [
         { role: 'system', content: sys },
         { role: 'user', content: user },
       ],
-      response_format: { type: 'json_object' },
-    }, { signal: controller.signal as any })
+    }
+    let res = await client.chat.completions.create({ ...basePayload, response_format: { type: 'json_object' } }, { signal: controller.signal as any })
     clearTimeout(timer)
-    const txt = res.choices?.[0]?.message?.content || ''
-    const parsed = JSON.parse(txt)
+    let txt = res.choices?.[0]?.message?.content || ''
+    dlog('LLM raw txt', String(txt).slice(0, 200))
+    let parsed: any
+    try {
+      // Strip code fences if present
+      const fenceMatch = String(txt).match(/\{[\s\S]*\}/)
+      const jsonish = fenceMatch ? fenceMatch[0] : String(txt)
+      parsed = JSON.parse(jsonish)
+    } catch (e1) {
+      // Second attempt: call without response_format
+      dlog('LLM parse failed, retrying without response_format')
+      const controller2 = new AbortController()
+      const timer2 = setTimeout(() => controller2.abort(), effTimeout)
+      res = await client.chat.completions.create({ ...basePayload }, { signal: controller2.signal as any })
+      clearTimeout(timer2)
+      txt = res.choices?.[0]?.message?.content || ''
+      dlog('LLM raw txt retry', String(txt).slice(0, 200))
+      try {
+        const fenceMatch2 = String(txt).match(/\{[\s\S]*\}/)
+        const jsonish2 = fenceMatch2 ? fenceMatch2[0] : String(txt)
+        parsed = JSON.parse(jsonish2)
+      } catch (e2) {
+        // Fallback: very loose extraction of fields
+        const indMatch = String(txt).match(/industry\"?\s*[:=]\s*\"?([A-Za-z]+)\"?/i)
+        const confMatch = String(txt).match(/confidence\"?\s*[:=]\s*([0-9]*\.?[0-9]+)/i)
+        parsed = {
+          industry: indMatch ? indMatch[1] : '',
+          confidence: confMatch ? Number(confMatch[1]) : 0.5,
+        }
+      }
+    }
     let ind = String(parsed?.industry || '').trim()
     let conf = Number(parsed?.confidence)
     if (!Number.isFinite(conf)) conf = 0
