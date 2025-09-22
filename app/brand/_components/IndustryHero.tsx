@@ -150,11 +150,6 @@ export function IndustryHero({ industry, slug, source, confidence }: { industry:
             </Section>
           ))}
         </div>
-        <div className="mt-8">
-          <a className="inline-block border border-gray-300 text-gray-700 px-5 py-2.5 text-sm font-medium hover:border-gray-400 hover:text-gray-800 transition-all duration-200" href="#">
-            {c.cta}
-          </a>
-        </div>
       </div>
     </section>
   )
