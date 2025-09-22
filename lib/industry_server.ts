@@ -116,6 +116,16 @@ export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResul
       try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm_auto', industry: res.industry, confidence: res.confidence }) } catch {}
       return { industry: res.industry, source: 'llm_auto' }
     }
+    // Always surface a suggestion in Admin, even if below autopromote threshold
+    try {
+      await getSvc().from('brand_industry_suggestions').insert({
+        brand_slug: s,
+        industry: res.industry,
+        confidence: res.confidence,
+        source: 'llm',
+        expires_at: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
+      })
+    } catch {}
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm', industry: res.industry, confidence: res.confidence }) } catch {}
     return { industry: res.industry, source: 'llm' }
   }
