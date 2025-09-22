@@ -1,4 +1,9 @@
 import type { Metadata } from 'next'
+
+// Ensure per-request SSR so LLM classification runs at runtime, not at build time
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import RedirectBeacon from './RedirectBeacon'
 import { resolveIndustrySSR } from '@/lib/industry_server'
 import { IndustryHero } from '../_components/IndustryHero'
@@ -24,15 +29,6 @@ export default async function BrandPage({ params }: any) {
       <main className="mx-auto max-w-3xl px-6 py-12">
         <RedirectBeacon />
         <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} />
-
-        <section className="space-y-4">
-          <div className="rounded-lg border p-4">
-            <h2 className="text-xl font-medium">Value proposition</h2>
-            <p className="mt-2 text-neutral-700">
-              We adapt the experience for your context while preserving performance, privacy and SEO.
-            </p>
-          </div>
-        </section>
       </main>
       {/* Full homepage content below brand hero */}
       <Content />

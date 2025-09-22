@@ -19,8 +19,12 @@ const NON_GENERIC = ALLOWED.filter((x) => String(x).toLowerCase() !== 'generic')
 export type IndustrySource = 'deterministic' | 'db' | 'llm' | 'llm_auto' | 'generic'
 export type SSRIndustryResult = { industry: Industry; source: IndustrySource; confidence?: number }
 
+const DBG = String(process.env.INDUSTRY_LOG || '').toLowerCase() === 'debug'
+function dlog(...a: any[]) { if (DBG) console.log('[industry]', ...a) }
+
 async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ industry: Industry; confidence: number } | null> {
   try {
+    dlog('LLM classify start', { slug, timeoutMs: timeoutMs ?? process.env.INDUSTRY_LLM_TIMEOUT_MS ?? 5000 })
     const client = getOpenAIClient()
     const controller = new AbortController()
     const requested = Number(timeoutMs ?? process.env.INDUSTRY_LLM_TIMEOUT_MS ?? 5000)
@@ -62,8 +66,11 @@ async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ 
       return 'Generic'
     }
     const industry = norm(ind)
-    return { industry, confidence: Math.max(0, Math.min(1, conf)) }
-  } catch {
+    const out = { industry, confidence: Math.max(0, Math.min(1, conf)) }
+    dlog('LLM classify done', out)
+    return out
+  } catch (err) {
+    console.error('[industry] LLM classify error', err)
     return null
   }
 }
@@ -91,24 +98,39 @@ async function autopromote(slug: string, industry: Industry, confidence: number)
   } catch {}
 }
 
+async function ensureDeterministicMapping(slug: string, industry: Industry) {
+  try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return // require service key to write
+    const svc = getSvc()
+    await svc.from('brand_industries').upsert({ brand_slug: slug, industry, status: 'manual', updated_by: 'deterministic', note: { source: 'deterministic' } as any })
+  } catch (err) {
+    console.error('[industry] ensureDeterministicMapping error', err)
+  }
+}
+
 export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResult> {
   const s = (slug || '').trim().toLowerCase()
   if (!s) return { industry: 'Generic', source: 'generic' }
   // 1) Deterministic mapping file
   const det = resolveDeterministic(s)
   if (det && det !== 'Generic') {
+    dlog('deterministic hit', { slug: s, det })
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'deterministic', industry: det }) } catch {}
+    // Persist deterministic mapping for Admin visibility
+    await ensureDeterministicMapping(s, det)
     return { industry: det, source: 'deterministic' }
   }
   // 2) DB mapping (auto/manual/locked)
   const fromDb = await fetchIndustryFromDB(s)
   if (fromDb) {
+    dlog('db hit', { slug: s, fromDb })
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'db', industry: fromDb }) } catch {}
     return { industry: fromDb, source: 'db' }
   }
   // 3) Runtime LLM (guarded)
   const enabled = String(process.env.INDUSTRY_AUTOPROMOTE_ENABLED || 'true').toLowerCase() !== 'false'
   const minConf = Math.max(0, Math.min(1, Number(process.env.INDUSTRY_AUTOPROMOTE_MIN_CONF || '0.8')))
+  dlog('llm stage', { slug: s, enabled, minConf, hasSvcKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) })
   const res = await classifyIndustryLLM(s)
   if (res && res.industry !== 'Generic') {
     if (enabled && res.confidence >= minConf) {
@@ -116,6 +138,7 @@ export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResul
       try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm_auto', industry: res.industry, confidence: res.confidence }) } catch {}
       return { industry: res.industry, source: 'llm_auto', confidence: res.confidence }
     }
+    dlog('llm suggestion (below threshold)', { slug: s, res })
     // Always surface a suggestion in Admin, even if below autopromote threshold
     try {
       await getSvc().from('brand_industry_suggestions').insert({
@@ -129,6 +152,7 @@ export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResul
     try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm', industry: res.industry, confidence: res.confidence }) } catch {}
     return { industry: res.industry, source: 'llm', confidence: res.confidence }
   }
+  dlog('generic fallback', { slug: s })
   try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'generic', industry: 'Generic' }) } catch {}
   return { industry: 'Generic', source: 'generic' }
 }
