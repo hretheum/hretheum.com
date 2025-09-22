@@ -74,7 +74,12 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     try {
       const saved = window.localStorage.getItem('ragChatMinimized');
       if (saved === '1') setMinimized(true);
-      if (saved === '0') setMinimized(false);
+      else if (saved === '0') setMinimized(false);
+      else {
+        // Default behavior: on mobile / portrait tablet and below, start minimized
+        const isCompact = window.matchMedia('(max-width: 768px)').matches;
+        setMinimized(isCompact);
+      }
     } catch {}
   }, []);
 
