@@ -137,16 +137,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
   const IS_PROD = (process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV) === 'production'
   const showCaption = String(process.env.NEXT_PUBLIC_INDUSTRY_DEBUG_BADGE ?? (IS_PROD ? 'false' : 'true')).toLowerCase() === 'true'
 
-  function onCTAClick() {
-    if (typeof window !== 'undefined' && (window as any).dataLayer) {
-      (window as any).dataLayer.push({
-        event: 'cta_click',
-        event_category: 'engagement',
-        event_label: 'brand_hero_cta',
-        value: 1,
-      })
-    }
-  }
+  // Legacy CTA telemetry handler removed; unified CtaTelemetry handles clicks.
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden bg-white mb-8">
@@ -212,7 +203,6 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
               href={DEFAULT_CALENDLY}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={onCTAClick}
               className={
                 'inline-block px-5 py-3 text-sm md:text-base font-medium transition-all duration-200 border ' +
                 (theme.ctaVariantPrimary === 'filled'

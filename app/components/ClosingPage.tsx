@@ -1,17 +1,6 @@
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 
 export default function ClosingPage() {
-  const handleCTAClick = () => {
-    // Track CTA click event
-    if (typeof window !== 'undefined' && (window as any).dataLayer) {
-      (window as any).dataLayer.push({
-        event: 'cta_click',
-        event_category: 'engagement',
-        event_label: 'closing_page_cta',
-        value: 1
-      });
-    }
-  };
 
   const handleLinkedInClick = () => {
     // Track LinkedIn click event
@@ -45,7 +34,6 @@ export default function ClosingPage() {
             href={DEFAULT_CALENDLY}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={handleCTAClick}
             className="inline-block bg-white text-black px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl font-black hover:bg-purple-200 transition-colors duration-200"
           >
             Schedule a meeting
