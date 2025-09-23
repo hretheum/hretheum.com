@@ -134,15 +134,17 @@ export default function CtaTelemetry() {
                   const { brand, source } = deriveBrandAndSource()
                   const now = Date.now()
                   if (!(id === lastPushId && now - lastPushTs < 500)) {
-                    originalPush({
-                      event: 'ui.click',
-                      target_id: id,
-                      cta_source: ctaSource,
-                      cta_variant: variant,
-                      route: window.location.pathname,
-                      brand: brand || null,
-                      campaign_source: source || null,
-                    })
+                    if (hasBehavioralConsent()) {
+                      originalPush({
+                        event: 'ui.click',
+                        target_id: id,
+                        cta_source: ctaSource,
+                        cta_variant: variant,
+                        route: window.location.pathname,
+                        brand: brand || null,
+                        campaign_source: source || null,
+                      })
+                    }
                     lastPushId = id
                     lastPushTs = now
                   }

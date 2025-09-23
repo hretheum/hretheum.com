@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react';
 import CtaTelemetry from '@/app/components/CtaTelemetry'
 import { Inter } from 'next/font/google'
 import RumVitals from '@/app/components/RumVitals'
+import ConsentBanner from '@/app/components/ConsentBanner'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -105,6 +106,8 @@ export default function RootLayout({
         {/* Global telemetry (client-side) */}
         <CtaTelemetry />
         <RumVitals />
+        {/* Consent banner (behavioral analytics) */}
+        <ConsentBanner />
         {children}
         {/* Vercel Analytics */}
         <Analytics />

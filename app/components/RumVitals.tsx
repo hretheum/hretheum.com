@@ -2,7 +2,7 @@
 // RUM: Web Vitals with consent gating. Pushes to GTM dataLayer and optional API.
 // All comments/docstrings in English per policy.
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 function dlPush(payload: Record<string, any>) {
   try {
@@ -46,57 +46,70 @@ export default function RumVitals() {
   const defaultBehavioral = (process.env.NEXT_PUBLIC_BEHAVIORAL_DEFAULT || 'allow').toLowerCase()
   const apiEnabled = (process.env.NEXT_PUBLIC_RUM_API_ENABLED ?? 'true') !== 'false'
   const samplePct = Math.max(0, Math.min(1, Number(process.env.NEXT_PUBLIC_RUM_SAMPLE_PCT || '0.3')))
+  const initializedRef = useRef(false)
+  const sampledRef = useRef(false)
 
   useEffect(() => {
-    // Simple session sampling to avoid over-reporting
-    let sampled = false
+    // Session sampling (once per session)
     try {
       const KEY = 'hretheum:rum:sampled'
       const existing = window.sessionStorage.getItem(KEY)
-      if (existing === '1') sampled = true
+      if (existing === '1') sampledRef.current = true
       else if (Math.random() < samplePct) {
-        sampled = true
+        sampledRef.current = true
         window.sessionStorage.setItem(KEY, '1')
       }
     } catch {}
 
-    if (!sampled) return
-    if (!hasBehavioralConsent(defaultBehavioral)) return
+    const initIfAllowed = () => {
+      if (initializedRef.current) return
+      if (!sampledRef.current) return
+      if (!hasBehavioralConsent(defaultBehavioral)) return
+      initializedRef.current = true
+      const { brand, source } = deriveBrandAndSource(apexDomain)
+      import('web-vitals').then(({ onCLS, onLCP, onINP, onFCP, onTTFB }) => {
+        const handler = (metric: any) => {
+          try {
+            const payload = {
+              event: 'web_vitals',
+              route: window.location.pathname,
+              brand: brand || null,
+              campaign_source: source || null,
+              id: metric.id,
+              name: metric.name,
+              value: metric.value,
+              rating: metric.rating,
+              delta: metric.delta,
+            }
+            if (gtmEnabled) dlPush(payload)
+            if (apiEnabled) {
+              fetch('/api/metrics/rum', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(payload),
+                keepalive: true,
+              }).catch(() => {})
+            }
+          } catch {}
+        }
+        onCLS(handler)
+        onLCP(handler)
+        onINP(handler)
+        onFCP(handler)
+        onTTFB(handler)
+      })
+    }
 
-    const { brand, source } = deriveBrandAndSource(apexDomain)
-
-    // Dynamically import web-vitals to keep initial bundle lean
-    import('web-vitals').then(({ onCLS, onLCP, onINP, onFCP, onTTFB }) => {
-      const handler = (metric: any) => {
-        try {
-          const payload = {
-            event: 'web_vitals',
-            route: window.location.pathname,
-            brand: brand || null,
-            campaign_source: source || null,
-            id: metric.id,
-            name: metric.name,
-            value: metric.value,
-            rating: metric.rating,
-            delta: metric.delta,
-          }
-          if (gtmEnabled) dlPush(payload)
-          if (apiEnabled) {
-            fetch('/api/metrics/rum', {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify(payload),
-              keepalive: true,
-            }).catch(() => {})
-          }
-        } catch {}
-      }
-      onCLS(handler)
-      onLCP(handler)
-      onINP(handler)
-      onFCP(handler)
-      onTTFB(handler)
-    })
+    // Try immediately
+    initIfAllowed()
+    // React to consent changes
+    const onConsent = () => initIfAllowed()
+    window.addEventListener('hre:consent-changed', onConsent as EventListener)
+    window.addEventListener('consent-changed', onConsent as EventListener)
+    return () => {
+      window.removeEventListener('hre:consent-changed', onConsent as EventListener)
+      window.removeEventListener('consent-changed', onConsent as EventListener)
+    }
   }, [apexDomain, defaultBehavioral, gtmEnabled, apiEnabled, samplePct])
 
   return null

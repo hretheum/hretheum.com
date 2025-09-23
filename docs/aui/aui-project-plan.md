@@ -127,7 +127,8 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 
 ## Workstream C — Consent & Privacy
 
-### T12. Consent gating for behavioral analytics
+### ✅ T12. Consent gating for behavioral analytics
+- Status: ✅ Completed — `ConsentBanner` (UI, PL copy) + global store (`useConsent`) + bramkowanie w `CtaTelemetry` i `RumVitals`; `RedirectBeacon` już z env/cookie guard.
 - DoD: cookie banner/consent UI; when denied, only routing context allowed; all micro‑behavior tracking disabled.
 - Metrics: 0 events emitted without consent (automated checks).
 - Validation: e2e tests toggling consent; telemetry diffs.
