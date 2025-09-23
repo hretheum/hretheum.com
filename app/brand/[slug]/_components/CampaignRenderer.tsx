@@ -19,11 +19,6 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
         <div className="prose prose-zinc max-w-none prose-headings:scroll-mt-20">
           {content}
         </div>
-        <style jsx>{`
-          .prose :where(h2,h3,h4){ color: var(--campaign-accent); }
-          .prose :where(a){ color: var(--campaign-accent); text-decoration-color: var(--campaign-accent); }
-          .prose :where(blockquote){ border-left-color: var(--campaign-accent); }
-        `}</style>
       </div>
     </CampaignThemeProvider>
   )

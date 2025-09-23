@@ -1,3 +1,4 @@
+"use client";
 // Campaign theming context for MDX-rendered components
 // All comments/docstrings in English per project rules.
 
