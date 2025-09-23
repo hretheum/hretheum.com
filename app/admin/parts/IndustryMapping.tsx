@@ -5,7 +5,7 @@ type Row = { brand_slug: string; industry: string; status: string; updated_at: s
 
 type Suggestion = { id: string; brand_slug: string; industry: string; confidence: number; created_at: string }
 
-// Helper: friendly date like "23 Sep 25"
+// Helper: friendly date like "23 Sep 25 14:05" (24h)
 function formatFriendlyDate(iso: string): string {
   try {
     const d = new Date(iso)
@@ -14,7 +14,9 @@ function formatFriendlyDate(iso: string): string {
     const dd = String(d.getDate()).padStart(2, '0')
     const mon = months[d.getMonth()] || ''
     const yy = String(d.getFullYear() % 100).padStart(2, '0')
-    return `${dd} ${mon} ${yy}`
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    return `${dd} ${mon} ${yy} ${hh}:${mm}`
   } catch { return '' }
 }
 
