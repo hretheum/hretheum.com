@@ -106,6 +106,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Validation: sampled session replays (if enabled) vs events; manual.
 - Guardrails: id stability contract; no PII in ids.
 - Quality Gates: design/dev alignment on ids.
+ - Notes: global mount `CtaTelemetry` in `app/layout.tsx`; fallback z `gtm.linkClick` → syntetyczny `ui.click`; debug env `NEXT_PUBLIC_TELEMETRY_DEBUG` (dev) i `NEXT_PUBLIC_ENABLE_GTM` guard.
 
 ### T10. Hesitation & rage/dead clicks
 - DoD: `ui.hesitation` when hover/focus >2s; `ui.rage_clicks` when >3 rapid clicks; `ui.dead_click` when clicking non-interactive.
@@ -321,7 +322,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - DoD: `/brand/[slug]` checks active campaign; renders CampaignRenderer with theme merge; fallback to generic industry content uses same components.
 
 ### T35. T‑Mobile campaign MDX
-- Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` z frontmatter i sekcjami (MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup); do dopracowania copy i QA.
+- Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` (frontmatter + sekcje: MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup), zintegrowano fallback CTA z env i telemetrię `ui.click`; pending: dopracowanie copy i wizualne QA.
 
 ### T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
 - Status: In Progress — Theme Provider podłączony do `app/components/CoverPage.tsx`; neon slash i CTA korzystają z tokenów (`accent`, `gradient*`, `ctaVariant`). Pending: QA + CWV walidacja.
@@ -331,7 +332,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Guardrails: brak logotypów; kontrast AA.
 
 ### T37. Theme‑aware CoverPage (Etap 2) — Unifikacja komponentów
-- Status: Next — zunifikować komponenty Home/Kampanie (wspólny zestaw): `SectionTitle`, `CaseGrid`, `OutcomeBanner`, `CTAGroup/CTABanner`, `Metrics*`, `Timeline`, `Playbook*`, `CaseStudy*`, `GalleryMedia`.
+- Status: In Progress — wykonane: `SectionTitle` pod hero (T37/3), `OutcomeBanner` pod hero (T37/4), polish mobile `CTABanner` (T37/5). Następne: unifikacja pozostałych komponentów (`CaseGrid`, `Metrics*`, `Timeline`, `Playbook*`, `CaseStudy*`, `GalleryMedia`) i usunięcie duplikatów root/kampania.
 - DoD: jeden komponent na wzorzec, konsumpcja tokenów przez `ThemeProvider`; brak duplikatów root/kampania.
 - Metrics: redukcja duplikacji (LOC/komponenty); szybsze iteracje UI.
 - Validation: Type-check + e2e smoke.
