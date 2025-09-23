@@ -21,6 +21,17 @@ export type CampaignIndexEntry = {
   file?: string // optional direct file path (relative to data/campaigns)
 }
 
+// Helper: get the primary CTA label for a brand's campaign (falls back to first CTA if no primary; undefined if none)
+export async function getCampaignPrimaryCtaLabelForBrand(brandSlug: string): Promise<string | undefined> {
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) return undefined
+  const fm = await loadCampaignFrontmatter(found.filePath)
+  const arr = Array.isArray(fm?.ctas) ? (fm!.ctas as any[]) : []
+  if (!arr.length) return undefined
+  const primary = arr.find((c) => c?.variant === 'primary') || arr[0]
+  return primary?.label || undefined
+}
+
 export type CampaignIndex = Record<string, CampaignIndexEntry>
 
 export type CampaignFrontmatter = {

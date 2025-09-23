@@ -8,7 +8,7 @@ import RedirectBeacon from './RedirectBeacon'
 import { resolveIndustrySSR } from '@/lib/industry_server'
 import { IndustryHero } from '../_components/IndustryHero'
 import Content from '@/app/components/Content'
-import { getCampaignAccentForBrand, hasCampaignForBrand } from '@/lib/campaigns'
+import { getCampaignAccentForBrand, hasCampaignForBrand, getCampaignPrimaryCtaLabelForBrand } from '@/lib/campaigns'
 import { CampaignRenderer } from './_components/CampaignRenderer'
 import RagChat from '@/app/components/RagChat'
 
@@ -30,11 +30,12 @@ export default async function BrandPage({ params }: any) {
   // Optional: campaign accent override if a campaign exists (T32 skeleton)
   const accent = await getCampaignAccentForBrand(slug)
   const hasCampaign = await hasCampaignForBrand(slug)
+  const ctaLabel = await getCampaignPrimaryCtaLabelForBrand(slug)
   return (
     <>
       <RedirectBeacon />
       {/* Full-bleed hero like root CoverPage */}
-      <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} accent={accent} />
+      <IndustryHero industry={industry} slug={slug} source={source} confidence={confidence} accent={accent} ctaLabel={ctaLabel} />
       {/* Campaign-first: render campaign MDX when present; otherwise fallback to generic homepage content */}
       {hasCampaign ? (
         <CampaignRenderer slug={slug} industry={industry} />

@@ -15,6 +15,11 @@ export type IndustryThemeTokens = {
   gradientTo: string
   ctaVariantPrimary: 'outline' | 'filled'
   captionStyle: 'subtle' | 'badge'
+  // Hero typography tokens
+  heroFont: 'inter' | 'spartan'
+  heroTightTracking: boolean
+  heroLeadingTight: boolean
+  heroLargeScale: boolean
 }
 
 const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
@@ -28,6 +33,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Pharma: {
     accent: '#0ea5e9', // sky-500
@@ -39,6 +48,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   FinTech: {
     accent: '#22c55e', // emerald-500
@@ -50,6 +63,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Commerce: {
     accent: '#f59e0b', // amber-500
@@ -61,6 +78,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Manufacturing: {
     accent: '#64748b', // slate-500
@@ -72,6 +93,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Public: {
     accent: '#3b82f6', // blue-500
@@ -83,6 +108,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Telecom: {
     accent: '#e20074', // T-Mobile magenta (brand-safe generic telecom accent)
@@ -94,6 +123,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'filled',
     captionStyle: 'badge',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   eLearning: {
     accent: '#a855f7', // purple-500
@@ -105,6 +138,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Generic: {
     accent: '#14b8a6', // teal-500
@@ -116,6 +153,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
   Dummy: {
     // Same visual treatment as Generic; copy handled in IndustryHero
@@ -128,6 +169,10 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     gradientTo: 'rgba(0,0,0,0)',
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
   },
 }
 
@@ -137,7 +182,7 @@ export function getIndustryTheme(industry: Industry | 'Generic'): IndustryThemeT
 
 export function withOverrides(
   base: IndustryThemeTokens,
-  overrides?: Partial<Pick<IndustryThemeTokens, 'accent' | 'headlineCase' | 'slashAngleDeg' | 'slashOffsetYRem' | 'captionStyle'>>
+  overrides?: Partial<Pick<IndustryThemeTokens, 'accent' | 'headlineCase' | 'slashAngleDeg' | 'slashOffsetYRem' | 'captionStyle' | 'heroFont' | 'heroTightTracking' | 'heroLeadingTight' | 'heroLargeScale'>>
 ): IndustryThemeTokens {
   return { ...base, ...(overrides || {}) }
 }

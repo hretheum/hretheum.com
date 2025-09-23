@@ -3,11 +3,12 @@ import type { Industry } from '@/lib/industry'
 import { getAllowedIndustries } from '@/lib/industry'
 import type { IndustrySource } from '@/lib/industry_server'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
-import { League_Spartan } from 'next/font/google'
+import { League_Spartan, Inter } from 'next/font/google'
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 
-// Use League Spartan 900 for hero heading to achieve a heftier display look while preserving low CLS.
+// Display fonts for hero heading; selected via theme tokens at runtime.
 const spartanHero = League_Spartan({ subsets: ['latin'], weight: ['900'], display: 'swap' })
+const interHero = Inter({ subsets: ['latin'], weight: ['900'], display: 'swap' })
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -18,7 +19,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function IndustryHero({ industry, slug, source, confidence, accent }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number; accent?: string }) {
+export function IndustryHero({ industry, slug, source, confidence, accent, ctaLabel }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number; accent?: string; ctaLabel?: string }) {
   // When adding a new industry in data/brand_industries.json → allowed[],
   // remember to add a deterministic template below, and update DB CHECK constraints via migration.
   const allowed = new Set(getAllowedIndustries())
@@ -132,6 +133,14 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
   // Industry theme tokens with optional campaign override (accent)
   const baseTheme = getIndustryTheme(safeIndustry)
   const theme = withOverrides(baseTheme, accent ? { accent } : undefined)
+  const heroFontClass = theme.heroFont === 'spartan' ? spartanHero.className : interHero.className
+  const heroLeadingCls = theme.heroLeadingTight ? 'leading-[0.9]' : 'leading-[1]'
+  const heroTrackingCls = theme.heroTightTracking
+    ? 'tracking-[-0.01em] md:tracking-[-0.02em] lg:tracking-[-0.035em]'
+    : 'tracking-tight'
+  const heroSizeCls = theme.heroLargeScale
+    ? 'text-[clamp(2.5rem,10vw,4rem)] md:text-[9rem] lg:text-[13rem]'
+    : 'text-[clamp(2.25rem,10vw,3.75rem)] md:text-[8rem] lg:text-[12rem]'
 
   const headlineCaseCls = theme.headlineCase === 'uppercase' ? 'uppercase' : ''
 
@@ -193,7 +202,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
-          <h1 className={`${spartanHero.className} mx-auto text-gray-900 ${headlineCaseCls} leading-[0.9] tracking-[-0.01em] md:tracking-[-0.02em] lg:tracking-[-0.035em] break-words [text-wrap:balance] font-black text-[clamp(2.5rem,10vw,4rem)] md:text-[9rem] lg:text-[13rem]`}>
+          <h1 className={`${heroFontClass} mx-auto text-gray-900 ${headlineCaseCls} ${heroLeadingCls} ${heroTrackingCls} break-words [text-wrap:balance] font-black ${heroSizeCls}`}>
             {c.headline}
           </h1>
         </div>
@@ -216,7 +225,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
               }
               style={theme.ctaVariantPrimary === 'filled' ? { backgroundColor: theme.accent, borderColor: theme.accent } : {}}
             >
-              Schedule a meeting
+              {ctaLabel || 'Schedule a meeting'}
             </a>
           </div>
         </div>
