@@ -116,8 +116,8 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       try {
         const h = window.innerHeight || 0;
         // Tiers chosen to avoid overlapping hero on mid-height screens
-        if (h <= 780) setSizeTier('veryTight');
-        else if (h <= 900) setSizeTier('tight');
+        if (h <= 880) setSizeTier('veryTight');
+        else if (h <= 1000) setSizeTier('tight');
         else setSizeTier('normal');
       } catch {}
     };
@@ -389,9 +389,9 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
           <div className={
             'rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col ' +
             (sizeTier === 'veryTight'
-              ? 'min-h-[22vh] sm:min-h-[25vh] md:min-h-[29vh] max-h-[46vh]'
+              ? 'min-h-[20vh] sm:min-h-[23vh] md:min-h-[27vh] max-h-[42vh]'
               : sizeTier === 'tight'
-              ? 'min-h-[26vh] sm:min-h-[29vh] md:min-h-[33vh] max-h-[52vh]'
+              ? 'min-h-[24vh] sm:min-h-[27vh] md:min-h-[31vh] max-h-[48vh]'
               : 'min-h-[30vh] sm:min-h-[33vh] md:min-h-[37vh] max-h-[57vh]')
           }>
             {/* Header bar */}
