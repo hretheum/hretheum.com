@@ -18,29 +18,29 @@ Conventions
 ## Workstream A — Routing & Canonicalization
 
 ### T1. Implement default-allow subdomain routing with 301 to /brand/<slug>
-- Status: Completed — Functional; error-rate ops integrated; pending: SEO crawl
+- Status: ✅ Completed — Functional; error-rate ops integrated; pending: SEO crawl
 - Rationale: Single canonical per brand; consistent entry for campaigns.
 - Inputs/Deps: blacklist list, slug regex, `middleware.ts` infra.
 - Steps: parse host, validate slug, enforce blacklist, build target URL, 301 redirect; preserve UTM.
 - Definition of Done (DoD)
-  - [x] Requests to `<brand>.hretheum.com` (not blacklisted) 301 to `https://hretheum.com/brand/<slug>`; preserves path `/` and query/UTM.
-  - [x] Blacklisted subdomains bypass 301 and render neutral apex route.
-  - [x] Slug normalization: lowercase; `[a-z0-9-]{1,63}`; collapse multiple dashes.
-  - [x] Unit tests and e2e tests cover sample cases (zendesk, bayer, invalid idn/punycode, blacklist).
+  - [x] ✅ Requests to `<brand>.hretheum.com` (not blacklisted) 301 to `https://hretheum.com/brand/<slug>`; preserves path `/` and query/UTM.
+  - [x] ✅ Blacklisted subdomains bypass 301 and render neutral apex route.
+  - [x] ✅ Slug normalization: lowercase; `[a-z0-9-]{1,63}`; collapse multiple dashes.
+  - [x] ✅ Unit tests and e2e tests cover sample cases (zendesk, bayer, invalid idn/punycode, blacklist).
 - Metrics
-  - [x] Redirect correctness ≥ 99.9% (no loops, correct target) — computed in admin API with pass/fail.
-  - [x] Middleware added latency p95 ≤ 5ms — computed in admin API with pass/fail.
-  - [x] Error rate (<500s) ≤ 0.1% of subdomain requests — integrated via Vercel Custom HTTP Drain → `vercel_drain_events`; PASS/FAIL surfaced in Admin.
+  - [x] ✅ Redirect correctness ≥ 99.9% (no loops, correct target) — computed in admin API with pass/fail.
+  - [x] ✅ Middleware added latency p95 ≤ 5ms — computed in admin API with pass/fail.
+  - [x] ✅ Error rate (<500s) ≤ 0.1% of subdomain requests — integrated via Vercel Custom HTTP Drain → `vercel_drain_events`; PASS/FAIL surfaced in Admin.
 - Validation
-  - [x] Automated e2e via Playwright.
-  - [x] curl test matrix; server logs spot-check.
+  - [x] ✅ Automated e2e via Playwright.
+  - [x] ✅ curl test matrix; server logs spot-check.
   - [ ] SEO check (no duplicate indexable subdomains).
 - Guardrails
-  - [x] No user data written pre-consent; preserve query params; no infinite redirects.
-  - [x] Reserved subdomains and explicit hosts (via `NOINDEX_HOSTS`) emit `X-Robots-Tag: noindex, nofollow`; 301s to brand preserve UTM and force HTTPS on apex.
+  - [x] ✅ No user data written pre-consent; preserve query params; no infinite redirects.
+  - [x] ✅ Reserved subdomains and explicit hosts (via `NOINDEX_HOSTS`) emit `X-Robots-Tag: noindex, nofollow`; 301s to brand preserve UTM and force HTTPS on apex.
 - Quality Gates
-  - [x] Type-check clean; lint/format clean; manual QA on preview.
-  - [x] Unit + e2e tests passing locally.
+  - [x] ✅ Type-check clean; lint/format clean; manual QA on preview.
+  - [x] ✅ Unit + e2e tests passing locally.
   - [x] Code review.
 
 ### T2. Reserved subdomain blacklist enforcement
@@ -51,7 +51,7 @@ Conventions
 - Quality Gates: review + tests.
 
 ### T3. Canonical brand route `/brand/[slug]` (SSR) with runtime industry resolution
-- Status: Completed — `app/brand/[slug]/page.tsx` renders `IndustryHero` w/ runtime industry (`resolveIndustrySSR`), self‑canonical metadata, and feature‑flagged debug caption; campaign accent overrides passed to hero.
+- Status: ✅ Completed — `app/brand/[slug]/page.tsx` renders `IndustryHero` w/ runtime industry (`resolveIndustrySSR`), self‑canonical metadata, and feature‑flagged debug caption; campaign accent overrides passed to hero.
 - DoD: SSR brand route renders hero with runtime industry resolution (deterministic JSON → DB mapping → LLM classifier) and no flicker; self‑canonical. Deterministic mappings persisted to DB for admin visibility; optional debug caption is feature‑flagged on production.
 - Metrics: LCP ≤ 2.5s p75 on `/brand/<slug>` (lab); zero CLS above‑the‑fold.
 - Validation: Lighthouse/PSI lab runs; visual QA.
@@ -100,7 +100,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Quality Gates: perf profiling pass.
 
 ### T9. CTA click tracking
-- Status: Completed — primary CTAs emit `ui.click` (Home/Brand); stable ids; consent‑gated in analytics layer.
+- Status: ✅ Completed — primary CTAs emit `ui.click` (Home/Brand); stable ids; consent‑gated in analytics layer.
 - DoD: `ui.click` with stable `target_id` for primary CTAs on Home/Brand pages.
 - Metrics: >95% alignment with backend goal completions.
 - Validation: sampled session replays (if enabled) vs events; manual.
@@ -116,7 +116,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Quality Gates: performance check, privacy check.
 
 ### T11. RAG telemetry augmentation
-- Status: Completed — `app/components/RagChat.tsx` wysyła `brand_slug`, `campaign_source`, `campaign_type`; `app/api/rag/query/route.ts` zapisuje w `chat_events.meta` (insert + low‑conf update + SSE/non‑SSE final update).
+- Status: ✅ Completed — `app/components/RagChat.tsx` wysyła `brand_slug`, `campaign_source`, `campaign_type`; `app/api/rag/query/route.ts` zapisuje w `chat_events.meta` (insert + low‑conf update + SSE/non‑SSE final update).
 - DoD: `app/api/rag/query/route.ts` logs `brand`, `campaign_source`, `campaign_type` with existing fields (`msg`, `intent`, `confidence`, `selectedCount`, `top1Boosted`, `lowConfidence`).
 - Metrics: ≥99% of RAG events with brand when on brand route.
 - Validation: unit test; log sampling.
@@ -232,7 +232,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream H — AI/LLM (Shadow → Active)
 
 ### T24. LLM brand→industry classifier (active)
-- Status: Completed — runtime classifier with model fallback, hardened parsing, debug endpoint `/api/admin/industry/debug`, suggestions persisted, optional autopromote by confidence.
+- Status: ✅ Completed — runtime classifier with model fallback, hardened parsing, debug endpoint `/api/admin/industry/debug`, suggestions persisted, optional autopromote by confidence.
 - DoD: constrained prompt selecting from allowed set `{SaaS, Pharma, FinTech, Commerce, Manufacturing, Public, eLearning, Telecom, Generic}` with timeouts and logging; SSR per‑request; deterministic/DB mappings take precedence.
 - Metrics: agreement with manual mapping ≥ 85% on sample of 100 brands.
 - Validation: labeled sample + live debug checks.
@@ -309,16 +309,16 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream K — Campaigns & Theming (MDX)
 
 ### T32. MDX campaign support and loader
-- Status: Completed — index + frontmatter loader + MDX compile (RSC) + component map + CampaignRenderer; accent injected on brand page.
+- Status: ✅ Completed — index + frontmatter loader + MDX compile (RSC) + component map + CampaignRenderer; accent injected on brand page.
 - DoD: `next-mdx-remote` (or equivalent) loader with frontmatter parsing, component map, and SSR compilation.
 - Guardrails: no unapproved logos; consent‑gated telemetry; per‑brand activation via `data/campaigns/index.json`.
 
 ### T33. Industry theme tokens and brand overrides
-- Status: Completed — tokeny (`accent`, `headlineCase`, `slashAngle/Offset`, `gradient*`, `captionStyle`, `ctaVariant`) zaimplementowane w `lib/theme/industryTheme.ts`; użyte w `IndustryHero` i w rendererze kampanii (`CampaignThemeProvider` + theming dla komponentów MDX: CTA, Metrics, Timeline, CaseStudy, Playbook, Gallery). Frontmatter `accent` nadpisuje akcent.
+- Status: ✅ Completed — tokeny (`accent`, `headlineCase`, `slashAngle/Offset`, `gradient*`, `captionStyle`, `ctaVariant`) zaimplementowane w `lib/theme/industryTheme.ts`; użyte w `IndustryHero` i w rendererze kampanii (`CampaignThemeProvider` + theming dla komponentów MDX: CTA, Metrics, Timeline, CaseStudy, Playbook, Gallery). Frontmatter `accent` nadpisuje akcent.
 - DoD: `getIndustryTheme(industry)` returns tokens (accent, gradient, headlineCase, slashAngle/Offset, captionStyle, ctaVariant); campaign frontmatter can override `accent` etc.
 
 ### T34. Campaign renderer and routing integration
-- Status: Completed — `/brand/[slug]` sprawdza aktywną kampanię i renderuje `CampaignRenderer`; fallback do generycznego `Content` gdy brak kampanii; theme accent merge przez `IndustryHero`.
+- Status: ✅ Completed — `/brand/[slug]` sprawdza aktywną kampanię i renderuje `CampaignRenderer`; fallback do generycznego `Content` gdy brak kampanii; theme accent merge przez `IndustryHero`.
 - DoD: `/brand/[slug]` checks active campaign; renders CampaignRenderer with theme merge; fallback to generic industry content uses same components.
 
 ### T35. T‑Mobile campaign MDX
