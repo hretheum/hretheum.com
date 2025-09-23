@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "ingest": "npx tsx scripts/rag_ingest.ts",
-    "ingest:supabase": "RAG_STORE=supabase npx tsx scripts/rag_ingest.ts"
+    "ingest:supabase": "RAG_STORE=supabase npx tsx scripts/rag_ingest.ts",
+    "validate:campaigns": "npx tsx scripts/validate_campaigns.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.14",

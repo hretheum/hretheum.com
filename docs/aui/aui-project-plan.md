@@ -338,15 +338,15 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Validation: Type-check + e2e smoke.
 - Guardrails: nie łamać SSR/CSR rozdziału.
 
-- ### T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
-- Status: In Progress — schema Zod dodana w `lib/campaigns.ts` (`ZCampaignFrontmatter`) i walidacja przy kompilacji MDX (`compileCampaignForBrand`); CTA `href` fallback z env. Pending: dokumentacja + przykładowy frontmatter w MDX.
+### T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
+- Status: ✅ Completed — schema Zod w `lib/campaigns.ts` (`ZCampaignFrontmatter`) + walidacja w `compileCampaignForBrand`; dodano dokumentację w `docs/aui/campaign-frontmatter.md` i skrypt CI `scripts/validate_campaigns.ts` (npm script: `validate:campaigns`). CTA `href` fallback z env.
 - DoD: walidacja w compile‑time dla MDX; czytelna dokumentacja z przykładami.
 - Metrics: 100% kampanii przechodzi walidację; brak runtime errors.
 - Validation: kompilacja MDX z błędnym frontmatter powinna zfailować z jasnym komunikatem.
 - Guardrails: ograniczyć logikę w frontmatter — tylko parametry/layout.
 
 ### T39. Refactor TMOBILE MDX (Etap 4) — nowy layout
-- Status: Next — przebudować `data/campaigns/tmobile_g2m_lead.mdx` używając wspólnych komponentów: `SectionTitle`, `MetricsStrip`, `CaseStudyRich`, `CaseGrid`, `PlaybookDiagram`, `Timeline`, `OutcomeBanner`, `CTAGroup`.
+- Status: In Progress — zrefaktorowany nagłówek/intro: `SectionTitle` + `MetricsStrip` + `CaseGrid` + `OutcomeBanner`; CTA zgodne ze schematem. Pending: dopracowanie copy sekcji CaseStudyRich/Playbook/Timeline, QA + mobile polish.
 - DoD: brak „lania się tekstu”; spójny, brandowany layout; polskie copy zachowane.
 - Metrics: subiektywna ocena wizualna + telemetria CTR na CTA.
 - Validation: wizualne QA; klikowalność CTA; brak regresji na mobile.
