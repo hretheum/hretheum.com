@@ -323,6 +323,43 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ### T35. T‑Mobile campaign MDX
 - Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` z frontmatter i sekcjami (MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup); do dopracowania copy i QA.
 
+### T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
+- Status: Next — podłącz Theme Provider (ten sam co kampanie; nazwany ogólnie `ThemeProvider`) do `app/components/CoverPage.tsx` i sekcji root domain.
+- DoD: `CoverPage` używa tokenów (`accent`, `gradient*`) zamiast twardych kolorów; brak regresji CWV; layout bez flicker (SSR above‑the‑fold).
+- Metrics: neutralne CWV vs baseline; wizualna spójność z kampaniami.
+- Validation: Lighthouse lab, wizualne QA na 3 breakpointach.
+- Guardrails: brak logotypów; kontrast AA.
+
+### T37. Theme‑aware CoverPage (Etap 2) — Unifikacja komponentów
+- Status: Next — zunifikować komponenty Home/Kampanie (wspólny zestaw): `SectionTitle`, `CaseGrid`, `OutcomeBanner`, `CTAGroup/CTABanner`, `Metrics*`, `Timeline`, `Playbook*`, `CaseStudy*`, `GalleryMedia`.
+- DoD: jeden komponent na wzorzec, konsumpcja tokenów przez `ThemeProvider`; brak duplikatów root/kampania.
+- Metrics: redukcja duplikacji (LOC/komponenty); szybsze iteracje UI.
+- Validation: Type-check + e2e smoke.
+- Guardrails: nie łamać SSR/CSR rozdziału.
+
+### T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
+- Status: Next — zdefiniować schema (TS/Zod) dla frontmatter: tokens (`accent`, `ctaVariant`, `captionStyle`, `gradient*`), `ctas`, `metrics`, `case_grid.items`, opcjonalnie `sections`.
+- DoD: walidacja w compile‑time dla MDX; czytelna dokumentacja z przykładami.
+- Metrics: 100% kampanii przechodzi walidację; brak runtime errors.
+- Validation: kompilacja MDX z błędnym frontmatter powinna zfailować z jasnym komunikatem.
+- Guardrails: ograniczyć logikę w frontmatter — tylko parametry/layout.
+
+### T39. Refactor TMOBILE MDX (Etap 4) — nowy layout
+- Status: Next — przebudować `data/campaigns/tmobile_g2m_lead.mdx` używając wspólnych komponentów: `SectionTitle`, `MetricsStrip`, `CaseStudyRich`, `CaseGrid`, `PlaybookDiagram`, `Timeline`, `OutcomeBanner`, `CTAGroup`.
+- DoD: brak „lania się tekstu”; spójny, brandowany layout; polskie copy zachowane.
+- Metrics: subiektywna ocena wizualna + telemetria CTR na CTA.
+- Validation: wizualne QA; klikowalność CTA; brak regresji na mobile.
+- Guardrails: zgodność z polityką AUI (canonical, telemetry, no logos).
+
+### T40. (Opcjonalne) NeonSlash jako tło sekcji
+- DoD: lekki komponent tła z tokenami gradientu; toggle per sekcja/brand; brak regresji wydajności.
+
+### T41. (Opcjonalne) Override wariantu CTA z frontmatter
+- DoD: możliwość nadpisania `ctaVariant` per sekcja; stabilne `target_id` w telemetrii.
+
+### T42. (Opcjonalne) Tuning `.prose` spacing na stronach kampanii
+- DoD: doprecyzować marginesy/rozmiary nagłówków per brand; bez zmiany semantyki.
+
 ## Owners (initial)
 - Routing/SEO: Eng + SEO partner.
 - Telemetry/Consent: Eng + Legal.
