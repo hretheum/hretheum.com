@@ -9,7 +9,6 @@ import path from 'path'
 import matter from 'gray-matter'
 import { z } from 'zod'
 import React from 'react'
-import { compileMDX } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
 
 const ROOT = process.cwd()
@@ -145,6 +144,8 @@ export async function compileCampaignForBrand(
   const found = await findCampaignForBrand(brandSlug)
   if (!found) return null
   const raw = await fs.readFile(found.filePath, 'utf8')
+  // Lazy import MDX compiler to avoid pulling MDX toolchain in non-MDX contexts (e.g., CI frontmatter validation)
+  const { compileMDX } = await import('next-mdx-remote/rsc')
   const { content, frontmatter } = await compileMDX<CampaignFrontmatter>({
     source: raw,
     options: {
@@ -173,4 +174,17 @@ export async function compileCampaignForBrand(
     }
   } catch {}
   return { content, frontmatter: fm }
+}
+
+// Schema-only validation helper (no MDX compilation). Useful for CI and pre-commit checks.
+export async function validateCampaignFrontmatterForBrand(brandSlug: string): Promise<CampaignFrontmatter> {
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) throw new Error(`Campaign for brand '${brandSlug}' not found in index`)
+  const fm = await loadCampaignFrontmatter(found.filePath)
+  const parsed = ZCampaignFrontmatter.safeParse(fm || {})
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')
+    throw new Error(`Invalid campaign frontmatter in ${path.relative(ROOT, found.filePath)} → ${msg}`)
+  }
+  return parsed.data as CampaignFrontmatter
 }

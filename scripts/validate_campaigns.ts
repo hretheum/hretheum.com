@@ -4,7 +4,7 @@
   All comments/docstrings in English per policy.
 */
 
-import { getCampaignIndex, compileCampaignForBrand } from '@/lib/campaigns'
+import { getCampaignIndex, validateCampaignFrontmatterForBrand } from '@/lib/campaigns'
 
 async function main() {
   const errors: string[] = []
@@ -16,12 +16,8 @@ async function main() {
   }
   for (const brand of brands) {
     try {
-      const result = await compileCampaignForBrand(brand, {} as any)
-      if (!result) {
-        errors.push(`[${brand}] not found or failed to read MDX file`)
-      } else {
-        console.log(`[validate_campaigns] ${brand}: OK`)
-      }
+      await validateCampaignFrontmatterForBrand(brand)
+      console.log(`[validate_campaigns] ${brand}: OK`)
     } catch (e: any) {
       errors.push(`[${brand}] ${e?.message || e}`)
     }
