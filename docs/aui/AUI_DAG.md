@@ -1,7 +1,7 @@
 # AUI Task DAG (Dependencies & Parallelization)
 
 Status: Draft (for review)
-Last updated: 2025-09-22
+Last updated: 2025-09-23
 
 This document provides a high-level DAG for executing the AUI workstreams (A–K). It identifies critical dependencies and where tasks can run in parallel.
 
@@ -43,6 +43,13 @@ K1[T32 MDX loader]
 K2[T33 Industry theme tokens]
 K3[T34 Campaign renderer and routing]
 K4[T35 T-Mobile MDX]
+K5[T36 Theme-aware CoverPage (E1)]
+K6[T37 Unified Components (E2)]
+K7[T38 Frontmatter schema (E3)]
+K8[T39 TMOBILE MDX refactor (E4)]
+K9[T40 NeonSlash bg (opt)]
+K10[T41 CTA override (opt)]
+K11[T42 Prose spacing (opt)]
 
 A1 --> A3
 A2 --> A4
@@ -103,12 +110,21 @@ A3 --> K2
 K1 --> K3
 K2 --> K3
 K3 --> K4
-```
+%% Theming & unified components track
+K2 --> K5
+K5 --> K6
+K6 --> K7
+K3 --> K7
+K7 --> K8
+%% Optional enhancements
+K2 --> K9
+K7 --> K10
+K6 --> K11
 
 ## Critical path
 - A1 → A3 → H1 → F2 (routing → brand SSR + runtime industry → LLM classifier active → mapping admin view).
 - B1 → C1 → B2/B5 → D1 → E1/E2/E3 → D2 (telemetry → consent → signals → rules engine → micro components → first rules live).
-- A3 → K1/K2 → K3 → K4 (brand SSR → MDX loader + theme → campaign renderer → T‑Mobile MDX).
+- A3 → K1/K2 → K3 → K5 → K6 → K7 → K8 (brand SSR → MDX loader + theme → campaign renderer → Theme‑aware CoverPage → Unified Components → Frontmatter schema → TMOBILE refactor). Optional polish: K9/K10/K11.
 - J2 (kill‑switch) before D2/H3 activations.
 
 ## Recommended parallelization
