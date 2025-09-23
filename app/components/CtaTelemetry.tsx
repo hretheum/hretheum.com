@@ -112,6 +112,47 @@ export default function CtaTelemetry() {
         lastPushTs = now
       } catch {}
     }
+    // Intercept dataLayer pushes to synthesize ui.click from gtm.linkClick (fallback)
+    try {
+      const w: any = window
+      w.dataLayer = w.dataLayer || []
+      const dl: any = w.dataLayer
+      if (!dl.__hrePatched) {
+        const originalPush = dl.push.bind(dl)
+        dl.__hrePatched = true
+        dl.push = function (...args: any[]) {
+          try {
+            for (const ev of args) {
+              if (ev && ev.event === 'gtm.linkClick') {
+                const el = ev['gtm.element'] as Element | undefined
+                const anchor = el ? (el.closest ? el.closest('a') : (el as any)) : null
+                const id = anchor?.getAttribute?.('data-cta-id') || ''
+                if (id) {
+                  const ctaSource = anchor?.getAttribute?.('data-cta-source') || 'unknown'
+                  const variant = anchor?.getAttribute?.('data-cta-variant') || 'secondary'
+                  const { brand, source } = deriveBrandAndSource()
+                  const now = Date.now()
+                  if (!(id === lastPushId && now - lastPushTs < 500)) {
+                    originalPush({
+                      event: 'ui.click',
+                      target_id: id,
+                      cta_source: ctaSource,
+                      cta_variant: variant,
+                      route: window.location.pathname,
+                      brand: brand || null,
+                      campaign_source: source || null,
+                    })
+                    lastPushId = id
+                    lastPushTs = now
+                  }
+                }
+              }
+            }
+          } catch {}
+          return originalPush(...args)
+        }
+      }
+    } catch {}
     document.addEventListener('click', handle as any, true)
     document.addEventListener('pointerup', handle as any, true)
     document.addEventListener('mousedown', handle as any, true)
