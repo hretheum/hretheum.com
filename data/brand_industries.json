@@ -24,6 +24,7 @@
     "ascent": "eLearning",
     "tmobile": "Telecom",
     "t-mobile": "Telecom",
-    "dummy": "Dummy"
+    "foo": "Dummy",
+    "bar": "Dummy"
   }
 }
