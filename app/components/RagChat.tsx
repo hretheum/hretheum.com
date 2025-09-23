@@ -77,9 +77,10 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       if (saved === '1') setMinimized(true);
       else if (saved === '0') setMinimized(false);
       else {
-        // Default behavior: on mobile / portrait tablet and below, start minimized
-        const isCompact = window.matchMedia('(max-width: 768px)').matches;
-        setMinimized(isCompact);
+        // Default behavior: on portrait tablet-and-down, start minimized
+        const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+        const isCompact = window.matchMedia('(max-width: 900px)').matches;
+        setMinimized(isPortrait && isCompact);
       }
     } catch {}
   }, []);
@@ -142,7 +143,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     const handler = () => {
       const cur: 'portrait' | 'landscape' = getOrientation();
       if (cur === 'portrait' && last === 'landscape') {
-        const isCompact = window.innerWidth <= 768;
+        const isCompact = window.innerWidth <= 900;
         if (isCompact) setMinimized(true);
       }
       last = cur;
