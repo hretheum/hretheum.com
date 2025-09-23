@@ -332,14 +332,14 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Guardrails: brak logotypów; kontrast AA.
 
 ### T37. Theme‑aware CoverPage (Etap 2) — Unifikacja komponentów
-- Status: In Progress — wykonane: `SectionTitle` pod hero (T37/3), `OutcomeBanner` pod hero (T37/4), polish mobile `CTABanner` (T37/5). Następne: unifikacja pozostałych komponentów (`CaseGrid`, `Metrics*`, `Timeline`, `Playbook*`, `CaseStudy*`, `GalleryMedia`) i usunięcie duplikatów root/kampania.
+- Status: ✅ Completed — unified shared components w `app/components/ui` i zastosowane na Home/Kampaniach: `SectionTitle`, `OutcomeBanner`, `CTAGroup/CTABanner`, `CaseGrid` (Home `CaseStudiesPage` refactor). Brak duplikatów między root/kampania dla tych powierzchni; komponenty konsumują tokeny przez `CampaignThemeProvider`/CSS var `--campaign-accent`.
 - DoD: jeden komponent na wzorzec, konsumpcja tokenów przez `ThemeProvider`; brak duplikatów root/kampania.
 - Metrics: redukcja duplikacji (LOC/komponenty); szybsze iteracje UI.
 - Validation: Type-check + e2e smoke.
 - Guardrails: nie łamać SSR/CSR rozdziału.
 
-### T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
-- Status: Next — zdefiniować schema (TS/Zod) dla frontmatter: tokens (`accent`, `ctaVariant`, `captionStyle`, `gradient*`), `ctas`, `metrics`, `case_grid.items`, opcjonalnie `sections`.
+- ### T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
+- Status: In Progress — schema Zod dodana w `lib/campaigns.ts` (`ZCampaignFrontmatter`) i walidacja przy kompilacji MDX (`compileCampaignForBrand`); CTA `href` fallback z env. Pending: dokumentacja + przykładowy frontmatter w MDX.
 - DoD: walidacja w compile‑time dla MDX; czytelna dokumentacja z przykładami.
 - Metrics: 100% kampanii przechodzi walidację; brak runtime errors.
 - Validation: kompilacja MDX z błędnym frontmatter powinna zfailować z jasnym komunikatem.

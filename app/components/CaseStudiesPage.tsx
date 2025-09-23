@@ -1,3 +1,5 @@
+import { SectionTitle, CaseGrid, OutcomeBanner } from '@/app/components/ui'
+
 export default function CaseStudiesPage() {
   const cases = [
     {
@@ -58,62 +60,21 @@ export default function CaseStudiesPage() {
     }
   ];
 
+  const items = cases.map(c => ({
+    title: c.title,
+    subtitle: c.subtitle,
+    challenge: c.challenge,
+    solution: c.solution,
+    outcome: c.outcome,
+    details: c.details,
+  }))
+
   return (
     <section className="py-16 px-6 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-[4rem] md:text-[6rem] font-black text-gray-900 mb-16 leading-none text-center">
-          CASE STUDIES
-        </h1>
-        
-        <p className="text-center text-gray-400 text-sm mb-12 -mt-8">
-          hint: hover over the items for details
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {cases.map((case_, index) => (
-            <div 
-              key={index} 
-              className="bg-black text-white p-8 hover:bg-purple-600 transition-all duration-300 cursor-pointer group relative overflow-hidden"
-            >
-              {/* Main content - always visible */}
-              <div className="group-hover:opacity-0 transition-opacity duration-300">
-                <h2 className="text-2xl font-black mb-2">{case_.title}</h2>
-                <h3 className="text-lg font-bold text-purple-400 mb-6">{case_.subtitle}</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm font-bold text-gray-400">CHALLENGE</div>
-                    <div className="text-sm">{case_.challenge}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-400">SOLUTION</div>
-                    <div className="text-sm">{case_.solution}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-400">OUTCOME</div>
-                    <div className="text-sm font-bold text-purple-400">{case_.outcome}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detailed content - shown on hover */}
-              <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-purple-600 flex items-center">
-                <div>
-                  <h2 className="text-xl font-black mb-4">{case_.title}</h2>
-                  <p className="text-sm leading-relaxed">{case_.details}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Big outcome statement */}
-        <div className="mt-16 bg-purple-600 text-white p-12 text-center -mx-6 md:mx-0">
-          <div className="text-3xl md:text-4xl font-black">
-            MEASURABLE IMPACT:<br/>
-            IMPROVED ADOPTION • REDUCED COSTS • HIGHER SUCCESS RATES
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto" style={{ ['--campaign-accent' as any]: '#7c3aed' }}>
+        <SectionTitle title="Case Studies" subtitle="Selected outcomes across industries" />
+        <CaseGrid items={items} />
+        <OutcomeBanner text={"MEASURABLE IMPACT: IMPROVED ADOPTION • REDUCED COSTS • HIGHER SUCCESS RATES"} />
       </div>
     </section>
   );

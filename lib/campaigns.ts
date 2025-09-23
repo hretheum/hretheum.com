@@ -7,6 +7,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 import matter from 'gray-matter'
+import { z } from 'zod'
 import React from 'react'
 import { compileMDX } from 'next-mdx-remote/rsc'
 import remarkGfm from 'remark-gfm'
@@ -28,14 +29,64 @@ export type CampaignFrontmatter = {
   brand?: string
   industry?: string
   accent?: string
+  ctaVariant?: 'filled' | 'outline'
   role?: string
   location?: string
   contract?: string
   period?: string
   ctas?: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }>
   sections?: Array<{ type: string }>
+  metrics?: Array<{ label: string; value: string; note?: string }>
+  case_grid?: {
+    items: Array<{
+      title: string
+      subtitle?: string
+      challenge?: string
+      solution?: string
+      outcome?: string
+      details?: string
+    }>
+  }
   [key: string]: any
 }
+
+// Zod schema for frontmatter (T38)
+export const ZCampaignFrontmatter = z.object({
+  slug: z.string().min(1).optional(),
+  brand: z.string().min(1).optional(),
+  industry: z.string().min(1).optional(),
+  accent: z.string().min(1).optional(),
+  ctaVariant: z.enum(['filled', 'outline']).optional(),
+  role: z.string().optional(),
+  location: z.string().optional(),
+  contract: z.string().optional(),
+  period: z.string().optional(),
+  ctas: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        href: z.string().url().optional(),
+        variant: z.enum(['primary', 'secondary']).optional(),
+      })
+    )
+    .optional(),
+  sections: z.array(z.object({ type: z.string().min(1) })).optional(),
+  metrics: z.array(z.object({ label: z.string().min(1), value: z.string().min(1), note: z.string().optional() })).optional(),
+  case_grid: z
+    .object({
+      items: z.array(
+        z.object({
+          title: z.string().min(1),
+          subtitle: z.string().optional(),
+          challenge: z.string().optional(),
+          solution: z.string().optional(),
+          outcome: z.string().optional(),
+          details: z.string().optional(),
+        })
+      ),
+    })
+    .optional(),
+})
 
 async function readJson<T = unknown>(filePath: string): Promise<T | null> {
   try {
@@ -105,14 +156,21 @@ export async function compileCampaignForBrand(
     },
     components,
   })
+  // Validate frontmatter
+  const parsed = ZCampaignFrontmatter.safeParse(frontmatter || {})
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')
+    throw new Error(`Invalid campaign frontmatter in ${path.relative(ROOT, found.filePath)} → ${msg}`)
+  }
+  const fm: CampaignFrontmatter = parsed.data as CampaignFrontmatter
   // Hydrate missing CTA hrefs with default Calendly URL
   try {
-    if (Array.isArray(frontmatter?.ctas)) {
-      frontmatter.ctas = frontmatter.ctas.map((c: any) => ({
+    if (Array.isArray(fm?.ctas)) {
+      fm.ctas = fm.ctas.map((c: any) => ({
         ...c,
         href: c?.href || DEFAULT_CALENDLY,
       }))
     }
   } catch {}
-  return { content, frontmatter }
+  return { content, frontmatter: fm }
 }
