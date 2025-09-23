@@ -53,7 +53,7 @@ export default function CoverPage() {
               PRODUCT DESIGN LEADER
             </p>
             <div className="mt-8">
-              <CTAGroup ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/eorlowski-theeventa/short-intro', variant: tokens.ctaVariantPrimary === 'filled' ? 'primary' : 'secondary' }]} />
+              <CTAGroup align="center" ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/eorlowski-theeventa/short-intro', variant: tokens.ctaVariantPrimary === 'filled' ? 'primary' : 'secondary' }]} />
             </div>
           </div>
         </div>
