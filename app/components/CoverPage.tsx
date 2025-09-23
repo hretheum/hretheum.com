@@ -6,7 +6,6 @@
 import { CampaignThemeProvider } from '@/app/campaign/theme'
 import { getIndustryTheme } from '@/lib/theme/industryTheme'
 import { CTAGroup, CTABanner, SectionTitle, OutcomeBanner } from '@/app/components/ui'
-import CtaTelemetry from '@/app/components/CtaTelemetry'
 
 export default function CoverPage() {
 
@@ -15,7 +14,6 @@ export default function CoverPage() {
 
   return (
     <CampaignThemeProvider tokens={tokens}>
-      <CtaTelemetry />
       <div style={{ ['--theme-accent' as any]: tokens.accent, ['--campaign-accent' as any]: tokens.accent }}>
         {/* Use overflow-x-hidden to avoid clipping the neon slash horizontally while allowing vertical flow */}
         <section className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-white">

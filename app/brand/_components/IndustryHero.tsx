@@ -203,6 +203,9 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
               href={DEFAULT_CALENDLY}
               target="_blank"
               rel="noopener noreferrer"
+              data-cta-id="brand_hero_cta"
+              data-cta-source="brand_hero"
+              data-cta-variant={theme.ctaVariantPrimary === 'filled' ? 'primary' : 'secondary'}
               className={
                 'inline-block px-5 py-3 text-sm md:text-base font-medium transition-all duration-200 border ' +
                 (theme.ctaVariantPrimary === 'filled'

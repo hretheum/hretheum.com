@@ -34,6 +34,9 @@ export default function ClosingPage() {
             href={DEFAULT_CALENDLY}
             target="_blank"
             rel="noopener noreferrer"
+            data-cta-id="closing_page_cta"
+            data-cta-source="closing_page"
+            data-cta-variant="primary"
             className="inline-block bg-white text-black px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl font-black hover:bg-purple-200 transition-colors duration-200"
           >
             Schedule a meeting
