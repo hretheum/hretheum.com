@@ -9,10 +9,12 @@ export default function CtaTelemetry() {
   const gtmEnabled = (process.env.NEXT_PUBLIC_ENABLE_GTM ?? 'true') !== 'false'
   const apexDomain = (process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com').toLowerCase()
   const defaultBehavioral = (process.env.NEXT_PUBLIC_BEHAVIORAL_DEFAULT || 'allow').toLowerCase()
+  const debug = (process.env.NEXT_PUBLIC_TELEMETRY_DEBUG || 'false').toLowerCase() === 'true'
 
   function hasBehavioralConsent(): boolean {
     try {
       const w: any = window
+      if (debug) return true
       if (w && w.hretheumConsent && typeof w.hretheumConsent.behavioral === 'boolean') {
         return !!w.hretheumConsent.behavioral
       }
@@ -25,7 +27,6 @@ export default function CtaTelemetry() {
   }
 
   function dlPush(payload: Record<string, any>) {
-    if (!gtmEnabled) return
     try {
       if (!payload || !payload.event) return
       ;(window as any).dataLayer = (window as any).dataLayer || []
@@ -49,17 +50,55 @@ export default function CtaTelemetry() {
   }
 
   useEffect(() => {
-    const onClick = (e: MouseEvent) => {
+    // Optional debug heartbeat on mount
+    try {
+      if (debug) {
+        const { brand, source } = deriveBrandAndSource()
+        dlPush({
+          event: 'ui.telemetry_ready',
+          host: typeof window !== 'undefined' ? window.location.hostname : null,
+          route: typeof window !== 'undefined' ? window.location.pathname : null,
+          brand: brand || null,
+          campaign_source: source || null,
+        })
+        // eslint-disable-next-line no-console
+        console.info('[CtaTelemetry] ready', { brand, source })
+      }
+    } catch {}
+
+    let lastPushTs = 0
+    let lastPushId = ''
+
+    const handle = (e: Event) => {
       try {
-        const target = e.target as HTMLElement | null
-        if (!target) return
-        const link = target.closest('a[data-cta-id]') as HTMLAnchorElement | null
+        let node = (e.target as Node) || null
+        if (!node) return
+        // If text node, move to parent element
+        if ((node as any).nodeType === 3 && (node as any).parentElement) {
+          node = (node as any).parentElement as Element
+        }
+        let link: HTMLAnchorElement | null = null
+        if (node && (node as any).closest) {
+          link = (node as any).closest('a[data-cta-id]') as HTMLAnchorElement | null
+        } else {
+          // Fallback traversal if closest() not available
+          let el: any = node
+          while (el && el !== document) {
+            if (el.tagName === 'A' && el.hasAttribute && el.hasAttribute('data-cta-id')) {
+              link = el as HTMLAnchorElement
+              break
+            }
+            el = el.parentElement || el.parentNode
+          }
+        }
         if (!link) return
         if (!hasBehavioralConsent()) return
         const { brand, source } = deriveBrandAndSource()
         const id = link.getAttribute('data-cta-id') || 'cta'
         const ctaSource = link.getAttribute('data-cta-source') || 'unknown'
         const variant = link.getAttribute('data-cta-variant') || 'secondary'
+        const now = Date.now()
+        if (id === lastPushId && now - lastPushTs < 500) return
         dlPush({
           event: 'ui.click',
           target_id: id,
@@ -69,10 +108,20 @@ export default function CtaTelemetry() {
           brand: brand || null,
           campaign_source: source || null,
         })
+        lastPushId = id
+        lastPushTs = now
       } catch {}
     }
-    document.addEventListener('click', onClick, true)
-    return () => document.removeEventListener('click', onClick, true)
+    document.addEventListener('click', handle as any, true)
+    document.addEventListener('pointerup', handle as any, true)
+    document.addEventListener('mousedown', handle as any, true)
+    document.addEventListener('touchstart', handle as any, { capture: true, passive: true } as any)
+    return () => {
+      document.removeEventListener('click', handle as any, true)
+      document.removeEventListener('pointerup', handle as any, true)
+      document.removeEventListener('mousedown', handle as any, true)
+      document.removeEventListener('touchstart', handle as any, true as any)
+    }
   }, [])
 
   return null
