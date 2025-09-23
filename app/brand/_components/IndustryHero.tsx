@@ -19,7 +19,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-export function IndustryHero({ industry, slug, source, confidence, accent, ctaLabel }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number; accent?: string; ctaLabel?: string }) {
+export function IndustryHero({ industry, slug, source, confidence, accent, ctaLabel, showCtaOnMobile = true, heroHeadline }: { industry: Industry; slug: string; source?: IndustrySource; confidence?: number; accent?: string; ctaLabel?: string; showCtaOnMobile?: boolean; heroHeadline?: string }) {
   // When adding a new industry in data/brand_industries.json → allowed[],
   // remember to add a deterministic template below, and update DB CHECK constraints via migration.
   const allowed = new Set(getAllowedIndustries())
@@ -129,6 +129,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent, ctaLa
   };
 
   const c = copy[safeIndustry] || copy['Generic']
+  const headlineText = heroHeadline || c.headline
 
   // Industry theme tokens with optional campaign override (accent)
   const baseTheme = getIndustryTheme(safeIndustry)
@@ -141,6 +142,8 @@ export function IndustryHero({ industry, slug, source, confidence, accent, ctaLa
   const heroSizeCls = theme.heroLargeScale
     ? 'text-[clamp(2.5rem,10vw,4rem)] md:text-[9rem] lg:text-[13rem]'
     : 'text-[clamp(2.25rem,10vw,3.75rem)] md:text-[8rem] lg:text-[12rem]'
+
+  const ctaVisibilityCls = showCtaOnMobile ? '' : 'hidden md:block'
 
   const headlineCaseCls = theme.headlineCase === 'uppercase' ? 'uppercase' : ''
 
@@ -203,13 +206,13 @@ export function IndustryHero({ industry, slug, source, confidence, accent, ctaLa
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
           <h1 className={`${heroFontClass} mx-auto text-gray-900 ${headlineCaseCls} ${heroLeadingCls} ${heroTrackingCls} break-words [text-wrap:balance] font-black ${heroSizeCls}`}>
-            {c.headline}
+            {headlineText}
           </h1>
         </div>
         <div className="mt-8 md:mt-12 space-y-3 md:space-y-4">
           <p className="text-xl md:text-4xl font-black text-gray-700">ERYK ORŁOWSKI</p>
           <p className="text-lg md:text-2xl font-bold text-gray-500">PRODUCT DESIGN LEADER</p>
-          <div className="mt-8">
+          <div className={`mt-8 ${ctaVisibilityCls}`}>
             <a
               href={DEFAULT_CALENDLY}
               target="_blank"

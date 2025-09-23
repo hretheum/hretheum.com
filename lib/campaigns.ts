@@ -21,6 +21,14 @@ export type CampaignIndexEntry = {
   file?: string // optional direct file path (relative to data/campaigns)
 }
 
+// Helper: get hero headline override for a brand (frontmatter.hero_headline)
+export async function getCampaignHeroHeadlineForBrand(brandSlug: string): Promise<string | undefined> {
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) return undefined
+  const fm = await loadCampaignFrontmatter(found.filePath)
+  return (fm?.hero_headline as string | undefined) || undefined
+}
+
 // Helper: get the primary CTA label for a brand's campaign (falls back to first CTA if no primary; undefined if none)
 export async function getCampaignPrimaryCtaLabelForBrand(brandSlug: string): Promise<string | undefined> {
   const found = await findCampaignForBrand(brandSlug)
@@ -44,6 +52,7 @@ export type CampaignFrontmatter = {
   location?: string
   contract?: string
   period?: string
+  hero_headline?: string
   ctas?: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }>
   sections?: Array<{ type: string }>
   metrics?: Array<{ label: string; value: string; note?: string }>
@@ -71,6 +80,7 @@ export const ZCampaignFrontmatter = z.object({
   location: z.string().optional(),
   contract: z.string().optional(),
   period: z.string().optional(),
+  hero_headline: z.string().min(1).optional(),
   ctas: z
     .array(
       z.object({

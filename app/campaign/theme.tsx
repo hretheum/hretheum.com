@@ -15,6 +15,11 @@ const DEFAULT_TOKENS: IndustryThemeTokens = {
   gradientTo: 'rgba(0,0,0,0)',
   ctaVariantPrimary: 'outline',
   captionStyle: 'subtle',
+  // Hero typography defaults (aligned with theme defaults)
+  heroFont: 'spartan',
+  heroTightTracking: true,
+  heroLeadingTight: true,
+  heroLargeScale: true,
 };
 
 const CampaignThemeContext = createContext<IndustryThemeTokens>(DEFAULT_TOKENS);
