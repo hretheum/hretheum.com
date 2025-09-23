@@ -5,6 +5,19 @@ type Row = { brand_slug: string; industry: string; status: string; updated_at: s
 
 type Suggestion = { id: string; brand_slug: string; industry: string; confidence: number; created_at: string }
 
+// Helper: friendly date like "23 Sep 25"
+function formatFriendlyDate(iso: string): string {
+  try {
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return ''
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    const dd = String(d.getDate()).padStart(2, '0')
+    const mon = months[d.getMonth()] || ''
+    const yy = String(d.getFullYear() % 100).padStart(2, '0')
+    return `${dd} ${mon} ${yy}`
+  } catch { return '' }
+}
+
 export default function IndustryMapping() {
   const [rows, setRows] = useState<Row[]>([])
   const [sugs, setSugs] = useState<Suggestion[]>([])
@@ -83,6 +96,7 @@ export default function IndustryMapping() {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-3 py-2 text-left">Timestamp</th>
               <th className="px-3 py-2 text-left">Brand</th>
               <th className="px-3 py-2 text-left">Industry</th>
               <th className="px-3 py-2 text-left">Confidence</th>
@@ -92,6 +106,7 @@ export default function IndustryMapping() {
           <tbody>
             {sugs.map(s => (
               <tr key={s.id} className="border-t">
+                <td className="px-3 py-2 text-gray-500 whitespace-nowrap" title={new Date(s.created_at).toLocaleString()}>{formatFriendlyDate(s.created_at)}</td>
                 <td className="px-3 py-2 font-mono">{s.brand_slug}</td>
                 <td className="px-3 py-2">{s.industry}</td>
                 <td className="px-3 py-2">
