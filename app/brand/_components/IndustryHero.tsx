@@ -1,9 +1,7 @@
-"use client";
 import React from 'react'
 import type { Industry } from '@/lib/industry'
 import { getAllowedIndustries } from '@/lib/industry'
 import type { IndustrySource } from '@/lib/industry_server'
-import FitText from '@/app/components/ui/FitText'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 
@@ -140,7 +138,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
   // Legacy CTA telemetry handler removed; unified CtaTelemetry handles clicks.
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden bg-white mb-8">
+    <section className="relative min-h-[100svh] md:min-h-screen flex items-center justify-center overflow-x-hidden bg-white mb-8">
       {/* Tiny caption pinned near the top edge (feature-flagged) */}
       {showCaption && (
         <div className="pointer-events-none absolute top-3 left-0 right-0 flex justify-center">
@@ -191,9 +189,9 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
-          <FitText min={32} max={192} className="mx-auto text-gray-900" textClassName={`${headlineCaseCls} leading-[0.92] tracking-tight break-words [text-wrap:balance]`}>
+          <h1 className={`mx-auto text-gray-900 ${headlineCaseCls} leading-[0.95] tracking-tight break-words [text-wrap:balance] text-[clamp(2.25rem,10vw,8rem)]`}>
             {c.headline}
-          </FitText>
+          </h1>
         </div>
         <div className="mt-8 md:mt-12 space-y-3 md:space-y-4">
           <p className="text-xl md:text-4xl font-black text-gray-700">ERYK ORŁOWSKI</p>

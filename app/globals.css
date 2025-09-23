@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+/* Font loading is handled by next/font in app/layout.tsx (Inter, preloaded with display=swap). */
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -20,7 +20,6 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 body {
@@ -31,6 +30,11 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Use system stack for headings to minimize layout shift on large text */
+h1, h2, h3 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Print styles for PDF export */

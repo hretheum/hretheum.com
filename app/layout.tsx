@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/react';
 import CtaTelemetry from '@/app/components/CtaTelemetry'
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Eryk Orłowski — Product Design Leader & Experience Strategist',
@@ -86,7 +89,7 @@ export default function RootLayout({
           `}</Script>
         )}
       </head>
-      <body>
+      <body className={inter.className}>
         {/* Google Tag Manager (noscript, conditional) */}
         {gtmEnabled && (
           <noscript>

@@ -325,10 +325,10 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` (frontmatter + sekcje: MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup), zintegrowano fallback CTA z env i telemetrię `ui.click`; pending: dopracowanie copy i wizualne QA.
 
 ### T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
-- Status: In Progress — Theme Provider podłączony do `app/components/CoverPage.tsx`; neon slash i CTA korzystają z tokenów (`accent`, `gradient*`, `ctaVariant`). Pending: QA + CWV walidacja.
+- Status: ✅ Completed — Theme Provider podłączony do `app/components/CoverPage.tsx`; neon slash i CTA korzystają z tokenów (`accent`, `gradient*`, `ctaVariant`). QA + Lighthouse lab wykonane (raporty w `reports/lighthouse/`).
 - DoD: `CoverPage` używa tokenów (`accent`, `gradient*`) zamiast twardych kolorów; brak regresji CWV; layout bez flicker (SSR above‑the‑fold).
-- Metrics: neutralne CWV vs baseline; wizualna spójność z kampaniami.
-- Validation: Lighthouse lab, wizualne QA na 3 breakpointach.
+- Metrics: neutralne CWV vs baseline; wizualna spójność z kampaniami. Lighthouse (lab, simulate): Home(mobile) Perf≈0.96 LCP≈1.84s CLS≈0.10; Home(desktop) Perf≈0.78 LCP≈5.44s; Brand/tmobile: Perf≈0.92 LCP≈1.86–1.99s CLS≈0.16 (po optymalizacji hero).
+- Validation: Lighthouse lab (mobile+desktop) + wizualne QA na 3 breakpointach. Notatki: dalsza redukcja CLS brand do ≤0.10 możliwa przez preload czcionek/system font stack i dalszą stabilizację wysokości hero.
 - Guardrails: brak logotypów; kontrast AA.
 
 ### T37. Theme‑aware CoverPage (Etap 2) — Unifikacja komponentów
