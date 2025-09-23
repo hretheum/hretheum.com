@@ -193,7 +193,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
-          <h1 className={`${interHero.className} mx-auto text-gray-900 ${headlineCaseCls} leading-[0.95] tracking-tight break-words [text-wrap:balance] font-black text-[clamp(2.25rem,10vw,3.75rem)] md:text-[8rem] lg:text-[12rem]`}>
+          <h1 className={`${interHero.className} mx-auto text-gray-900 ${headlineCaseCls} leading-[0.95] tracking-tight lg:tracking-[-0.01em] break-words [text-wrap:balance] font-black text-[clamp(2.25rem,10vw,3.75rem)] md:text-[8rem] lg:text-[12rem]`}>
             {c.headline}
           </h1>
         </div>
