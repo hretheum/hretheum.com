@@ -137,7 +137,7 @@ export function GalleryMedia({ items }: { items: Array<{ alt: string; caption?: 
 
 export function CTABanner({ ctas }: { ctas: Array<{ label: string; href?: string; variant?: 'primary' | 'secondary' }> }) {
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none">
+    <div className="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px))' }}>
       {/* Transparent wrapper; the CTA itself carries the visual pill */}
       <div className="pointer-events-auto inline-flex gap-3 rounded-full px-0 py-0">
         {ctas?.map((cta, i) => {
@@ -151,7 +151,8 @@ export function CTABanner({ ctas }: { ctas: Array<{ label: string; href?: string
               data-cta-id={id}
               data-cta-source="cta_banner"
               data-cta-variant={cta.variant || 'secondary'}
-              className={'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full transition hover:opacity-90 shadow-lg'}
+              aria-label={cta.label}
+              className={'inline-flex items-center gap-2 px-5 py-3 text-sm font-medium border rounded-full transition hover:opacity-90 shadow-lg touch-manipulation'}
               style={cta.variant === 'primary' ? { backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#fff' } : { backgroundColor: '#fff', borderColor: 'var(--campaign-accent)', color: 'var(--campaign-accent)' }}
             >
               {cta.label}
