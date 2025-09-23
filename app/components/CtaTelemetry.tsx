@@ -92,6 +92,7 @@ export default function CtaTelemetry() {
           }
         }
         if (!link) return
+        if ((link as any).getAttribute && (link as any).getAttribute('data-cta-sent') === '1') return
         if (!hasBehavioralConsent()) return
         const { brand, source } = deriveBrandAndSource()
         const id = link.getAttribute('data-cta-id') || 'cta'
