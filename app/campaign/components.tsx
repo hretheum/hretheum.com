@@ -2,6 +2,7 @@
 // Reusable campaign components for MDX rendering (Server-compatible).
 
 import React from 'react'
+const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 export function CampaignMeta(props: { role?: string; location?: string; contract?: string; period?: string }) {
   const { role, location, contract, period } = props
   return (
@@ -134,7 +135,7 @@ export function GalleryMedia({ items }: { items: Array<{ alt: string; caption?: 
   )
 }
 
-export function CTABanner({ ctas }: { ctas: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }> }) {
+export function CTABanner({ ctas }: { ctas: Array<{ label: string; href?: string; variant?: 'primary' | 'secondary' }> }) {
   return (
     <div className="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none">
       {/* Transparent wrapper; the CTA itself carries the visual pill */}
@@ -144,7 +145,7 @@ export function CTABanner({ ctas }: { ctas: Array<{ label: string; href: string;
           return (
             <a
               key={i}
-              href={cta.href}
+              href={cta.href || DEFAULT_CALENDLY}
               target="_blank"
               rel="noopener noreferrer"
               data-cta-id={id}
@@ -222,7 +223,7 @@ export function Timeline({ steps }: { steps: string[] }) {
   )
 }
 
-export function CTAGroup({ ctas, align }: { ctas: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }>; align?: 'start' | 'center' | 'end' }) {
+export function CTAGroup({ ctas, align }: { ctas: Array<{ label: string; href?: string; variant?: 'primary' | 'secondary' }>; align?: 'start' | 'center' | 'end' }) {
   const justify = align === 'center' ? 'justify-center' : align === 'end' ? 'justify-end' : 'justify-start'
   return (
     <div className={`my-10 flex flex-wrap gap-3 w-full ${justify}`}>
@@ -231,7 +232,7 @@ export function CTAGroup({ ctas, align }: { ctas: Array<{ label: string; href: s
         return (
           <a
             key={i}
-            href={cta.href}
+            href={cta.href || DEFAULT_CALENDLY}
             target="_blank"
             rel="noopener noreferrer"
             data-cta-id={id}

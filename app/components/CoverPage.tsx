@@ -44,13 +44,13 @@ export default function CoverPage() {
               PRODUCT DESIGN LEADER
             </p>
             <div className="mt-8 hidden md:block">
-              <CTAGroup align="center" ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/hretheum/short-intro', variant: tokens.ctaVariantPrimary === 'filled' ? 'primary' : 'secondary' }]} />
+              <CTAGroup align="center" ctas={[{ label: 'Schedule a meeting', variant: tokens.ctaVariantPrimary === 'filled' ? 'primary' : 'secondary' }]} />
             </div>
           </div>
         </div>
         </section>
         <div className="md:hidden">
-          <CTABanner ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/hretheum/short-intro', variant: 'primary' }]} />
+          <CTABanner ctas={[{ label: 'Schedule a meeting', variant: 'primary' }]} />
         </div>
       </div>
     </CampaignThemeProvider>

@@ -14,6 +14,7 @@ import remarkGfm from 'remark-gfm'
 const ROOT = process.cwd()
 const CAMPAIGNS_DIR = path.join(ROOT, 'data', 'campaigns')
 const INDEX_FILE = path.join(CAMPAIGNS_DIR, 'index.json')
+const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 
 export type CampaignIndexEntry = {
   slug: string
@@ -104,5 +105,14 @@ export async function compileCampaignForBrand(
     },
     components,
   })
+  // Hydrate missing CTA hrefs with default Calendly URL
+  try {
+    if (Array.isArray(frontmatter?.ctas)) {
+      frontmatter.ctas = frontmatter.ctas.map((c: any) => ({
+        ...c,
+        href: c?.href || DEFAULT_CALENDLY,
+      }))
+    }
+  } catch {}
   return { content, frontmatter }
 }

@@ -1,3 +1,5 @@
+const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
+
 export default function ClosingPage() {
   const handleCTAClick = () => {
     // Track CTA click event
@@ -40,7 +42,7 @@ export default function ClosingPage() {
         
         <div className="mb-8">
           <a 
-            href="https://calendly.com/hretheum/short-intro"
+            href={DEFAULT_CALENDLY}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCTAClick}
