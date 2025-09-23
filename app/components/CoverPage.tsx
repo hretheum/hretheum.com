@@ -25,9 +25,9 @@ export default function CoverPage() {
 
   return (
     <CampaignThemeProvider tokens={tokens}>
-      {/* Use overflow-x-hidden to avoid clipping the neon slash horizontally while allowing vertical flow */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-white"
-        style={{ ['--theme-accent' as any]: tokens.accent, ['--campaign-accent' as any]: tokens.accent }}>
+      <div style={{ ['--theme-accent' as any]: tokens.accent, ['--campaign-accent' as any]: tokens.accent }}>
+        {/* Use overflow-x-hidden to avoid clipping the neon slash horizontally while allowing vertical flow */}
+        <section className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-white">
         {/* Neon Slash */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div
@@ -57,8 +57,9 @@ export default function CoverPage() {
             </div>
           </div>
         </div>
-      </section>
-      <CTABanner ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/eorlowski-theeventa/short-intro', variant: 'primary' }]} />
+        </section>
+        <CTABanner ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/eorlowski-theeventa/short-intro', variant: 'primary' }]} />
+      </div>
     </CampaignThemeProvider>
   );
 }
