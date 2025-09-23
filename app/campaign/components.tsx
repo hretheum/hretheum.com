@@ -137,14 +137,15 @@ export function GalleryMedia({ items }: { items: Array<{ alt: string; caption?: 
 export function CTABanner({ ctas }: { ctas: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }> }) {
   return (
     <div className="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none">
-      <div className="pointer-events-auto inline-flex gap-3 rounded-full border bg-white/95 backdrop-blur px-4 py-2 shadow">
+      {/* Transparent wrapper; the CTA itself carries the visual pill */}
+      <div className="pointer-events-auto inline-flex gap-3 rounded-full px-0 py-0">
         {ctas?.map((cta, i) => (
           <a
             key={i}
             href={cta.href}
             target="_blank"
             rel="noopener noreferrer"
-            className={'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full transition hover:opacity-90 '}
+            className={'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full transition hover:opacity-90 shadow-lg'}
             style={cta.variant === 'primary' ? { backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#fff' } : { backgroundColor: '#fff', borderColor: 'var(--campaign-accent)', color: 'var(--campaign-accent)' }}
           >
             {cta.label}
