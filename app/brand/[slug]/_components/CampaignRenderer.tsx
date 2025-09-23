@@ -2,12 +2,12 @@
 import React from 'react'
 import type { Industry } from '@/lib/industry'
 import { compileCampaignForBrand } from '@/lib/campaigns'
-import * as CampaignComponents from '@/app/campaign/components'
+import * as UI from '@/app/components/ui'
 import { CampaignThemeProvider } from '@/app/campaign/theme'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
 
 export async function CampaignRenderer({ slug, industry }: { slug: string; industry: Industry }) {
-  const compiled = await compileCampaignForBrand(slug, CampaignComponents as any)
+  const compiled = await compileCampaignForBrand(slug, UI as any)
   if (!compiled) return null
   const { content, frontmatter } = compiled
   const base = getIndustryTheme(industry)

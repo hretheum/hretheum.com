@@ -5,7 +5,7 @@
 
 import { CampaignThemeProvider } from '@/app/campaign/theme'
 import { getIndustryTheme } from '@/lib/theme/industryTheme'
-import { CTAGroup } from '@/app/components/ui'
+import { CTAGroup, CTABanner } from '@/app/components/ui'
 
 export default function CoverPage() {
   const handleCTAClick = () => {
@@ -58,6 +58,7 @@ export default function CoverPage() {
           </div>
         </div>
       </section>
+      <CTABanner ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/eorlowski-theeventa/short-intro', variant: 'primary' }]} />
     </CampaignThemeProvider>
   );
 }

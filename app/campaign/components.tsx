@@ -215,9 +215,10 @@ export function Timeline({ steps }: { steps: string[] }) {
   )
 }
 
-export function CTAGroup({ ctas }: { ctas: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }> }) {
+export function CTAGroup({ ctas, align }: { ctas: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }>; align?: 'start' | 'center' | 'end' }) {
+  const justify = align === 'center' ? 'justify-center' : align === 'end' ? 'justify-end' : 'justify-start'
   return (
-    <div className="my-10 flex flex-wrap gap-3">
+    <div className={`my-10 flex flex-wrap gap-3 ${justify}`}>
       {ctas?.map((cta, i) => (
         <a
           key={i}
