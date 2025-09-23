@@ -112,6 +112,16 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
       ],
       cta: 'See how it works',
     },
+    Dummy: {
+      headline: `I see what you did there`,
+      sub: <>Neutral, template-based overview — brand-safe for <strong className="font-semibold">{slug}</strong>.</>,
+      bullets: [
+        'Above-the-fold SSR to avoid flicker',
+        'Consent-gated telemetry and privacy-first defaults',
+        'SEO-safe canonical routing for subdomains',
+      ],
+      cta: 'See how it works',
+    },
   };
 
   const c = copy[safeIndustry] || copy['Generic']

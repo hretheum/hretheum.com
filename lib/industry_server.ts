@@ -14,13 +14,15 @@ function getAnon() {
 }
 
 const ALLOWED: Industry[] = getAllowedIndustries()
-const NON_GENERIC = ALLOWED.filter((x) => String(x).toLowerCase() !== 'generic')
+const EXCLUDE_FROM_LLM = new Set(['generic', 'dummy'])
+const NON_GENERIC = ALLOWED.filter((x) => !EXCLUDE_FROM_LLM.has(String(x).toLowerCase()))
 
-export type IndustrySource = 'deterministic' | 'db' | 'llm' | 'llm_auto' | 'generic'
+export type IndustrySource = 'deterministic' | 'db' | 'llm' | 'llm_auto' | 'llm_lowconf' | 'generic'
 export type SSRIndustryResult = { industry: Industry; source: IndustrySource; confidence?: number }
 
 const DBG = String(process.env.INDUSTRY_LOG || '').toLowerCase() === 'debug'
 function dlog(...a: any[]) { if (DBG) console.log('[industry]', ...a) }
+const DUMMY_CONF_MAX = Math.max(0, Math.min(1, Number(process.env.INDUSTRY_DUMMY_CONF_MAX || '0.05')))
 
 async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ industry: Industry; confidence: number } | null> {
   try {
@@ -94,7 +96,7 @@ async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ 
           const viaSyn2 = m[nk]
           if (viaSyn2 && isAllowedIndustry(viaSyn2)) return viaSyn2
           const hit = ALLOWED.find((it) => String(it).toLowerCase() === k)
-          if (hit && isAllowedIndustry(hit)) return hit
+          if (hit && isAllowedIndustry(hit) && String(hit).toLowerCase() !== 'dummy') return hit
           return 'Generic'
         }
         const industry = norm(ind)
@@ -174,6 +176,14 @@ export async function resolveIndustrySSR(slug: string): Promise<SSRIndustryResul
   const minConf = Math.max(0, Math.min(1, Number(process.env.INDUSTRY_AUTOPROMOTE_MIN_CONF || '0.8')))
   dlog('llm stage', { slug: s, enabled, minConf, hasSvcKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) })
   const res = await classifyIndustryLLM(s)
+  if (res) {
+    // Low-confidence: show Dummy template to avoid misleading content for jokey/unknown slugs
+    if (res.confidence <= DUMMY_CONF_MAX) {
+      dlog('llm low confidence => Dummy', { slug: s, res, threshold: DUMMY_CONF_MAX })
+      try { await getSvc().from('industry_resolution_events').insert({ brand_slug: s, source: 'llm_lowconf', industry: 'Dummy', confidence: res.confidence }) } catch {}
+      return { industry: 'Dummy', source: 'llm_lowconf', confidence: res.confidence }
+    }
+  }
   if (res && res.industry !== 'Generic') {
     if (enabled && res.confidence >= minConf) {
       await autopromote(s, res.industry, res.confidence)

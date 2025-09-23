@@ -361,7 +361,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
           className="w-[320px] sm:w-[360px] md:w-[420px] p-2 transition-transform duration-200 ease-out animate-in"
           style={{ transformOrigin: 'bottom right' }}
         >
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col min-h-[45vh] sm:min-h-[50vh] md:min-h-[55vh] max-h-[85vh]">
             {/* Header bar */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-600">
               <div className="font-medium text-gray-700">Eryk Assistant</div>
@@ -383,7 +383,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                 –
               </button>
             </div>
-            <div ref={listRef} className="max-h-[60vh] sm:max-h-[65vh] md:max-h-[70vh] overflow-y-auto p-2 sm:p-2.5 space-y-3">
+            <div ref={listRef} className="flex-1 overflow-y-auto p-2 sm:p-2.5 space-y-3">
               {messages.length === 0 && (
                 <div className="text-sm text-gray-500">
                   Ask about competencies, experience, leadership approach, or case studies.

@@ -117,6 +117,18 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     ctaVariantPrimary: 'outline',
     captionStyle: 'subtle',
   },
+  Dummy: {
+    // Same visual treatment as Generic; copy handled in IndustryHero
+    accent: '#14b8a6', // teal-500
+    headlineCase: 'uppercase',
+    slashAngleDeg: 12,
+    slashOffsetYRem: -0.5,
+    gradientFrom: 'rgba(0,0,0,0)',
+    gradientVia: '#14b8a6',
+    gradientTo: 'rgba(0,0,0,0)',
+    ctaVariantPrimary: 'outline',
+    captionStyle: 'subtle',
+  },
 }
 
 export function getIndustryTheme(industry: Industry | 'Generic'): IndustryThemeTokens {

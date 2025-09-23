@@ -9,7 +9,8 @@
     "Public",
     "eLearning",
     "Telecom",
-    "Generic"
+    "Generic", 
+    "Dummy"
   ],
   "mapping": {
     "zendesk": "SaaS",
@@ -22,6 +23,7 @@
     "allegro": "Commerce",
     "ascent": "eLearning",
     "tmobile": "Telecom",
-    "t-mobile": "Telecom"
+    "t-mobile": "Telecom",
+    "dummy": "Dummy"
   }
 }
