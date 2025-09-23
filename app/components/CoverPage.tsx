@@ -6,25 +6,16 @@
 import { CampaignThemeProvider } from '@/app/campaign/theme'
 import { getIndustryTheme } from '@/lib/theme/industryTheme'
 import { CTAGroup, CTABanner } from '@/app/components/ui'
+import CtaTelemetry from '@/app/components/CtaTelemetry'
 
 export default function CoverPage() {
-  const handleCTAClick = () => {
-    // Track CTA click event
-    if (typeof window !== 'undefined' && (window as any).dataLayer) {
-      (window as any).dataLayer.push({
-        event: 'cta_click',
-        event_category: 'engagement',
-        event_label: 'cover_page_cta',
-        value: 1
-      });
-    }
-  };
 
   // For the home page we default to the Generic theme; can be extended later to resolve by context.
   const tokens = getIndustryTheme('Generic')
 
   return (
     <CampaignThemeProvider tokens={tokens}>
+      <CtaTelemetry />
       <div style={{ ['--theme-accent' as any]: tokens.accent, ['--campaign-accent' as any]: tokens.accent }}>
         {/* Use overflow-x-hidden to avoid clipping the neon slash horizontally while allowing vertical flow */}
         <section className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-white">

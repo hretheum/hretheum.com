@@ -139,18 +139,24 @@ export function CTABanner({ ctas }: { ctas: Array<{ label: string; href: string;
     <div className="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none">
       {/* Transparent wrapper; the CTA itself carries the visual pill */}
       <div className="pointer-events-auto inline-flex gap-3 rounded-full px-0 py-0">
-        {ctas?.map((cta, i) => (
-          <a
-            key={i}
-            href={cta.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full transition hover:opacity-90 shadow-lg'}
-            style={cta.variant === 'primary' ? { backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#fff' } : { backgroundColor: '#fff', borderColor: 'var(--campaign-accent)', color: 'var(--campaign-accent)' }}
-          >
-            {cta.label}
-          </a>
-        ))}
+        {ctas?.map((cta, i) => {
+          const id = (cta.label || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `cta_${i}`
+          return (
+            <a
+              key={i}
+              href={cta.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cta-id={id}
+              data-cta-source="cta_banner"
+              data-cta-variant={cta.variant || 'secondary'}
+              className={'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-full transition hover:opacity-90 shadow-lg'}
+              style={cta.variant === 'primary' ? { backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#fff' } : { backgroundColor: '#fff', borderColor: 'var(--campaign-accent)', color: 'var(--campaign-accent)' }}
+            >
+              {cta.label}
+            </a>
+          )
+        })}
       </div>
     </div>
   )
@@ -220,18 +226,24 @@ export function CTAGroup({ ctas, align }: { ctas: Array<{ label: string; href: s
   const justify = align === 'center' ? 'justify-center' : align === 'end' ? 'justify-end' : 'justify-start'
   return (
     <div className={`my-10 flex flex-wrap gap-3 w-full ${justify}`}>
-      {ctas?.map((cta, i) => (
-        <a
-          key={i}
-          href={cta.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={'inline-flex items-center gap-2 px-5 py-3 text-sm font-medium border transition hover:opacity-90'}
-          style={cta.variant === 'primary' ? { backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#fff' } : { backgroundColor: '#fff', borderColor: 'var(--campaign-accent)', color: 'var(--campaign-accent)' }}
-        >
-          {cta.label}
-        </a>
-      ))}
+      {ctas?.map((cta, i) => {
+        const id = (cta.label || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `cta_${i}`
+        return (
+          <a
+            key={i}
+            href={cta.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cta-id={id}
+            data-cta-source="cta_group"
+            data-cta-variant={cta.variant || 'secondary'}
+            className={'inline-flex items-center gap-2 px-5 py-3 text-sm font-medium border transition hover:opacity-90'}
+            style={cta.variant === 'primary' ? { backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#fff' } : { backgroundColor: '#fff', borderColor: 'var(--campaign-accent)', color: 'var(--campaign-accent)' }}
+          >
+            {cta.label}
+          </a>
+        )
+      })}
     </div>
   )
 }

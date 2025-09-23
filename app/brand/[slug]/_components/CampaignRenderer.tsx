@@ -5,6 +5,7 @@ import { compileCampaignForBrand } from '@/lib/campaigns'
 import * as UI from '@/app/components/ui'
 import { CampaignThemeProvider } from '@/app/campaign/theme'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
+import CtaTelemetry from '@/app/components/CtaTelemetry'
 
 export async function CampaignRenderer({ slug, industry }: { slug: string; industry: Industry }) {
   const compiled = await compileCampaignForBrand(slug, UI as any)
@@ -15,6 +16,7 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
 
   return (
     <CampaignThemeProvider tokens={tokens}>
+      <CtaTelemetry />
       <div className="px-4 sm:px-6 max-w-5xl mx-auto" style={{ ['--campaign-accent' as any]: tokens.accent }}>
         <div className="prose prose-zinc max-w-none prose-headings:scroll-mt-20">
           {content}
