@@ -12,7 +12,7 @@ The goal: Present **Eryk Orłowski** as the ideal candidate for **Go2Market, UX 
 - Structure sections clearly with hierarchy, wide use of **case study visuals, metrics, and playbook diagrams**.  
 - No stock imagery: use abstract gradients, magenta overlays, schematic wireframes, and UI mock placeholders.  
 - Include **two CTA buttons** (top + bottom):  
-  1. [Schedule the Interview](https://calendly.com/eorlowski-theeventa/short-intro)  
+  1. [Schedule the Interview](https://calendly.com/hretheum/short-intro)  
   2. [Talk to my AI](https://hretheum.com)  
 
 ---
@@ -272,7 +272,7 @@ through structured interviews, workshops, and journey mapping, we uncovered late
 ---
 
 ## 🔗 Calls to Action
-- [Schedule the Interview](https://calendly.com/eorlowski-theeventa/short-intro)  
+- [Schedule the Interview](https://calendly.com/hretheum/short-intro)  
 
 ---
 

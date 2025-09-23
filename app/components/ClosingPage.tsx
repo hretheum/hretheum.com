@@ -40,7 +40,7 @@ export default function ClosingPage() {
         
         <div className="mb-8">
           <a 
-            href="https://calendly.com/eorlowski-theeventa/short-intro"
+            href="https://calendly.com/hretheum/short-intro"
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCTAClick}

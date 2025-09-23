@@ -39,7 +39,7 @@ contract: B2B, full-time
 period: "2025-09-09 – 2025-10-09"
 ctas:
   - label: "Schedule the Interview"
-    href: "https://calendly.com/eorlowski-theeventa/short-intro"
+    href: "https://calendly.com/hretheum/short-intro"
     variant: primary
   - label: "Talk to my AI"
     href: "https://hretheum.com"

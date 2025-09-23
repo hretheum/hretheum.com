@@ -208,7 +208,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
           <p className="text-lg md:text-2xl font-bold text-gray-500">PRODUCT DESIGN LEADER</p>
           <div className="mt-8">
             <a
-              href="https://calendly.com/eorlowski-theeventa/short-intro"
+              href="https://calendly.com/hretheum/short-intro"
               target="_blank"
               rel="noopener noreferrer"
               onClick={onCTAClick}
