@@ -1,6 +1,6 @@
 # AUI Project Plan (Atomic Tasks, DoD, Metrics, Validation, Guardrails, Quality Gates)
 
-Last updated: 2025-09-23
+Last updated: 2025-09-24
 Status: Draft (for review)
 
 See also: [AUI Task DAG](./AUI_DAG.md).
@@ -17,7 +17,7 @@ Conventions
 
 ## Workstream A — Routing & Canonicalization
 
-### T1. Implement default-allow subdomain routing with 301 to /brand/<slug>
+### ✅ T1. Implement default-allow subdomain routing with 301 to /brand/<slug>
 - Status: ✅ Completed — Functional; error-rate ops integrated; pending: SEO crawl
 - Rationale: Single canonical per brand; consistent entry for campaigns.
 - Inputs/Deps: blacklist list, slug regex, `middleware.ts` infra.
@@ -50,7 +50,7 @@ Conventions
 - Guardrails: log and soft-fail to neutral apex to avoid 500.
 - Quality Gates: review + tests.
 
-### T3. Canonical brand route `/brand/[slug]` (SSR) with runtime industry resolution
+### ✅ T3. Canonical brand route `/brand/[slug]` (SSR) with runtime industry resolution
 - Status: ✅ Completed — `app/brand/[slug]/page.tsx` renders `IndustryHero` w/ runtime industry (`resolveIndustrySSR`), self‑canonical metadata, and feature‑flagged debug caption; campaign accent overrides passed to hero.
 - DoD: SSR brand route renders hero with runtime industry resolution (deterministic JSON → DB mapping → LLM classifier) and no flicker; self‑canonical. Deterministic mappings persisted to DB for admin visibility; optional debug caption is feature‑flagged on production.
 - Metrics: LCP ≤ 2.5s p75 on `/brand/<slug>` (lab); zero CLS above‑the‑fold.
@@ -99,7 +99,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Guardrails: throttle listeners; passive events.
 - Quality Gates: perf profiling pass.
 
-### T9. CTA click tracking
+### ✅ T9. CTA click tracking
 - Status: ✅ Completed — primary CTAs emit `ui.click` (Home/Brand); stable ids; consent‑gated in analytics layer.
 - DoD: `ui.click` with stable `target_id` for primary CTAs on Home/Brand pages.
 - Metrics: >95% alignment with backend goal completions.
@@ -115,7 +115,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Guardrails: respect consent; sampling if needed.
 - Quality Gates: performance check, privacy check.
 
-### T11. RAG telemetry augmentation
+### ✅ T11. RAG telemetry augmentation
 - Status: ✅ Completed — `app/components/RagChat.tsx` wysyła `brand_slug`, `campaign_source`, `campaign_type`; `app/api/rag/query/route.ts` zapisuje w `chat_events.meta` (insert + low‑conf update + SSE/non‑SSE final update).
 - DoD: `app/api/rag/query/route.ts` logs `brand`, `campaign_source`, `campaign_type` with existing fields (`msg`, `intent`, `confidence`, `selectedCount`, `top1Boosted`, `lowConfidence`).
 - Metrics: ≥99% of RAG events with brand when on brand route.
@@ -231,7 +231,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 
 ## Workstream H — AI/LLM (Shadow → Active)
 
-### T24. LLM brand→industry classifier (active)
+### ✅ T24. LLM brand→industry classifier (active)
 - Status: ✅ Completed — runtime classifier with model fallback, hardened parsing, debug endpoint `/api/admin/industry/debug`, suggestions persisted, optional autopromote by confidence.
 - DoD: constrained prompt selecting from allowed set `{SaaS, Pharma, FinTech, Commerce, Manufacturing, Public, eLearning, Telecom, Generic}` with timeouts and logging; SSR per‑request; deterministic/DB mappings take precedence.
 - Metrics: agreement with manual mapping ≥ 85% on sample of 100 brands.
@@ -309,44 +309,44 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 
 ## Workstream K — Campaigns & Theming (MDX)
 
-### T32. MDX campaign support and loader
+### ✅ T32. MDX campaign support and loader
 - Status: ✅ Completed — index + frontmatter loader + MDX compile (RSC) + component map + CampaignRenderer; accent injected on brand page.
 - DoD: `next-mdx-remote` (or equivalent) loader with frontmatter parsing, component map, and SSR compilation.
 - Guardrails: no unapproved logos; consent‑gated telemetry; per‑brand activation via `data/campaigns/index.json`.
 
-### T33. Industry theme tokens and brand overrides
+### ✅ T33. Industry theme tokens and brand overrides
 - Status: ✅ Completed — tokeny (`accent`, `headlineCase`, `slashAngle/Offset`, `gradient*`, `captionStyle`, `ctaVariant`) zaimplementowane w `lib/theme/industryTheme.ts`; użyte w `IndustryHero` i w rendererze kampanii (`CampaignThemeProvider` + theming dla komponentów MDX: CTA, Metrics, Timeline, CaseStudy, Playbook, Gallery). Frontmatter `accent` nadpisuje akcent.
 - DoD: `getIndustryTheme(industry)` returns tokens (accent, gradient, headlineCase, slashAngle/Offset, captionStyle, ctaVariant); campaign frontmatter can override `accent` etc.
 
-### T34. Campaign renderer and routing integration
+### ✅ T34. Campaign renderer and routing integration
 - Status: ✅ Completed — `/brand/[slug]` sprawdza aktywną kampanię i renderuje `CampaignRenderer`; fallback do generycznego `Content` gdy brak kampanii; theme accent merge przez `IndustryHero`.
 - DoD: `/brand/[slug]` checks active campaign; renders CampaignRenderer with theme merge; fallback to generic industry content uses same components.
 
 ### T35. T‑Mobile campaign MDX
 - Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` (frontmatter + sekcje: MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup), zintegrowano fallback CTA z env i telemetrię `ui.click`; pending: dopracowanie copy i wizualne QA.
 
-### T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
+### ✅ T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
 - Status: ✅ Completed — Theme Provider podłączony do `app/components/CoverPage.tsx`; neon slash i CTA korzystają z tokenów (`accent`, `gradient*`, `ctaVariant`). QA + Lighthouse lab wykonane (raporty w `reports/lighthouse/`).
 - DoD: `CoverPage` używa tokenów (`accent`, `gradient*`) zamiast twardych kolorów; brak regresji CWV; layout bez flicker (SSR above‑the‑fold).
 - Metrics: neutralne CWV vs baseline; wizualna spójność z kampaniami. Lighthouse (lab, simulate): Home(mobile) Perf≈0.96 LCP≈1.84s CLS≈0.10; Home(desktop) Perf≈0.78 LCP≈5.44s; Brand/tmobile: Perf≈0.92 LCP≈1.86–1.99s CLS≈0.16 (po optymalizacji hero).
 - Validation: Lighthouse lab (mobile+desktop) + wizualne QA na 3 breakpointach. Notatki: dalsza redukcja CLS brand do ≤0.10 możliwa przez preload czcionek/system font stack i dalszą stabilizację wysokości hero.
 - Guardrails: brak logotypów; kontrast AA.
 
-### T37. Theme‑aware CoverPage (Etap 2) — Unifikacja komponentów
+### ✅ T37. Theme‑aware CoverPage (Etap 2) — Unifikacja komponentów
 - Status: ✅ Completed — unified shared components w `app/components/ui` i zastosowane na Home/Kampaniach: `SectionTitle`, `OutcomeBanner`, `CTAGroup/CTABanner`, `CaseGrid` (Home `CaseStudiesPage` refactor). Brak duplikatów między root/kampania dla tych powierzchni; komponenty konsumują tokeny przez `CampaignThemeProvider`/CSS var `--campaign-accent`.
 - DoD: jeden komponent na wzorzec, konsumpcja tokenów przez `ThemeProvider`; brak duplikatów root/kampania.
 - Metrics: redukcja duplikacji (LOC/komponenty); szybsze iteracje UI.
 - Validation: Type-check + e2e smoke.
 - Guardrails: nie łamać SSR/CSR rozdziału.
 
-### T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
+### ✅ T38. Frontmatter schema (Etap 3) — parametryzacja layoutu i tokenów
 - Status: ✅ Completed — schema Zod w `lib/campaigns.ts` (`ZCampaignFrontmatter`) + walidacja w `compileCampaignForBrand`; dodano dokumentację w `docs/aui/campaign-frontmatter.md` i skrypt CI `scripts/validate_campaigns.ts` (npm script: `validate:campaigns`). CTA `href` fallback z env.
 - DoD: walidacja w compile‑time dla MDX; czytelna dokumentacja z przykładami.
 - Metrics: 100% kampanii przechodzi walidację; brak runtime errors.
 - Validation: kompilacja MDX z błędnym frontmatter powinna zfailować z jasnym komunikatem.
 - Guardrails: ograniczyć logikę w frontmatter — tylko parametry/layout.
 
-### T39. Refactor TMOBILE MDX (Etap 4) — nowy layout
+### ✅ T39. Refactor TMOBILE MDX (Etap 4) — nowy layout
 - Status: ✅ Completed — nowy layout w `tmobile_g2m_lead.mdx`: intro `SectionTitle` + `MetricsStrip` + `CaseGrid` + `OutcomeBanner`; meta blok (`CampaignMeta`) i `CTABanner` dla mobile. Sekcje `CaseStudyRich`/`Playbook`/`Timeline` uproszczone i zgrane stylistycznie; CTA zgodne z frontmatter i telemetrią.
 - DoD: brak „lania się tekstu”; spójny, brandowany layout; polskie copy zachowane.
 - Metrics: subiektywna ocena wizualna + telemetria CTR na CTA.
