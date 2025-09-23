@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import React from 'react'
 
 export const runtime = 'edge'
-export const revalidate = 60 * 60 // 1 hour
+export const revalidate = 3600 // 1 hour
 
 const size = { width: 180, height: 180 }
 
