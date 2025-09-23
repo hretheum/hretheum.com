@@ -26,6 +26,36 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const turnIndexRef = useRef<number>(0);
   const apexDomain = (process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com').toLowerCase();
 
+  // Viewport class awareness for minimized state preferences
+  const classRef = useRef<'compact' | 'desktop'>('desktop');
+  const getViewportInfo = React.useCallback((): { cls: 'compact' | 'desktop'; isPortrait: boolean } => {
+    const w = typeof window !== 'undefined' ? window.innerWidth || 0 : 0;
+    const h = typeof window !== 'undefined' ? window.innerHeight || 0 : 0;
+    let isPortrait = w <= h;
+    try {
+      const mq = window.matchMedia('(orientation: portrait)');
+      if (mq && typeof mq.matches === 'boolean') isPortrait = mq.matches;
+    } catch {}
+    const cls: 'compact' | 'desktop' = w <= 900 ? 'compact' : 'desktop';
+    return { cls, isPortrait };
+  }, []);
+  const prefKey = (cls: 'compact' | 'desktop') => `ragChatPref.minimized.${cls}`;
+  const loadPref = (cls: 'compact' | 'desktop'): boolean | null => {
+    try {
+      const v = window.localStorage.getItem(prefKey(cls));
+      if (v === '1') return true;
+      if (v === '0') return false;
+    } catch {}
+    return null;
+  };
+  const savePref = (cls: 'compact' | 'desktop', val: boolean) => {
+    try { window.localStorage.setItem(prefKey(cls), val ? '1' : '0'); } catch {}
+  };
+  const setMinimizedUser = (val: boolean) => {
+    setMinimized(val);
+    try { savePref(classRef.current, val); } catch {}
+  };
+
   // Derive brand slug and campaign source (subdomain vs brand-route)
   const brandSlug = React.useMemo<string | undefined>(() => {
     if (props.brandSlug) return props.brandSlug;
@@ -69,21 +99,15 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     } catch {}
   }, [gtmEnabled]);
 
-  // Load minimized state from localStorage on mount
+  // Initialize minimized state with per-viewport-class preference (falls back to auto rule)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      const saved = window.localStorage.getItem('ragChatMinimized');
-      if (saved === '1') setMinimized(true);
-      else if (saved === '0') setMinimized(false);
-      else {
-        // Default behavior: on portrait tablet-and-down, start minimized
-        const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-        const isCompact = window.matchMedia('(max-width: 900px)').matches;
-        setMinimized(isPortrait && isCompact);
-      }
-    } catch {}
-  }, []);
+    const { cls, isPortrait } = getViewportInfo();
+    classRef.current = cls;
+    const pref = loadPref(cls);
+    if (pref !== null) setMinimized(pref);
+    else setMinimized(cls === 'compact' && isPortrait);
+  }, [getViewportInfo]);
 
   // Initialize persistent thread_id for this chat widget (session lifetime)
   useEffect(() => {
@@ -102,13 +126,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     } catch {}
   }, []);
 
-  // Persist minimized state
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem('ragChatMinimized', minimized ? '1' : '0');
-    } catch {}
-  }, [minimized]);
+  // Do not persist minimized state automatically; persistence happens only on explicit user actions.
 
   // Responsively reduce chat size on shorter viewports before minimizing
   useEffect(() => {
@@ -127,34 +145,35 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     return () => window.removeEventListener('resize', compute);
   }, []);
 
-  // Auto-minimize when rotating into portrait on compact screens
+  // Respond to viewport class/orientation changes: apply user pref for the class; if absent, apply auto rule
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const getOrientation = (): 'portrait' | 'landscape' => {
-      try {
-        const mq = window.matchMedia('(orientation: portrait)');
-        if (mq && typeof mq.matches === 'boolean') return mq.matches ? 'portrait' : 'landscape';
-        return window.innerWidth <= window.innerHeight ? 'portrait' : 'landscape';
-      } catch {
-        return 'portrait';
-      }
-    };
-    let last: 'portrait' | 'landscape' = getOrientation();
+    let raf = 0;
     const handler = () => {
-      const cur: 'portrait' | 'landscape' = getOrientation();
-      if (cur === 'portrait' && last === 'landscape') {
-        const isCompact = window.innerWidth <= 900;
-        if (isCompact) setMinimized(true);
-      }
-      last = cur;
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const { cls, isPortrait } = getViewportInfo();
+        const prev = classRef.current;
+        if (cls !== prev) {
+          classRef.current = cls;
+          const pref = loadPref(cls);
+          if (pref !== null) setMinimized(pref);
+          else setMinimized(cls === 'compact' && isPortrait);
+        } else {
+          // Same class, orientation might have changed. Only apply auto rule if no user pref for this class.
+          const pref = loadPref(cls);
+          if (pref === null) setMinimized(cls === 'compact' && isPortrait);
+        }
+      });
     };
-    window.addEventListener('orientationchange', handler);
     window.addEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
     return () => {
-      window.removeEventListener('orientationchange', handler);
       window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
+      if (raf) cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [getViewportInfo]);
 
   // Fire chat_open once per session when panel is first shown
   useEffect(() => {
@@ -370,7 +389,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       {minimized ? (
         <button
           aria-label="Open chat"
-          onClick={() => setMinimized(false)}
+          onClick={() => setMinimizedUser(false)}
           className="group inline-flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         >
           <span className="text-lg">💬</span>
@@ -407,7 +426,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                     chat_widget: 'custom-react',
                     chat_variant: chatVariant,
                   });
-                  setMinimized(true);
+                  setMinimizedUser(true);
                 }}
                 className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-600 hover:bg-gray-200"
                 title="Minimize"
