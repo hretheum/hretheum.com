@@ -346,7 +346,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Guardrails: ograniczyć logikę w frontmatter — tylko parametry/layout.
 
 ### T39. Refactor TMOBILE MDX (Etap 4) — nowy layout
-- Status: In Progress — zrefaktorowany nagłówek/intro: `SectionTitle` + `MetricsStrip` + `CaseGrid` + `OutcomeBanner`; CTA zgodne ze schematem. Pending: dopracowanie copy sekcji CaseStudyRich/Playbook/Timeline, QA + mobile polish.
+- Status: ✅ Completed — nowy layout w `tmobile_g2m_lead.mdx`: intro `SectionTitle` + `MetricsStrip` + `CaseGrid` + `OutcomeBanner`; meta blok (`CampaignMeta`) i `CTABanner` dla mobile. Sekcje `CaseStudyRich`/`Playbook`/`Timeline` uproszczone i zgrane stylistycznie; CTA zgodne z frontmatter i telemetrią.
 - DoD: brak „lania się tekstu”; spójny, brandowany layout; polskie copy zachowane.
 - Metrics: subiektywna ocena wizualna + telemetria CTR na CTA.
 - Validation: wizualne QA; klikowalność CTA; brak regresji na mobile.
