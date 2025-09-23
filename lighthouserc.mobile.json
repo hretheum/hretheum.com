@@ -1,0 +1,28 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://hretheum.com/",
+        "https://hretheum.com/brand/tmobile"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "emulatedFormFactor": "mobile",
+        "throttlingMethod": "simulate"
+      },
+      "chromeFlags": "--headless=new"
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.9 }],
+        "categories:accessibility": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["warn", { "minScore": 0.9 }],
+        "categories:best-practices": ["warn", { "minScore": 0.95 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500, "aggregationMethod": "optimistic" }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.11 }],
+        "total-blocking-time": ["warn", { "maxNumericValue": 250 }],
+        "interactive": ["warn", { "maxNumericValue": 4000 }]
+      }
+    }
+  }
+}

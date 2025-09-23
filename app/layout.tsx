@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/react';
 import CtaTelemetry from '@/app/components/CtaTelemetry'
 import { Inter } from 'next/font/google'
+import RumVitals from '@/app/components/RumVitals'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -101,8 +102,9 @@ export default function RootLayout({
             />
           </noscript>
         )}
-        {/* Global CTA telemetry (client-side) */}
+        {/* Global telemetry (client-side) */}
         <CtaTelemetry />
+        <RumVitals />
         {children}
         {/* Vercel Analytics */}
         <Analytics />

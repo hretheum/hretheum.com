@@ -258,9 +258,10 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream I — Performance, Security, Accessibility
 
 ### T27. Performance budgets & monitoring
+- Status: In Progress — LHCI budżety dodane (mobile/desktop) z progami: Perf ≥ 0.90; LCP ≤ 2500 ms; CLS ≤ 0.10; TBT ≤ 250 ms; Interactive ≤ 4000 ms. RUM (web‑vitals) uruchomiony z consent gatingiem (localStorage/cookie) i samplingiem (`NEXT_PUBLIC_RUM_SAMPLE_PCT`), z wysyłką do GTM (`web_vitals`) i opcjonalnego API (`/api/metrics/rum`). Pending: dashboard RUM + alerty (p75 LCP/CLS/INP brand/home).
 - DoD: budgets enforced in CI (Lighthouse CI); runtime RUM dashboard for CWV.
 - Metrics: LCP/CLS/INP p75 within budgets for Home/Brand.
-- Validation: CI gates; production RUM sampling.
+- Validation: CI gates (GitHub Actions: `.github/workflows/lhci.yml`, komendy: `npm run lhci:mobile|desktop`); production RUM sampling (env `NEXT_PUBLIC_RUM_*`).
 - Guardrails: block deploy on regression.
 - Quality Gates: SRE/Perf review.
 

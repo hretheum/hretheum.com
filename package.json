@@ -15,7 +15,10 @@
     "test:e2e": "playwright test",
     "ingest": "npx tsx scripts/rag_ingest.ts",
     "ingest:supabase": "RAG_STORE=supabase npx tsx scripts/rag_ingest.ts",
-    "validate:campaigns": "npx tsx scripts/validate_campaigns.ts"
+    "validate:campaigns": "npx tsx scripts/validate_campaigns.ts",
+    "lhci:mobile": "npx lhci autorun --config=lighthouserc.mobile.json",
+    "lhci:desktop": "npx lhci autorun --config=lighthouserc.desktop.json",
+    "lhci:all": "npm run lhci:mobile && npm run lhci:desktop"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.14",
@@ -45,7 +48,8 @@
     "uuid": "^9.0.1",
     "zod": "^3.25.76",
     "gray-matter": "^4.0.3",
-    "next-mdx-remote": "^5.0.0"
+    "next-mdx-remote": "^5.0.0",
+    "web-vitals": "^4.2.2"
   },
   "devDependencies": {
     "@eslint/config-array": "0.19.1",
@@ -54,6 +58,7 @@
     "@mermaid-js/mermaid-cli": "^11.9.0",
     "@types/react": "19.1.12",
     "vitest": "^2.0.5",
-    "@playwright/test": "^1.48.0"
+    "@playwright/test": "^1.48.0",
+    "@lhci/cli": "^0.13.0"
   }
 }
