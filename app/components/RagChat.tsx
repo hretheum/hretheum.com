@@ -12,6 +12,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; citations?: Citation[] }[]>([]);
   const [minimized, setMinimized] = useState(false);
+  const [sizeTier, setSizeTier] = useState<'normal' | 'tight' | 'veryTight'>('normal');
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -107,6 +108,23 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       window.localStorage.setItem('ragChatMinimized', minimized ? '1' : '0');
     } catch {}
   }, [minimized]);
+
+  // Responsively reduce chat size on shorter viewports before minimizing
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const compute = () => {
+      try {
+        const h = window.innerHeight || 0;
+        // Tiers chosen to avoid overlapping hero on mid-height screens
+        if (h <= 780) setSizeTier('veryTight');
+        else if (h <= 900) setSizeTier('tight');
+        else setSizeTier('normal');
+      } catch {}
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
 
   // Auto-minimize when rotating into portrait on compact screens
   useEffect(() => {
@@ -358,10 +376,24 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
         </button>
       ) : (
         <div
-          className="w-[320px] sm:w-[360px] md:w-[420px] p-2 transition-transform duration-200 ease-out animate-in"
+          className={
+            (sizeTier === 'veryTight'
+              ? 'w-[280px] sm:w-[320px] md:w-[380px]'
+              : sizeTier === 'tight'
+              ? 'w-[300px] sm:w-[340px] md:w-[400px]'
+              : 'w-[320px] sm:w-[360px] md:w-[420px]') +
+            ' p-2 transition-transform duration-200 ease-out animate-in'
+          }
           style={{ transformOrigin: 'bottom right' }}
         >
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col min-h-[30vh] sm:min-h-[33vh] md:min-h-[37vh] max-h-[57vh]">
+          <div className={
+            'rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col ' +
+            (sizeTier === 'veryTight'
+              ? 'min-h-[22vh] sm:min-h-[25vh] md:min-h-[29vh] max-h-[46vh]'
+              : sizeTier === 'tight'
+              ? 'min-h-[26vh] sm:min-h-[29vh] md:min-h-[33vh] max-h-[52vh]'
+              : 'min-h-[30vh] sm:min-h-[33vh] md:min-h-[37vh] max-h-[57vh]')
+          }>
             {/* Header bar */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-600">
               <div className="font-medium text-gray-700">Eryk Assistant</div>
