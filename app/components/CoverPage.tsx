@@ -5,6 +5,7 @@
 
 import { CampaignThemeProvider } from '@/app/campaign/theme'
 import { getIndustryTheme } from '@/lib/theme/industryTheme'
+import { CTAGroup } from '@/app/components/ui'
 
 export default function CoverPage() {
   const handleCTAClick = () => {
@@ -26,7 +27,7 @@ export default function CoverPage() {
     <CampaignThemeProvider tokens={tokens}>
       {/* Use overflow-x-hidden to avoid clipping the neon slash horizontally while allowing vertical flow */}
       <section className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-white"
-        style={{ ['--theme-accent' as any]: tokens.accent }}>
+        style={{ ['--theme-accent' as any]: tokens.accent, ['--campaign-accent' as any]: tokens.accent }}>
         {/* Neon Slash */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div
@@ -52,19 +53,7 @@ export default function CoverPage() {
               PRODUCT DESIGN LEADER
             </p>
             <div className="mt-8">
-              <a
-                href="https://calendly.com/eorlowski-theeventa/short-intro"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleCTAClick}
-                className={'inline-block px-5 py-3 text-sm md:text-base font-medium transition-all duration-200 border ' +
-                  (tokens.ctaVariantPrimary === 'filled'
-                    ? 'text-white'
-                    : 'text-gray-600 border-gray-300 hover:border-gray-400 hover:text-gray-700')}
-                style={tokens.ctaVariantPrimary === 'filled' ? { backgroundColor: tokens.accent, borderColor: tokens.accent } : {}}
-              >
-                Schedule a meeting
-              </a>
+              <CTAGroup ctas={[{ label: 'Schedule a meeting', href: 'https://calendly.com/eorlowski-theeventa/short-intro', variant: tokens.ctaVariantPrimary === 'filled' ? 'primary' : 'secondary' }]} />
             </div>
           </div>
         </div>
