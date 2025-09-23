@@ -324,7 +324,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` z frontmatter i sekcjami (MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup); do dopracowania copy i QA.
 
 ### T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
-- Status: Next — podłącz Theme Provider (ten sam co kampanie; nazwany ogólnie `ThemeProvider`) do `app/components/CoverPage.tsx` i sekcji root domain.
+- Status: In Progress — Theme Provider podłączony do `app/components/CoverPage.tsx`; neon slash i CTA korzystają z tokenów (`accent`, `gradient*`, `ctaVariant`). Pending: QA + CWV walidacja.
 - DoD: `CoverPage` używa tokenów (`accent`, `gradient*`) zamiast twardych kolorów; brak regresji CWV; layout bez flicker (SSR above‑the‑fold).
 - Metrics: neutralne CWV vs baseline; wizualna spójność z kampaniami.
 - Validation: Lighthouse lab, wizualne QA na 3 breakpointach.
