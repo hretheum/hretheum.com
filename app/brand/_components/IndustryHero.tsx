@@ -3,11 +3,11 @@ import type { Industry } from '@/lib/industry'
 import { getAllowedIndustries } from '@/lib/industry'
 import type { IndustrySource } from '@/lib/industry_server'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
-import { Inter } from 'next/font/google'
+import { League_Spartan } from 'next/font/google'
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 
-// Use Inter 900 specifically for hero heading to match root domain typography.
-const interHero = Inter({ subsets: ['latin'], weight: ['900'], display: 'swap' })
+// Use League Spartan 900 for hero heading to achieve a heftier display look while preserving low CLS.
+const spartanHero = League_Spartan({ subsets: ['latin'], weight: ['900'], display: 'swap' })
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -193,7 +193,7 @@ export function IndustryHero({ industry, slug, source, confidence, accent }: { i
       {/* Main content */}
       <div className="text-center z-10 px-4 sm:px-6">
         <div className="mb-8">
-          <h1 className={`${interHero.className} mx-auto text-gray-900 ${headlineCaseCls} leading-[0.95] tracking-tight lg:tracking-[-0.01em] break-words [text-wrap:balance] font-black text-[clamp(2.25rem,10vw,3.75rem)] md:text-[8rem] lg:text-[12rem]`}>
+          <h1 className={`${spartanHero.className} mx-auto text-gray-900 ${headlineCaseCls} leading-[0.9] tracking-[-0.01em] md:tracking-[-0.02em] lg:tracking-[-0.035em] break-words [text-wrap:balance] font-black text-[clamp(2.5rem,10vw,4rem)] md:text-[9rem] lg:text-[13rem]`}>
             {c.headline}
           </h1>
         </div>
