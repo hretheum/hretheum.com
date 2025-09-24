@@ -18,16 +18,16 @@ sections:
   - type: closing_cta
 ---
 
-<SectionTitle title="GRUPA BLIX — PRODUCT DESIGN TEAM LEADER" subtitle="Shopper apps • Retail • Scale" />
+<SectionTitle title="BLIX PRODUCT DESIGN TEAM LEADER" subtitle="Shopper apps • Retail • Scale" />
 
 <OutcomeBanner text="Zespołowość, pragmatyzm i odwaga — design, który napędza wzrost i retencję" />
 
 <SectionTitle title="O roli i kontekście" subtitle="Shopper apps w skali — Blix • Zdrowe Zakupy • Qpony" />
 
 <Playbook bullets={[
-  'Lider/ka, który/a podniesie poziom UX i będzie współkształtować strategię produktu',
+  'Lider, który podniesie poziom UX i będzie współkształtować strategię produktu',
   'Praca nad produktami o dużych zasięgach — kategorie pierwsze w swojej klasie',
-  'Bliska współpraca z PM i Tech; realna sprawczość i partnerskie podejście',
+  'Bliska współpraca z PM, Tech, Data Sciencie i QA; realna sprawczość i partnerskie podejście',
 ]} />
 
 <SectionTitle title="Twoje zadania" subtitle="Designer + Team Lead" />
@@ -66,6 +66,31 @@ sections:
 <div className="md:hidden">
   <CTABanner ctas={[{ label: 'Spotkajmy się', variant: 'primary' }]} />
 </div>
+
+{/* Meta: jak powstaje to portfolio — szybki i efektywny proces */}
+<SectionTitle title="Jak powstaje to portfolio" subtitle="Szybko, bezpiecznie, powtarzalnie" />
+
+<MetricsStrip items={[
+  { label: 'Czas od briefu do folio', value: '≤ 60 min' },
+  { label: 'Duplikacja kodu', value: '↘' },
+  { label: 'SSR above‑the‑fold', value: '✓' },
+]} />
+
+<Playbook bullets={[
+  'Subdomena brand.hretheum.com → middleware → canonical /brand/<slug> (SSR hero, brak flicker)',
+  'Tokenizacja branżowa (IndustryTheme: Retail) + akcent kampanii przez CSS var --campaign-accent',
+  'Kompilacja MDX (compileMDX) + reużywalne komponenty (SectionTitle, OutcomeBanner, CTAGroup, CaseGrid)',
+  'Standardowe bloki na końcu strony (Leadership, Playbook, Other Projects, CTA) — spójność z root domain',
+  'Telemetria brand/campaign_source z consent‑gating; walidacja frontmatter + build w CI',
+]} />
+
+<Timeline steps={[
+  'Brief + sourcing ogłoszenia (docs/sauce/blix-src.md)',
+  'Tokenizacja: Retail theme + akcent kampanii',
+  'Kampania MDX: sekcje i CTA',
+  'Walidacja frontmatter i build',
+  'Subdomena → canonical route + publikacja',
+]} />
 
 {/* --- Root-domain standard blocks (tokenized) --- */}
 <SectionTitle title="LEADERSHIP" />
