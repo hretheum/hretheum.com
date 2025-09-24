@@ -288,7 +288,7 @@ export function CaseGrid({ items, colsClass }: { items: Array<{ title: string; s
           <div key={index} className="bg-black text-white p-6 cursor-pointer group relative overflow-hidden">
             {/* Main content */}
             <div className="group-hover:opacity-0 transition-opacity duration-300">
-              <h3 className="text-2xl font-black mb-1">{it.title}</h3>
+              <h3 className="text-2xl font-black mb-1 break-words leading-tight">{it.title}</h3>
               {it.subtitle && <h4 className="text-sm font-bold mb-4" style={{ color: 'var(--campaign-accent)' }}>{it.subtitle}</h4>}
               <div className="space-y-3 text-sm">
                 {it.challenge && (
