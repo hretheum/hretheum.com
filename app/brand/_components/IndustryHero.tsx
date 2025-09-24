@@ -66,6 +66,16 @@ export function IndustryHero({ industry, slug, source, confidence, accent, ctaLa
       ],
       cta: 'See Commerce playbook',
     },
+    Retail: {
+      headline: `Retail & shopper apps hiring signals`,
+      sub: <>Template tuned for high-scale shopper apps and FMCG retail — brand-neutral for <strong className="font-semibold">{slug}</strong>.</>,
+      bullets: [
+        'Focus on journeys: browse → list → coupon → store → purchase',
+        'Data-informed UX: cohorts, retention, session depth, ARPMAU',
+        'Seasonality & campaigns: readiness and drive-to-store signals',
+      ],
+      cta: 'See Retail playbook',
+    },
     Manufacturing: {
       headline: `Operational excellence in Manufacturing roles`,
       sub: <>Neutral template tuned for manufacturing contexts — adapted for <strong className="font-semibold">{slug}</strong>.</>,
