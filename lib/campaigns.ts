@@ -167,7 +167,7 @@ export async function compileCampaignForBrand(
   const raw = await fs.readFile(found.filePath, 'utf8')
   // Lazy import MDX compiler to avoid pulling MDX toolchain in non-MDX contexts (e.g., CI frontmatter validation)
   const { compileMDX } = await import('next-mdx-remote/rsc')
-  const { content, frontmatter } = await compileMDX<CampaignFrontmatter>({
+  const compileArgs: any = {
     source: raw,
     options: {
       parseFrontmatter: true,
@@ -177,7 +177,15 @@ export async function compileCampaignForBrand(
       },
     },
     components,
-  })
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    compileArgs.development = true
+    compileArgs.options.mdxOptions = {
+      ...compileArgs.options.mdxOptions,
+      development: true,
+    }
+  }
+  const { content, frontmatter } = await compileMDX<CampaignFrontmatter>(compileArgs)
   // Validate frontmatter
   const parsed = ZCampaignFrontmatter.safeParse(frontmatter || {})
   if (!parsed.success) {

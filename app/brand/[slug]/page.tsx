@@ -14,8 +14,9 @@ import RagChat from '@/app/components/RagChat'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
 
-export async function generateMetadata({ params }: any): Promise<Metadata> {
-  const slug = params?.slug || ''
+export async function generateMetadata(props: { params: Promise<{ slug?: string }> }): Promise<Metadata> {
+  const resolvedParams = await props.params
+  const slug = resolvedParams?.slug || ''
   const canonical = `https://${APEX_DOMAIN}/brand/${encodeURIComponent(slug)}`
   return {
     title: `Brand – ${slug}`,
@@ -24,8 +25,9 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   }
 }
 
-export default async function BrandPage({ params }: any) {
-  const slug = params?.slug || ''
+export default async function BrandPage(props: { params: Promise<{ slug?: string }> }) {
+  const resolvedParams = await props.params
+  const slug = resolvedParams?.slug || ''
   const { industry, source, confidence } = await resolveIndustrySSR(slug)
   // Optional: campaign accent override if a campaign exists (T32 skeleton)
   const accent = await getCampaignAccentForBrand(slug)

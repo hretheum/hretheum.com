@@ -23,7 +23,7 @@ sections:
 <OutcomeBanner text="Zespołowość, pragmatyzm i odwaga — design, który napędza wzrost i retencję" />
 
 
-<SectionTitle title="Executive brief — outcomes dla Blix" subtitle="Shopper apps • Retencja • Drive‑to‑store" />
+<SectionTitle title="Rezultaty dla Blix" subtitle="Shopper apps • Retencja • Drive‑to‑store" />
 
 <Playbook bullets={[
   'Optymalizujemy journey: browse → list → coupon → store → purchase; instrumentacja eventów i pętle metryk',
@@ -38,17 +38,17 @@ sections:
   { label: 'Time‑to‑first‑ship', value: '↘' },
 ]} />
 
-<SectionTitle title="Operating model i leadership" subtitle="Embedding, governance, automatyzacja" />
+<SectionTitle title="Przykładowy model operacyjny" subtitle="Embedding, governance, automatyzacja" />
 
 <Playbook bullets={[
-  'Embedding PD w squadach + craft leadership; stały interfejs PD–PM–Tech i wspólne metryki',
+  'Embedding Product Design w squadach + craft leadership; stały interfejs PD–PM–Tech-QA i wspólne metryki',
   'Systemy i tokeny + contribution model; a11y i research ops “by default” (repo badań, rekrutacja, obserwacje)',
   'Automaty: checklisty, szablony, CI walidacje frontmatter/MDX, lightweight RUM do szybkich regresji',
   'Drive‑to‑store/coupon: pętle metryczne (CTR kuponów, konwersja list→store, redeem rate) i sezonowość',
   'Team leveling i mentoring: rytm przeglądów jakości, wspólne artefakty, “first‑time‑right” jako nawyk',
 ]} />
 
-<SectionTitle title="Impact i metryki, które śledzimy" subtitle="Retencja • ARPMAU • Drive‑to‑store" />
+<SectionTitle title="Impact i metryki" subtitle="Retencja • ARPMAU • Drive‑to‑store" />
 
 <Playbook bullets={[
   'Retencja kohortowa (D1/D7/D30), session depth, “aha moments” (add‑to‑list, coupon, scan)',
@@ -56,16 +56,61 @@ sections:
   'KPIs drive‑to‑store: CTR kuponów, konwersja list→store, redeem rate; jakość vs. wolumen kampanii',
   'Triangulacja: badania jakościowe (IDI/diary/JTBD) + product analytics + szybkie testy hipotez',
 ]} />
-<Quote text="Skalowalny design to nie artefakty, tylko rytm decyzji opartych na danych i wspólnych metrykach." author="Eryk Orłowski" role="Product Design Leadership" />
+<Quote text="Skalowalny design to nie pojedyncze artefakty, to rytm decyzji opartych na danych, wspólnych metrykach i współpracy pomiędzy specjalizacjami." />
 
 <CTAGroup ctas={[{ label: 'Spotkajmy się', variant: 'primary' }]} align="center" />
-
-{/* Meta & mobile CTA banner */}
-<CampaignMeta role="Product Design Team Leader (UX/UI)" location="Remote (PL) / Poznań" contract="UoP / B2B" period="2025-09-24 – 2025-10-24" />
 
 <div className="md:hidden">
   <CTABanner ctas={[{ label: 'Spotkajmy się', variant: 'primary' }]} />
 </div>
+
+<SectionTitle title="Najważniejsze projekty" />
+
+<CaseGrid colsClass="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" items={[
+  {
+    title: 'ING BUSINESS',
+    subtitle: 'SME PERMISSION MANAGEMENT',
+    challenge: 'Complex access process for SME/MC admins',
+    solution: 'Contextual workflows, plain language copy, decision logs',
+    outcome: 'Reduced support tickets; wyższa skuteczność zadań',
+  },
+  {
+    title: 'BANQUP',
+    subtitle: 'DIGITAL BANK PLATFORM',
+    challenge: 'Personalizacja onboarding SME na skalę',
+    solution: 'Segmented onboarding, modular widgets, actionable analytics',
+    outcome: 'Higher activation i większe użycie funkcji',
+  },
+  {
+    title: 'BANK BPH',
+    subtitle: 'DIGITAL CONVERSION',
+    challenge: 'Regulowany environment blokujący konwersję',
+    solution: 'Journey transformation, funnel analytics, UX iteracje',
+    outcome: 'Seamless experiences oraz wzrost konwersji',
+  },
+  {
+    title: 'WARTA.PL',
+    subtitle: 'INSURTECH OVERHAUL',
+    challenge: 'Critical barriers w quote funnelu',
+    solution: 'Service design initiative, progressive disclosure, smart defaults',
+    outcome: 'Faster time-to-quote, mniej porzuceń',
+  },
+  {
+    title: 'PKO BANK',
+    subtitle: 'IPKO BIZNES REDESIGN',
+    challenge: 'Enterprise workflows na legacy platformie',
+    solution: '18-miesięczne discovery, DS governance, cross-org alignment',
+    outcome: 'Future-ready B2B banking platform',
+  },
+  {
+    title: 'TELECOM',
+    subtitle: 'T-MOBILE • PLUS • TP SA',
+    challenge: 'Conversion optimisation dla telco retail',
+    solution: 'Usability at scale, redesign flowów, eksperymenty UX',
+    outcome: 'Increased purchases i lepsza retencja',
+  },
+]} />
+
 
 {/* Meta: jak powstaje to portfolio — szybki i efektywny proces */}
 <SectionTitle title="Jak powstaje to portfolio" subtitle="Szybko, bezpiecznie, powtarzalnie" />
@@ -92,31 +137,6 @@ sections:
   'Subdomena → canonical route + publikacja',
 ]} />
 
-
-<SectionTitle title="Relevant Portfolio" subtitle="Przykłady dopasowane do shopper apps i retail" />
-
-<CaseGrid colsClass="grid-cols-1 md:grid-cols-2 xl:grid-cols-4" items={[
-  {
-    title: 'Coupon Journey Optimisation',
-    outcome: 'Mniej kroków do realizacji kuponu; mniej dropów w ścieżce',
-    details: 'Uproszczenie UI list → coupon → store; komunikacja benefitów; domknięcie pętli metryk',
-  },
-  {
-    title: 'Drive‑to‑Store Campaigns',
-    outcome: 'Wyższy CTR kuponów i lepsza konwersja list→store',
-    details: 'Entry points z listy i bannerów; kontekst sklepu; czas i przypomnienia; spójne eventy',
-  },
-  {
-    title: 'Loyalty Wallet & CRM Push',
-    outcome: 'Lepsza retencja powracających; większa głębokość sesji',
-    details: 'Segmentacja i trigger‑based messaging; value props we właściwym momencie; capping',
-  },
-  {
-    title: 'Design System & Governance',
-    outcome: 'Szybsze dowożenie i mniej iteracji',
-    details: 'Tokeny i patterns jako kontrakty; contribution model; a11y i research ops “on by default”',
-  },
-]} />
 
 
 {/* --- Root-domain standard blocks (tokenized) --- */}
