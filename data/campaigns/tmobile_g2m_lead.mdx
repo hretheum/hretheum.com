@@ -60,20 +60,20 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <Playbook bullets={[
   'Piloty: wybór 2–3 rynków i 2–3 krytycznych ścieżek do walidacji',
   'Hipotezy → eksperymenty → rollout: testy użyteczności i eksperymenty rynkowe',
-  'Priorytety funkcji i messagingu pod cele rynkowe',
-  'Feedback z rynków oraz od zespołów product/engineering → szybkie iteracje'
+  'Priorytety funkcji i komunikacji pod cele rynkowe',
+  'Feedback z rynków, od zespołów Produkt/Tech + analiza danych od Data Science → szybkie iteracje'
 ]} />
 
-<SectionTitle title="Model pracy — zdalnie i strefy czasowe" subtitle="Async‑first, meeting‑light, English‑first" />
+<SectionTitle title="Rozproszone zespoły, zdalny model pracy" subtitle="Async‑first, meeting‑light, English‑first" />
 
 <Playbook bullets={[
-  'Remote‑first i async‑first: decyzje pisane (ADRs/RFC), demo‑nagrania, jasne kryteria Done',
-  'Strefy czasowe (PL/CZ/SK/HU/AT…): rotacyjne sloty na triad/ceremonie, minimalne wymagane overlapy',
+  'Remote‑first i async‑first: decyzje pisane (ADRs/RFC), demo‑nagrania, jasne kryteria DoD',
+  'Strefy czasowe (PL/CZ/SK/HU/AT…): rotacyjne sloty na ceremonie, minimalne wymagane overlapy',
   'English‑first: spójne nazewnictwo, czytelne PR/commit messages, dokumentacja jako default',
   'Weekly plan → async updates → monthly review: rytm dopasowany do pracy rozproszonej'
 ]} />
 
-<SectionTitle title="Outcomes — Telekomunikacja" subtitle="Co dowieziemy w pierwszej kolejności" />
+<SectionTitle title="Outcomes" subtitle="Co dowieziemy jako zespół, jak mierzymy" />
 
 <Playbook bullets={[
   'Wzrost konwersji e‑shopu na wybranych ścieżkach (urządzenie/plan/dodatki) — prototypy, testy użyteczności, analiza lejka',
@@ -85,7 +85,7 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <SectionTitle title="Plan 30–60–90" subtitle="Plan wdrożeniowy (indicative)" />
 
 <Playbook bullets={[
-  '0–30 dni: discovery i alignment z Produktem/Rynkami; baseline metryk; zgoda‑gating i instrumentacja CTA/web‑vitals; wybór 2–3 krytycznych ścieżek',
+  '0–30 dni: discovery i alignment z Produktem/Rynkami; baseline metryk; wybór 2–3 krytycznych ścieżek',
   '30–60 dni: pilotaże (copy/layout/system variants), walidacja danymi; przygotowanie rollout kitu (tokens/patterns, guidance, QA checklist)',
   '60–90 dni: skalowanie na kolejne rynki; governance i model kontribucji; dashboardowanie wyników (konwersja, ARPU proxy, churn signals)'
 ]} />
@@ -107,12 +107,12 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
   'QA: Selenium/E2E, testy kontraktowe (JUnit/Mockito), raportowanie DORA'
 ]} />
 
-<SectionTitle title="Współpraca multidyscyplinarna" subtitle="PM • Engineering • Rynki" />
+<SectionTitle title="Współpraca multidyscyplinarna" subtitle="PM • Engineering • Data Science • QA • Rynki" />
 
 <Playbook bullets={[
   'Asynchroniczne rytuały i praca w strefach czasowych: async updates + jasno zdefiniowane okna overlap',
   'Tłumaczenie koncepcji UX na język developerski (stories/acceptance, tokens, stany)',
-  'Współpraca z PM/Eng i rynkami; decyzje oparte na danych',
+  'Współpraca z PM/Tech/Data Science/QA i rynkami; decyzje oparte na danych',
   'Przejrzystość i jedno źródło prawdy (Design System, backlog, statusy)'
 ]} />
 
@@ -138,9 +138,7 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
   'Go2Market, outcome‑based roadmap, library, standaryzacja wizualna, konsystencja między rynkami',
   'Figma, Miro, Jira, Confluence — wspólne artefakty i wersjonowanie',
   'Frontend: Vue.js/React; mikroserwisy; integracja z API (kontrakty, wersjonowanie)',
-  'DevOps: GitLab CI/CD, Docker, Kubernetes, Spring Boot, AWS (tam gdzie adekwatne)',
-  'QA: Selenium, JUnit, Mockito; testy kontraktowe i E2E',
-  'Instrumentacja pod decyzje (CTA telemetry, web‑vitals)'
+  'DevOps: GitLab CI/CD, Docker, Kubernetes, Spring Boot, AWS (tam gdzie adekwatne)'
 ]} />
 
 <SectionTitle title="Analityka i KPI" subtitle="Dashboardy, testy A/B, spójność metryk" />
@@ -148,7 +146,7 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <Playbook bullets={[
   'Analityka danych: dashboardy i KPI; jedno źródło prawdy dla product/biznes',
   'Testy A/B: hipotezy → eksperymenty → decyzje; współpraca z Data Engineers i PM',
-  'Pan‑europejny e‑commerce: porównywalne miary i segmentacja per rynek'
+  'Pan‑europejski e‑commerce: porównywalne miary i segmentacja per rynek'
 ]} />
 
 <SectionTitle title="Czego potrzebuję na start (pierwsze 2 tygodnie)" subtitle="Warunki skutecznego startu" />
@@ -156,8 +154,7 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <Playbook bullets={[
   'Potwierdzenie 2–3 priorytetowych ścieżek i rynków (języki)',
   'Dostęp do baseline (lejki checkout, ARPU/churn proxy, CWV), A/B infra (o ile istnieje), polityk telemetrycznych',
-  'Wskazanie ownera decyzyjnego do triage scope oraz counterparta engineering do rytmu delivery',
-  'Potwierdzenie polityki CMP/consent (kategorie, retencja), aby trzymać telemetry privacy‑first',
+  'Wskazanie ownera decyzyjnego do triage scope oraz partnera Tech do rytmu delivery',
   'Kontakt po stronie rynków dla gotowości rolloutów (copy, legal, ops)'
 ]} />
 
@@ -179,7 +176,7 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <SectionTitle title="Interesariusze i rytm" subtitle="Cadence / governance" />
 
 <Playbook bullets={[
-  'Cotygodniowy triad Product–Design–Engineering (Tribe)',
+  'Cotygodniowy sync Product–Design–Engineering (jako minimum w Tribe, dodatkowo opcjonalnie QA i Data Science)',
   'Co 2 tygodnie: market enablement sync (plan rolloutów, feedback)',
   'Miesięczny business review: konwersja, ARPU proxy, churn signals; decyzje o kolejnych betach'
 ]} />
@@ -195,6 +192,7 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 ]} />
 
 
+<SectionTitle title="Ostatnie doświadczenia" subtitle="Cadence / governance" />
 
 <ExperienceItem
   company="Sportradar"
@@ -212,8 +210,8 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
   period="2017–2022"
   role="UX Principal Expert / Chapter Lead"
   bullets={[
-    'Zbudowałem od zera chapter UX w Bankowości Firmowej',
-    'Współtworzyłem skalowalne fundamenty systemu projektowego',
+    'Zbudowałem od zera chapter UX w pionie Business Banking',
+    'Współtworzyłem skalowalne fundamenty Design Systemu',
     'Transformowałem cyfrowo platformy bankowe legacy'
   ]}
 />
@@ -221,14 +219,13 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <SectionTitle title="Projekty w telekomunikacji" subtitle="Konwersja i e‑commerce" />
 
 <CaseStudyRich
-  title="Wzrost konwersji e‑shopu T‑Mobile"
+  title="Wzrost konwersji e‑shopu Era GSM/PTC"
   context="Przebudowa ścieżek konwersji z testami użyteczności, prototypowaniem i analizą lejka."
-  role="Lead Designer we współpracy z product i analityką"
+  role="Lead Designer we współpracy z Produktem"
   challenge="Zwiększyć finalizację zakupu przy minimalizacji tarcia w koszyku i checkout"
   approach={[
     'Mapowanie podróży i analiza dropoutów na etapach',
-    'Testy prototypów na kluczowych ścieżkach (urządzenie, plan, dodatki)',
-    'Aktualizacja systemu projektowego dla spójności i szybkości'
+    'Testy istniejących ścieek i prototypów na kluczowych ścieżkach (urządzenie, plan, dodatki)',
   ]}
   outcome="Wyższy odsetek udanych zakupów i stabilniejszy rytm wdrożeń przy szczytach ruchu"
 />
@@ -244,38 +241,22 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 
 <CaseStudyRich
   title="Plus.pl — redesign platformy"
-  context="Pełny redesign platformy (2008) z naciskiem na IA i system wizualny."
-  role="UX/IA Lead"
+  context="Pełny redesign platformy (2008) z naciskiem na zbudowanie skalowalnej architektury informacji oraz użyteczność."
+  role="UX Lead"
   challenge="Unowocześnić doświadczenie i doprecyzować kluczowe ścieżki"
-  approach={["Przebudowa architektury informacji", 'Makiety i prototypowanie', 'Iteracje ukierunkowane na konwersję']}
+  approach={["Przebudowa architektury informacji", 'Makiety i prototypowanie w wielokrotnych cyklach', 'Iteracje ukierunkowane na konwersję']}
   outcome="Unowocześniona obecność cyfrowa z czytelniejszą nawigacją i ścieżkami"
 />
-
-<Playbook title="Playbook One Portal (zakres Leada)" bullets={[
-  'Ujednolicone design tokens',
-  'Zarządzanie cross‑market',
-  'Badania → Pilotaż → Skalowanie',
-  'KPI: ARPU, churn, NPS (współwłasność z Tribe PO)',
-  'Współpraca z engineering w zakresie instrumentacji i SLA',
-]} />
-
-<PlaybookDiagram steps={[ 'Odkrywanie', 'Hipotezy', 'Eksperymenty', 'Wdrożenie', 'Governance' ]} />
-
-<Timeline steps={[
-  'Odkrywanie i alignment',
-  'Serie eksperymentów',
-  'Skalowanie i governance',
-]} />
 
 <Quote text="Dowozimy efekty, nie artefakty. Jasne metryki i rytm budują zaufanie między rynkami." author="Eryk Orłowski" role="Go‑to‑Market i Product Design" />
 
 <CTAGroup ctas={[
-  { label: 'Umów rozmowę', variant: 'primary' }
+  { label: 'Spotkajmy się', variant: 'primary' }
 ]} />
 
 {/* Meta & mobile CTA banner */}
 <CampaignMeta role="Go2Market, UX & UI Lead — One Portal Tribe" location="Warsaw, Mokotów (Hybrid)" contract="B2B, full-time" period="2025-09-09 – 2025-10-09" />
 
 <div className="md:hidden">
-  <CTABanner ctas={[{ label: 'Umów rozmowę', variant: 'primary' }]} />
+  <CTABanner ctas={[{ label: 'Spotkajmy się', variant: 'primary' }]} />
   </div>
