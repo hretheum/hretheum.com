@@ -1,3 +1,5 @@
+> Note: Internal draft — not for public distribution. The `docs/` directory is excluded from deployment via `.vercelignore`.
+
 # Hiring Manager Brief — One Portal Tribe (Go‑to‑Market, UX & UI Lead)
 
 ## Role Summary
