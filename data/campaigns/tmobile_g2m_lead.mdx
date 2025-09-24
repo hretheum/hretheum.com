@@ -8,7 +8,7 @@ role: Go2Market, UX & UI Lead — One Portal Tribe
 location: Warsaw, Mokotów (Hybrid)
 contract: B2B, full-time
 period: "2025-09-09 – 2025-10-09"
-hero_headline: "TELECOM & e‑commerce HIRING SIGNALS"
+hero_headline: "TELECOM & e‑commerce — HIRING SIGNALS"
 ctas:
   - label: "Umów rozmowę"
     variant: primary
@@ -51,7 +51,7 @@ case_grid:
 
 <OutcomeBanner text="Z metryk do efektów — mierzalnie, skalowalnie, spójnie" />
 
-<SectionTitle title="Wizja produktu i wpływ" subtitle="One Portal → adopcja i zadowolenie klientów B2B" />
+<SectionTitle title="Wizja produktu i wpływ" subtitle="One Portal → adopcja i zadowolenie klientów" />
 
 Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szybkich iteracji. Celem jest zwiększenie adopcji i satysfakcji klientów poprzez mierzalne decyzje produktowe — zasilane danymi i wspólnymi metrykami między rynkami, product i engineering.
 
@@ -62,6 +62,15 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
   'Hipotezy → eksperymenty → rollout: testy użyteczności i eksperymenty rynkowe',
   'Priorytety funkcji i messagingu pod cele rynkowe',
   'Feedback z rynków oraz od zespołów product/engineering → szybkie iteracje'
+]} />
+
+<SectionTitle title="Model pracy — zdalnie i strefy czasowe" subtitle="Async‑first, meeting‑light, English‑first" />
+
+<Playbook bullets={[
+  'Remote‑first i async‑first: decyzje pisane (ADRs/RFC), demo‑nagrania, jasne kryteria Done',
+  'Strefy czasowe (PL/CZ/SK/HU/AT…): rotacyjne sloty na triad/ceremonie, minimalne wymagane overlapy',
+  'English‑first: spójne nazewnictwo, czytelne PR/commit messages, dokumentacja jako default',
+  'Weekly plan → async updates → monthly review: rytm dopasowany do pracy rozproszonej'
 ]} />
 
 <SectionTitle title="Outcomes — Telekomunikacja" subtitle="Co dowieziemy w pierwszej kolejności" />
@@ -81,9 +90,27 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
   '60–90 dni: skalowanie na kolejne rynki; governance i model kontribucji; dashboardowanie wyników (konwersja, ARPU proxy, churn signals)'
 ]} />
 
+<SectionTitle title="Pan‑europejski rollout i lokalizacja" subtitle="Wielorynkowość: język, prawo, messaging" />
+
+<Playbook bullets={[
+  'Rynki: SK → CZ/HU/AT/PL (kolejne) — jedna platforma, lokalne dostosowania',
+  'Lokalizacja (i18n/L10n): język, formaty, treści prawne, warianty messagingu',
+  'Market Enablement: rollout kit (tokens/patterns, messaging snippets, QA gates) + readiness checklist',
+  'Telemetria zgodna z polityką: consent‑gated; kohorty per rynek/brand'
+]} />
+
+<SectionTitle title="API i QA — alignment" subtitle="Kontrakty, CI/CD, testy automatyczne" />
+
+<Playbook bullets={[
+  'API zgodne ze standardami TM Forum (TMF): spójny model domenowy, kontrakty i wersjonowanie',
+  'CI/CD (np. GitLab): Docker/Kubernetes, budżety web‑vitals, gate’y jakości, release hygiene',
+  'QA: Selenium/E2E, testy kontraktowe (JUnit/Mockito), raportowanie DORA'
+]} />
+
 <SectionTitle title="Współpraca multidyscyplinarna" subtitle="PM • Engineering • Rynki" />
 
 <Playbook bullets={[
+  'Asynchroniczne rytuały i praca w strefach czasowych: async updates + jasno zdefiniowane okna overlap',
   'Tłumaczenie koncepcji UX na język developerski (stories/acceptance, tokens, stany)',
   'Współpraca z PM/Eng i rynkami; decyzje oparte na danych',
   'Przejrzystość i jedno źródło prawdy (Design System, backlog, statusy)'
@@ -100,17 +127,28 @@ Wielorynkowa platforma B2B wymaga klarownych ścieżek, spójnego systemu i szyb
 <SectionTitle title="Kultura i wartości" subtitle="Elastyczność, feedback, odpowiedzialność" />
 
 <Playbook bullets={[
-  'Iteracje i feedback loops',
-  'Odpowiedzialność i ownership',
-  'Różnorodność i wpływ pracy'
+  '#MagentaTeam: różnorodność i inkluzywność; szacunek i feedback',
+  'Autonomia i odpowiedzialność (ownership) — realny wpływ na platformę DT',
+  'Iteracje i feedback loops — szybkie uczenie i adaptacja'
 ]} />
 
 <SectionTitle title="Język i narzędzia" subtitle="Słowa‑klucze i stack" />
 
 <Playbook bullets={[
-  'Go2Market, roadmapa outcome‑based, library, standaryzacja wizualna, konsystencja między rynkami',
+  'Go2Market, outcome‑based roadmap, library, standaryzacja wizualna, konsystencja między rynkami',
   'Figma, Miro, Jira, Confluence — wspólne artefakty i wersjonowanie',
+  'Frontend: Vue.js/React; mikroserwisy; integracja z API (kontrakty, wersjonowanie)',
+  'DevOps: GitLab CI/CD, Docker, Kubernetes, Spring Boot, AWS (tam gdzie adekwatne)',
+  'QA: Selenium, JUnit, Mockito; testy kontraktowe i E2E',
   'Instrumentacja pod decyzje (CTA telemetry, web‑vitals)'
+]} />
+
+<SectionTitle title="Analityka i KPI" subtitle="Dashboardy, testy A/B, spójność metryk" />
+
+<Playbook bullets={[
+  'Analityka danych: dashboardy i KPI; jedno źródło prawdy dla product/biznes',
+  'Testy A/B: hipotezy → eksperymenty → decyzje; współpraca z Data Engineers i PM',
+  'Pan‑europejny e‑commerce: porównywalne miary i segmentacja per rynek'
 ]} />
 
 <SectionTitle title="Czego potrzebuję na start (pierwsze 2 tygodnie)" subtitle="Warunki skutecznego startu" />

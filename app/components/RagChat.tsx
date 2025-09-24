@@ -438,7 +438,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
             <div ref={listRef} className="flex-1 overflow-y-auto p-2 sm:p-2.5 space-y-3">
               {messages.length === 0 && (
                 <div className="text-sm text-gray-500">
-                  Ask about competencies, experience, leadership approach, or case studies.
+                  Ask about competencies, experience, leadership approach, or case studies. Use your native language if you like.
                 </div>
               )}
               {messages.map((m, idx) => (
@@ -495,7 +495,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                 type="text"
                 value={input}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="Ask about Eryk’s leadership, competencies, or experience…"
+                placeholder="Ask about Eryk’s leadership, competencies, or experience… Use your native language if you like."
                 className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <button
