@@ -10,7 +10,8 @@
     "eLearning",
     "Telecom",
     "Generic", 
-    "Dummy"
+    "Dummy",
+    "Retail"
   ],
   "mapping": {
     "zendesk": "SaaS",
@@ -25,6 +26,7 @@
     "tmobile": "Telecom",
     "t-mobile": "Telecom",
     "foo": "Dummy",
-    "bar": "Dummy"
+    "bar": "Dummy",
+    "blix": "Retail"
   }
 }
