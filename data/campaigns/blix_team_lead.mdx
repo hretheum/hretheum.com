@@ -22,40 +22,40 @@ sections:
 
 <OutcomeBanner text="Zespołowość, pragmatyzm i odwaga — design, który napędza wzrost i retencję" />
 
-<SectionTitle title="O roli i kontekście" subtitle="Shopper apps w skali — Blix • Zdrowe Zakupy • Qpony" />
+
+<SectionTitle title="Executive brief — outcomes dla Blix" subtitle="Shopper apps • Retencja • Drive‑to‑store" />
 
 <Playbook bullets={[
-  'Lider, który podniesie poziom UX i będzie współkształtować strategię produktu',
-  'Praca nad produktami o dużych zasięgach — kategorie pierwsze w swojej klasie',
-  'Bliska współpraca z PM, Tech, Data Sciencie i QA; realna sprawczość i partnerskie podejście',
+  'Optymalizujemy journey: browse → list → coupon → store → purchase; instrumentacja eventów i pętle metryk',
+  'Product Design jako partner strategii: governance (tokens/patterns), tempo dowozu i jakość “first‑time‑right”',
+  'Szybkie zwycięstwa + standaryzacja → krótszy lead time, mniej iteracji, przewidywalny delivery',
 ]} />
 
-<SectionTitle title="Twoje zadania" subtitle="Designer + Team Lead" />
+<MetricsStrip items={[
+  { label: 'Retencja (D30)', value: '↑' },
+  { label: 'Session depth', value: '↑' },
+  { label: 'ARPMAU', value: '↑' },
+  { label: 'Time‑to‑first‑ship', value: '↘' },
+]} />
+
+<SectionTitle title="Operating model i leadership" subtitle="Embedding, governance, automatyzacja" />
 
 <Playbook bullets={[
-  'Ideacja → projekt → prototyp — dla nowych i istniejących funkcjonalności',
-  'Identyfikacja problemów UX, praca na danych kohortowych, testy hipotez',
-  'Argumentowanie zmian przez pryzmat retencji i zaangażowania',
-  'Planowanie pracy 5‑osobowego zespołu PD, mentoring i rozwój kompetencji',
-  'Usprawnianie procesów PD i współpracy z innymi zespołami',
+  'Embedding PD w squadach + craft leadership; stały interfejs PD–PM–Tech i wspólne metryki',
+  'Systemy i tokeny + contribution model; a11y i research ops “by default” (repo badań, rekrutacja, obserwacje)',
+  'Automaty: checklisty, szablony, CI walidacje frontmatter/MDX, lightweight RUM do szybkich regresji',
+  'Drive‑to‑store/coupon: pętle metryczne (CTR kuponów, konwersja list→store, redeem rate) i sezonowość',
+  'Team leveling i mentoring: rytm przeglądów jakości, wspólne artefakty, “first‑time‑right” jako nawyk',
 ]} />
 
-<SectionTitle title="Po czym poznamy, że działa" subtitle="6–12 miesięcy" />
+<SectionTitle title="Impact i metryki, które śledzimy" subtitle="Retencja • ARPMAU • Drive‑to‑store" />
 
 <Playbook bullets={[
-  '6 m‑cy: audyt procesu i wdrożone usprawnienia → krótszy czas od briefu do prototypu',
-  '6 m‑cy: pierwsze wdrożone rozwiązania autorskie i zauważalna poprawa jakości',
-  '12 m‑cy: zrealizowany plan zmian; wkład w kierunek na 2026; lepsza retencja/CSAT',
+  'Retencja kohortowa (D1/D7/D30), session depth, “aha moments” (add‑to‑list, coupon, scan)',
+  'ARPMAU, segmentacja i sezonowość; time‑to‑first‑ship i % “first‑time‑right”',
+  'KPIs drive‑to‑store: CTR kuponów, konwersja list→store, redeem rate; jakość vs. wolumen kampanii',
+  'Triangulacja: badania jakościowe (IDI/diary/JTBD) + product analytics + szybkie testy hipotez',
 ]} />
-
-<SectionTitle title="Jak pracujemy" subtitle="Zdalnie, elastycznie, zespołowo" />
-
-<Playbook bullets={[
-  '100% remote z opcją biura w Poznaniu; kluczowe godziny 9:00–15:00',
-  'Figma, Slack, Google Meet; design thinking i testowanie hipotez',
-  'Benefity: Multisport, Luxmed, NN; integracje i budżet zespołowy',
-]} />
-
 <Quote text="Skalowalny design to nie artefakty, tylko rytm decyzji opartych na danych i wspólnych metrykach." author="Eryk Orłowski" role="Product Design Leadership" />
 
 <CTAGroup ctas={[{ label: 'Spotkajmy się', variant: 'primary' }]} align="center" />
@@ -92,6 +92,33 @@ sections:
   'Subdomena → canonical route + publikacja',
 ]} />
 
+
+<SectionTitle title="Relevant Portfolio" subtitle="Przykłady dopasowane do shopper apps i retail" />
+
+<CaseGrid colsClass="grid-cols-1 md:grid-cols-2 xl:grid-cols-4" items={[
+  {
+    title: 'Coupon Journey Optimisation',
+    outcome: 'Mniej kroków do realizacji kuponu; mniej dropów w ścieżce',
+    details: 'Uproszczenie UI list → coupon → store; komunikacja benefitów; domknięcie pętli metryk',
+  },
+  {
+    title: 'Drive‑to‑Store Campaigns',
+    outcome: 'Wyższy CTR kuponów i lepsza konwersja list→store',
+    details: 'Entry points z listy i bannerów; kontekst sklepu; czas i przypomnienia; spójne eventy',
+  },
+  {
+    title: 'Loyalty Wallet & CRM Push',
+    outcome: 'Lepsza retencja powracających; większa głębokość sesji',
+    details: 'Segmentacja i trigger‑based messaging; value props we właściwym momencie; capping',
+  },
+  {
+    title: 'Design System & Governance',
+    outcome: 'Szybsze dowożenie i mniej iteracji',
+    details: 'Tokeny i patterns jako kontrakty; contribution model; a11y i research ops “on by default”',
+  },
+]} />
+
+
 {/* --- Root-domain standard blocks (tokenized) --- */}
 <SectionTitle title="LEADERSHIP" />
 
@@ -114,6 +141,15 @@ sections:
   <Playbook title="AI & FUTURE‑FORWARD" bullets={['AI‑assisted prototyping', 'LLM synthesis', 'Agentic design ops']} />
 </div>
 
+
+
+<SectionTitle title="AI BUILDER" subtitle="LLM‑assisted workflow dla PD" />
+<CaseGrid colsClass="grid-cols-1 md:grid-cols-2 xl:grid-cols-4" items={[
+  { title: 'LLM‑assisted prototyping', details: 'Szybsze warianty i storyboardy; redukcja czasu przygotowania' },
+  { title: 'Content RAG & Knowledge Ops', details: 'Repo wiedzy i briefów; spójność treści i kontekst projektów' },
+  { title: 'Auto QA & A11y linting', details: 'Wczesne wykrywanie problemów; mniej regresji' },
+  { title: 'Agentic Design Ops', details: 'Automaty rytuałów, raporty metryk, zasilanie roadmapy' },
+]} />
 <OutcomeBanner text="DESIGN LEADERSHIP IS ABOUT CREATING CONDITIONS WHERE GREAT DESIGN BECOMES INEVITABLE." />
 
 <SectionTitle title="OTHER PROJECTS" />
