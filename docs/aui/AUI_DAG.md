@@ -1,7 +1,7 @@
 # AUI Task DAG (Dependencies & Parallelization)
 
 Status: Draft (for review)
-Last updated: 2025-09-23
+Last updated: 2025-09-24
 
 This document provides a high-level DAG for executing the AUI workstreams (A–K). It identifies critical dependencies and where tasks can run in parallel.
 
@@ -140,3 +140,4 @@ K6 --> K11
 - All behavioral analytics are consent‑gated (see Consent vs Signal Matrix).
 - Subdomains follow default‑allow and 301 to canonical brand route.
 - No unapproved logos; textual disclaimers available.
+ - See also: T14 implementation plan (`docs/aui/T14-rules-engine-plan.md`) and roadmap section "20a) LLM Policy Engine (shadow→active)" in `docs/aui/aui-roadmap.md` for hybrid decisioning details.

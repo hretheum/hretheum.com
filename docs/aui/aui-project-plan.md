@@ -43,12 +43,16 @@ Conventions
   - [x] ✅ Unit + e2e tests passing locally.
   - [x] Code review.
 
-### T2. Reserved subdomain blacklist enforcement
-- DoD: Config holds reserved items (`www`, `app`, `admin`, `api`, `auth`, `static`, `cdn`, `assets`, `img`, `mail`, `ftp`, `m`, `stage`, `dev`); tests ensure denial.
-- Metrics: 0% leakage of blacklisted subdomains to brand flow.
-- Validation: unit tests; synthetic requests.
-- Guardrails: log and soft-fail to neutral apex to avoid 500.
-- Quality Gates: review + tests.
+### ✅ T2. Reserved subdomain blacklist enforcement
+- Status: ✅ Completed — middleware respektuje listę rezerwowanych subdomen (`www`, `app`, `admin`, `api`, `auth`, `static`, `cdn`, `assets`, `img`, `mail`, `ftp`, `m`, `stage`, `dev`) oraz blokuje przejście do przepływu brand.
+- DoD:
+  - ✅ Lista rezerw została skonfigurowana i loadowana z configu/infrastruktury A1.
+  - ✅ Testy jednostkowe + syntetyczne żądania curl sprawdzają deny/allow i edge cases (uppercase, punycode, trailing dot).
+  - ✅ Soft-fail: żądania kierowane na apex neutralny, logowane bez 500.
+- Metrics: 0% leakage of blacklisted subdomains (monitorowane w admin API na podstawie redirect outcomes).
+- Validation: unit tests + synthetic matrix.
+- Guardrails: logowanie odmów, brak danych użytkownika zapisanych przed consentem.
+- Quality Gates: review + lint/tests pass.
 
 ### ✅ T3. Canonical brand route `/brand/[slug]` (SSR) with runtime industry resolution
 - Status: ✅ Completed — `app/brand/[slug]/page.tsx` renders `IndustryHero` w/ runtime industry (`resolveIndustrySSR`), self‑canonical metadata, and feature‑flagged debug caption; campaign accent overrides passed to hero.
@@ -58,19 +62,28 @@ Conventions
 - Guardrails: no trademark assets; disclaimer block available.
 - Quality Gates: design sign‑off; accessibility AA for hero.
 
-### T4. SEO canonical & sitemap alignment
-- DoD: `/brand/<slug>` self‑canonical; subdomains 301 only; sitemaps on apex exclude subdomains.
-- Metrics: 0 duplicate canonicals in SEO audit; crawl budget unchanged.
-- Validation: SEO crawl (Screaming Frog); Search Console inspection (staging).
-- Guardrails: robots unchanged for apex; no accidental noindex on brand routes.
-- Quality Gates: SEO review pass.
+### ✅ T4. SEO canonical & sitemap alignment
+- Status: ✅ Completed — `/brand/[slug]` emituje `rel="canonical"` do apexu, subdomeny 301 kierują wyłącznie na brand canonical, a mapy witryny obejmują tylko trasy apexu.
+- DoD:
+  - ✅ `/brand/<slug>` ustawia self-canonical (`app/brand/[slug]/page.tsx` → `alternates.canonical`).
+  - ✅ `middleware.ts` utrzymuje 301 dla subdomen → `https://hretheum.com/brand/<slug>` bez wyjątków (zależność T1/T2).
+  - ✅ `sitemap.xml` oraz indeks site mapów wykluczają subdomeny; jedynym źródłem jest apex (task ops aktualny diff).
+- Metrics: 0 zduplikowanych canonicali w audycie SEO; crawl budget bez zmian (monitoring Screaming Frog + Search Console Coverage).
+- Validation: Screaming Frog crawl 100 URL; Search Console inspect (`brand/<slug>`); porównanie logów redirectów.
+- Guardrails: robots.txt bez zmian dla apexu; `X-Robots-Tag` na reserved hosts pozostaje `noindex`.
+- Quality Gates: SEO review + QA pass.
 
-### T5. Legal disclaimers for brand references
-- DoD: text-only references to brand; disclaimer component enabled; no logos used without approval.
-- Metrics: 0 violations in content lint.
-- Validation: content review checklist.
-- Guardrails: toggle to hide brand mentions globally.
-- Quality Gates: legal/content sign-off.
+
+### ✅ T5. Legal disclaimers for brand references
+- Status: ✅ Completed — brandowe kampanie korzystają tylko z tekstowych wzmianek, komponent disclaimera jest włączany warunkowo, brak logotypów bez zgody.
+- DoD:
+  - ✅ Materiały referują marki wyłącznie tekstowo; frontmatter i komponenty MDX nie renderują logo.
+  - ✅ Komponent disclaimer (`CampaignDisclaimer`) gotowy do użycia per kampania/brand.
+  - ✅ Globalny toggle pozwala ukryć wzmianki o marce (fallback neutralny).
+- Metrics: 0 naruszeń w lintingu treści (scripts/content-lint) + manual QA.
+- Validation: lista kontrolna review legal/content.
+- Guardrails: toggle `showBrandMentions` + brak PII.
+- Quality Gates: legal i content sign-off.
 
 ---
 
@@ -78,26 +91,38 @@ Conventions
 
 See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 
-### T6. Define telemetry schema and event catalog
-- DoD: Documented schema with common fields (`ts`, `session_id`, `anon_user_id`, `route`, `brand`, `campaign_source`, `campaign_type`, `device`, `viewport`, `locale`, `referrer`, `consent`) and events (`nav.view`, `dwell.time`, `nav.scroll`, `ui.click`, `ui.hesitation`, `ui.rage_clicks`, `form.submit`, `rag.query`, `rag.response`).
-- Metrics: 100% events validate against schema.
-- Validation: JSON schema validation in CI; sample ingestion to analytics.
-- Guardrails: no PII by default; msg hashed when applicable; adhere to [Consent vs Signal Matrix](./consent-signal-matrix.md) for consent gating and retention.
-- Quality Gates: docs updated; schema lint.
+### ✅ T6. Define telemetry schema and event catalog
+- Status: ✅ Completed — katalog zdarzeń i wspólne pola opisane w `docs/aui/consent-signal-matrix.md` oraz `docs/aui/REDIRECT_TELEMETRY_CONSENT.md`; schemat telemetryjny egzekwowany w kodzie (`lib/telemetry/schema.ts`).
+- DoD:
+  - ✅ Zdefiniowano zestaw pól (`ts`, `session_id`, `brand`, `campaign_source`, `campaign_type`, `device`, `viewport`, `locale`, `referrer`, `consent`) oraz kontrakt ID (`anon_user_id`).
+  - ✅ Wymuszono katalog eventów (`nav.view`, `dwell.time`, `nav.scroll`, `ui.click`, `ui.hesitation`, `ui.rage_clicks`, `form.submit`, `rag.query`, `rag.response`).
+  - ✅ Dokumentacja i matryca consent aktualne (`docs/aui/consent-signal-matrix.md`).
+- Metrics: 100% eventów przechodzi walidację schematu (CI + testowe ingestie).
+- Validation: JSON Schema lint w CI (`npm run lint:telemetry`) + próbne zasilenia do Supabase.
+- Guardrails: brak PII domyślnie, hash treści wiadomości, zgodność z Consent vs Signal Matrix.
+- Quality Gates: zaktualizowane docs, review inżynierskie.
 
-### T7. Instrument page view & dwell time (consent‑gated)
-- DoD: `nav.view` on route change; `dwell.time` emits on visibility change/unload; consent gating enforced.
-- Metrics: event delivery success ≥ 99%; sampling error ≤ 5% vs synthetic baseline.
-- Validation: synthetic timers; compare frontend vs backend ingestion counts.
-- Guardrails: no blocking unload; debounce emissions.
-- Quality Gates: QA on 3 browsers; perf budget maintained.
+### ✅ T7. Instrument page view & dwell time (consent‑gated)
+- Status: ✅ Completed — `nav.view` i `dwell.time` emitowane w `app/components/CtaTelemetry.tsx` / `useTelemetry()` z bramkowaniem consent (`useConsent`).
+- DoD:
+  - ✅ `nav.view` odpala się przy zmianie trasy (Next.js router events) z konsystentnym `target_id`/`route`.
+  - ✅ `dwell.time` wysyłane na zdarzenia `visibilitychange`/`beforeunload` z debouncingiem.
+  - ✅ Consent gating aktywne (bez zgody brak emisji) — integracja z `ConsentBanner` (`T12`).
+- Metrics: skuteczność dostarczenia zdarzeń ≥ 99% i błąd próbkowania ≤ 5% (monitoring Supabase + synthetic timers).
+- Validation: testy syntetyczne (czasomierze) + porównanie liczników frontend/backoffice.
+- Guardrails: brak blokowania unload; emisja zdarzeń debounce'owana.
+- Quality Gates: QA na 3 przeglądarkach + brak regresji budżetu wydajności.
 
-### T8. Scroll depth and velocity
-- DoD: emits buckets at 0.25/0.5/0.75/0.9; velocity buckets (e.g., <300, 300–800, >800 px/s).
-- Metrics: distribution sanity (no >10% events out of route context).
-- Validation: synthetic scrolling tests.
-- Guardrails: throttle listeners; passive events.
-- Quality Gates: perf profiling pass.
+### ✅ T8. Scroll depth and velocity
+- Status: ✅ Completed — `nav.scroll` emituje bucketowane głębokości (0.25/0.5/0.75/0.9) i prędkość (<300 / 300–800 / >800 px/s) w `useTelemetry()`.
+- DoD:
+  - ✅ Scroll bucketowany na bazie `IntersectionObserver` / `window.scrollY`, zapisany w telemetry event.
+  - ✅ Velocity liczone na podstawie różnicy scrollY w czasie i mapowane do trzech przedziałów.
+  - ✅ Consent gating — brak emisji bez zgody (`useConsent`).
+- Metrics: sanity check dystrybucji (brak >10% eventów bez kontekstu route) monitorowany w Supabase dashboardzie.
+- Validation: testy syntetyczne (symulowane scrollowanie) oraz manual QA.
+- Guardrails: throttling (requestAnimationFrame + `passive` listeners) utrzymuje budżet INP.
+- Quality Gates: perf profiling pass (Chrome Performance) + code review.
 
 ### ✅ T9. CTA click tracking
 - Status: ✅ Completed — primary CTAs emit `ui.click` (Home/Brand); stable ids; consent‑gated in analytics layer.
@@ -108,12 +133,16 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Quality Gates: design/dev alignment on ids.
  - Notes: global mount `CtaTelemetry` in `app/layout.tsx`; fallback z `gtm.linkClick` → syntetyczny `ui.click`; debug env `NEXT_PUBLIC_TELEMETRY_DEBUG` (dev) i `NEXT_PUBLIC_ENABLE_GTM` guard.
 
-### T10. Hesitation & rage/dead clicks
-- DoD: `ui.hesitation` when hover/focus >2s; `ui.rage_clicks` when >3 rapid clicks; `ui.dead_click` when clicking non-interactive.
-- Metrics: zero impact to INP; listener CPU < 1% budget idle.
-- Validation: profiling; synthetic frustration scenarios.
-- Guardrails: respect consent; sampling if needed.
-- Quality Gates: performance check, privacy check.
+### ✅ T10. Hesitation & rage/dead clicks
+- Status: ✅ Completed — `ui.hesitation`, `ui.rage_clicks`, `ui.dead_click` zaimplementowane w `useTelemetry()` z próbkowaniem, consent gating i wysyłką do Supabase.
+- DoD:
+  - ✅ `ui.hesitation`: emitowane po >2s hover/focus na CTA/elementach interaktywnych.
+  - ✅ `ui.rage_clicks`: wykrywa ≥3 szybkie kliknięcia w 1s; `ui.dead_click`: kliknięcia w elementy nieinteraktywne.
+  - ✅ Consent gating i sampling — zdarzenia wysyłane wyłącznie przy zgodzie, z limitami częstotliwości.
+- Metrics: brak regresji INP (listener CPU <1%) monitorowane w perf budżetach (LHCI + RUM).
+- Validation: profilowanie (Chrome Performance) + syntetyczne scenariusze frustracji.
+- Guardrails: respektowanie consentu, sampling, brak PII.
+- Quality Gates: performance i privacy check, code review.
 
 ### ✅ T11. RAG telemetry augmentation
 - Status: ✅ Completed — `app/components/RagChat.tsx` wysyła `brand_slug`, `campaign_source`, `campaign_type`; `app/api/rag/query/route.ts` zapisuje w `chat_events.meta` (insert + low‑conf update + SSE/non‑SSE final update).
@@ -152,6 +181,20 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Validation: unit tests; scenario tests.
 - Guardrails: no stateful side effects without guards.
 - Quality Gates: architecture review.
+### T14. Minimal rules engine (Hybrid with LLM Policy)
+- Status: In progress — see T14 implementation plan: [docs/aui/T14-rules-engine-plan.md](./T14-rules-engine-plan.md)
+- DoD:
+  - Deterministic engine: evaluation order, condition → action mapping, scopes (SSR/CSR/RAG), idempotent actions, safe fallbacks.
+  - LLM Policy Engine (shadow→active): consumes PII-safe session summary; recommends one action from an allowlisted set; exposed via `POST /api/decision/policy` (strict JSON schema, timeouts, retries, cost caps).
+  - Aggregation & precedence: hard rules (consent/legal/security; SSR above-the-fold) override AI; AI suggestions have per-session caps.
+  - Feature flags: `NEXT_PUBLIC_RULES_AI_ENABLED`, `RULES_AI_SHADOW_ONLY`, `RULES_AI_TIMEOUT_MS`, `RULES_AI_SAMPLE_RATE`, `RULES_AI_ALLOWED_ACTIONS`.
+- Metrics:
+  - Deterministic eval p95 ≤ 2 ms (SSR/CSR); AI policy p95 ≤ 300–600 ms (CSR, off critical path).
+  - 100% unit coverage for engine; ≥2 scenario tests per scope (SSR/CSR/RAG); shadow vs rules agreement tracked.
+- Validation:
+  - Unit tests + scenario tests; shadow-mode logging and comparison; cost/latency budgets verified on preview.
+- Guardrails:
+  - Consent gating; allowlist actions only; sampling & per-session rate limits; no raw PII in prompts; structured parsing with safe fallbacks.
 
 ### T15. Implement initial 3 rules
 - DoD: (1) low-confidence RAG → suggested queries (3 items); (2) hesitation>2s on primary CTA → tooltip; (3) Novice → progressive disclosure on Home/Brand.
@@ -349,10 +392,14 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 
 ### ✅ T39. Refactor TMOBILE MDX (Etap 4) — nowy layout
 - Status: ✅ Completed — nowy layout w `tmobile_g2m_lead.mdx`: intro `SectionTitle` + `MetricsStrip` + `CaseGrid` + `OutcomeBanner`; meta blok (`CampaignMeta`) i `CTABanner` dla mobile. Sekcje `CaseStudyRich`/`Playbook`/`Timeline` uproszczone i zgrane stylistycznie; CTA zgodne z frontmatter i telemetrią.
-- DoD: brak „lania się tekstu”; spójny, brandowany layout; polskie copy zachowane.
+- DoD:
+  - ✅ Eliminated layout overflow („lanie się tekstu”) — siatkowe komponenty (`CaseGrid`, `MetricsStrip`) oraz `break-words` w `app/campaign/components.tsx` pilnują łamania.
+  - ✅ Spójny, brandowany layout — komponenty MDX konsumują tokeny (`CampaignThemeProvider`), blok `KEYWORDS` używa minimalistycznych pill-chipów (`rgba(226,0,116,0.12)`), CTA wycentrowane (`align="center"`).
+  - ✅ Zachowane i odświeżone polskie copy — sekcje portfolio/model operacyjny zaktualizowane bez regresji mobile/desktop.
 - Metrics: subiektywna ocena wizualna + telemetria CTR na CTA.
 - Validation: wizualne QA; klikowalność CTA; brak regresji na mobile.
 - Guardrails: zgodność z polityką AUI (canonical, telemetry, no logos).
+
 
 ### T40. (Opcjonalne) NeonSlash jako tło sekcji
 - DoD: lekki komponent tła z tokenami gradientu; toggle per sekcja/brand; brak regresji wydajności.
@@ -369,3 +416,8 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Decision/Micro‑adaptations: Eng + Design.
 - Admin/AI: Eng + Data.
 
+## Recommended Next Steps (per DAG)
+- **Decision layer:** Z sygnałami telemetrycznymi (T6–T10) gotowymi, rozpocząć `T14` (minimal rules engine), co odblokuje `T16–T18` oraz `T15`.
+- **Performance & RUM:** Dokończyć `T27` (dashboard + alerty) przed rozszerzeniem mikro-adaptacji/eksperymentów.
+- **Admin tooling:** Przy aktywnym `T24` zaplanować `T20` (brand→industry mapping view) po zasileniu cohortami z `B2–B5`.
+- **Experimentation readiness:** Po `T14` i telemetrycznych sygnałach przygotować `T22` (SSR A/B flagging) jako krok do `T23`.

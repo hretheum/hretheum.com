@@ -1,6 +1,13 @@
 Użycie AI i LangChain to przejście od logiki "jeśli-to" (`if-then`) do systemu, który **rozumie, przewiduje i generuje**, tworząc znacznie bardziej płynne i trafne adaptacje interfejsu.
 
-------
+---Status: Reference (non‑canonical)
+Last updated: 2025-09-24
+
+This document provides general ideas for using AI/LangChain in AUI. The canonical architecture and implementation plan live in:
+- `docs/aui/aui-roadmap.md` — section "20a) LLM Policy Engine (shadow→active)"
+- `docs/aui/T14-rules-engine-plan.md`
+
+---
 
 
 See also: [AUI Task DAG](./AUI_DAG.md).

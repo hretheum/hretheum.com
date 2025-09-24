@@ -6,6 +6,7 @@ import CtaTelemetry from '@/app/components/CtaTelemetry'
 import { Inter } from 'next/font/google'
 import RumVitals from '@/app/components/RumVitals'
 import ConsentBanner from '@/app/components/ConsentBanner'
+import AiPolicyClient from '@/app/components/AiPolicyClient'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -108,6 +109,8 @@ export default function RootLayout({
         <RumVitals />
         {/* Consent banner (behavioral analytics) */}
         <ConsentBanner />
+        {/* Adaptive AI policy (shadow→active). CSR-only and consent-gated via useAdaptiveRules. */}
+        <AiPolicyClient />
         {children}
         {/* Vercel Analytics */}
         <Analytics />

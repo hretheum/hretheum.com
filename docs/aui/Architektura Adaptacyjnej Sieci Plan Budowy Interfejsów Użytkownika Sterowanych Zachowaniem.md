@@ -2,6 +2,13 @@
 
 See also: [AUI Task DAG](./AUI_DAG.md).
 
+## Architecture Summary (Hybrid Rules + LLM Policy)
+- SSR above‑the‑fold for structural, brand/industry‑aware content (hero, CTA, module order) to avoid flicker; CSR for in‑session micro‑adaptations.
+- Deterministic Rules Engine handles critical, predictable flows (onboarding, consent/legal, key CTAs) with idempotent, ordered actions across scopes (SSR/CSR/RAG).
+- LLM Policy Engine (shadow→active) interprets a short, PII‑safe session summary and recommends one allowed UI action. It runs in shadow mode first, then activates low‑risk actions under strict caps.
+- Aggregator precedence: hard deterministic rules (consent/legal/security; SSR above‑the‑fold) override AI; AI is suggestive with per‑session caps and safe fallbacks.
+- References: roadmap §20a in `docs/aui/aui-roadmap.md` and implementation details in `docs/aui/T14-rules-engine-plan.md`.
+
 ## **Wprowadzenie: Przejście od Statycznych do Żyjących Interfejsów**
 
 Współczesna przestrzeń cyfrowa przechodzi fundamentalną transformację, odchodząc od statycznych, jednolitych doświadczeń na rzecz dynamicznych, inteligentnych interfejsów, które uczą się i ewoluują wraz z użytkownikiem. Centralnym elementem tej ewolucji jest koncepcja Adaptacyjnego Interfejsu Użytkownika (AUI), która wykracza daleko poza prostą personalizację treści.

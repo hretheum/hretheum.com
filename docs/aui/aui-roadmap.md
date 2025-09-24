@@ -204,6 +204,15 @@ Status: Draft (for review)
   - Precedence: critical rules > campaign/brand > proficiency > experimental.
   - Deterministic ordering; idempotent actions; safe fallbacks.
 
+### 20a) LLM Policy Engine (shadow→active)
+- Inputs (session summary, PII‑safe): route, brand/industry, consent, device; recent `nav.view`, `dwell.time`, `nav.scroll` (depth/velocity), `ui.hesitation/rage/dead`, CTA clicks; optional RAG `intent/confidence`.
+- Allowed actions (allowlist): `ui.show_suggestions` (≤5), `ui.tooltip` (primary CTA), `ui.compress_above_fold`, `ui.show_how_it_works`, `ui.emphasize_case_studies`.
+- API (CSR): `POST /api/decision/policy` → `{ recommended_action, confidence, intent_summary }` with strict JSON schema, timeout, retries, cost caps.
+- Precedence & aggregation: hard rules (consent/legal/security; SSR above‑the‑fold) override AI; AI is suggestive with per‑session caps and idempotency.
+- Feature flags: `NEXT_PUBLIC_RULES_AI_ENABLED`, `RULES_AI_SHADOW_ONLY`, `RULES_AI_TIMEOUT_MS`, `RULES_AI_SAMPLE_RATE`, `RULES_AI_ALLOWED_ACTIONS`.
+- Guardrails: strict parsing, allowlist only, sampling & rate limits, no raw PII in prompts, debug logs behind flag, latency/cost budgets.
+ - See also: T14 implementation plan (`docs/aui/T14-rules-engine-plan.md`).
+
 ## 21) LLM Interpretation (Phase 2, Shadow → Active)
 - **Goal**: human‑like interpretation of session signals to infer short‑term intent and propose UI variant.
 - **Inputs (summarized)**: recent `nav.view`, `dwell`, `scroll`, `ui.hesitation/rage`, latest `rag.query/response`, `brand/industry`.
@@ -214,6 +223,7 @@ You are an analyst. Given the session log (concise JSON) for a visitor on hrethe
 - Return JSON with { intent_summary, recommended_action, confidence }.
 ```
 - **Mode**: Shadow first (log recommendations, no effect), compare vs rules; then allow low‑risk actions under thresholds and rate limits.
+- Flags: `NEXT_PUBLIC_RULES_AI_ENABLED`, `RULES_AI_SHADOW_ONLY`, `RULES_AI_TIMEOUT_MS`, `RULES_AI_SAMPLE_RATE`, `RULES_AI_ALLOWED_ACTIONS`.
 - **Guardrails**: constrained action set, cost caps, timeouts, privacy filters (no raw PII in prompts).
 
 ## 22) Data & Telemetry Schema (Concept)
