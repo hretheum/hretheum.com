@@ -277,41 +277,59 @@ export function SectionTitle({ title, subtitle }: { title: string; subtitle?: st
   )
 }
 
-export function CaseGrid({ items, cols }: { items: Array<{ title: string; subtitle?: string; image?: string }>; cols?: 'auto' | '2x2' | '4x1' }) {
-  const gridTemplateColumns = cols === 'auto' ? 'repeat(auto-fit, minmax(0, 1fr))' : cols === '2x2' ? 'repeat(2, minmax(0, 1fr))' : cols === '4x1' ? 'repeat(4, minmax(0, 1fr))' : 'repeat(1, minmax(0, 1fr)) repeat(2, minmax(0, 1fr)) repeat(3, minmax(0, 1fr)))'
+export function CaseGrid({ items, colsClass }: { items: Array<{ title: string; subtitle?: string; challenge?: string; solution?: string; outcome?: string; details?: string }>; colsClass?: string }) {
+  // Auto layout: for exactly 4 items use 2x2 on md and 4x1 on xl; otherwise default 1/2/3
+  const autoCols = items.length === 4 ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+  const gridCols = colsClass || autoCols
   return (
-    <section className="my-10 grid" style={{ gridTemplateColumns }}>
-      {items.map((it, index) => (
-        <div key={index} className="bg-black text-white p-6 cursor-pointer group relative overflow-hidden">
-          {/* Main content */}
-          <div className="group-hover:opacity-0 transition-opacity duration-300">
-            <h3 className="text-2xl font-black mb-1">{it.title}</h3>
-            {it.subtitle && (
-              <div className="text-sm font-medium" style={{ color: 'var(--campaign-accent)' }}>{it.subtitle}</div>
-            )}
-          </div>
-          {/* Hover details overlay */}
-          {(it.image || it.subtitle) && (
-            <div className="absolute inset-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center" style={{ backgroundColor: 'var(--campaign-accent)' }}>
-              <div>
-                <h3 className="text-xl font-black mb-3">{it.title}</h3>
-                {it.image && (
-                  <img src={it.image} alt={it.title} className="w-full h-auto" />
+    <section className="not-prose py-8">
+      <div className={`grid ${gridCols} gap-6`}>
+        {items.map((it, index) => (
+          <div key={index} className="bg-black text-white p-6 cursor-pointer group relative overflow-hidden">
+            {/* Main content */}
+            <div className="group-hover:opacity-0 transition-opacity duration-300">
+              <h3 className="text-2xl font-black mb-1">{it.title}</h3>
+              {it.subtitle && <h4 className="text-sm font-bold mb-4" style={{ color: 'var(--campaign-accent)' }}>{it.subtitle}</h4>}
+              <div className="space-y-3 text-sm">
+                {it.challenge && (
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400">CHALLENGE</div>
+                    <div>{it.challenge}</div>
+                  </div>
                 )}
-                {it.subtitle && (
-                  <p className="text-sm leading-relaxed">{it.subtitle}</p>
+                {it.solution && (
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400">SOLUTION</div>
+                    <div>{it.solution}</div>
+                  </div>
+                )}
+                {it.outcome && (
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400">OUTCOME</div>
+                    <div className="font-bold" style={{ color: 'var(--campaign-accent)' }}>{it.outcome}</div>
+                  </div>
                 )}
               </div>
             </div>
-          )}
-        </div>
-      ))}
+            {/* Hover details overlay */}
+            {(it.details || it.outcome) && (
+              <div className="absolute inset-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center" style={{ backgroundColor: 'var(--campaign-accent)' }}>
+                <div>
+                  <h3 className="text-xl font-black mb-3">{it.title}</h3>
+                  <p className="text-sm leading-relaxed">{it.details || it.outcome}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   )
 }
 
 export function OutcomeBanner({ text }: { text: string }) {
   return (
+    <div className="not-prose mt-10 -mx-4 sm:mx-0 text-white p-8 text-center" style={{ backgroundColor: 'var(--campaign-accent)' }}>
       <div className="text-2xl md:text-3xl font-black">
         {text}
       </div>
