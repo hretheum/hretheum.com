@@ -323,8 +323,8 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Status: ✅ Completed — `/brand/[slug]` sprawdza aktywną kampanię i renderuje `CampaignRenderer`; fallback do generycznego `Content` gdy brak kampanii; theme accent merge przez `IndustryHero`.
 - DoD: `/brand/[slug]` checks active campaign; renders CampaignRenderer with theme merge; fallback to generic industry content uses same components.
 
-### T35. T‑Mobile campaign MDX
-- Status: In Progress — utworzono `data/campaigns/tmobile_g2m_lead.mdx` (frontmatter + sekcje: MetricsStrip/CaseStudy/Playbook/Timeline/CTAGroup), zintegrowano fallback CTA z env i telemetrię `ui.click`; pending: dopracowanie copy i wizualne QA.
+### ✅ T35. T‑Mobile campaign MDX
+- Status: ✅ Completed — finalny frontmatter (w tym `hero_headline`), poprawiony nagłówek, przegląd copy i wizualne QA; przygotowano Hiring Manager Brief w `docs/sauce/tmbbile.md`.
 
 ### ✅ T36. Theme‑aware CoverPage (Etap 1) — Provider + tokens na Home
 - Status: ✅ Completed — Theme Provider podłączony do `app/components/CoverPage.tsx`; neon slash i CTA korzystają z tokenów (`accent`, `gradient*`, `ctaVariant`). QA + Lighthouse lab wykonane (raporty w `reports/lighthouse/`).
