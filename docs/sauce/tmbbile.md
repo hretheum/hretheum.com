@@ -14,6 +14,7 @@
 - Improve e‑shop conversion for prioritized journeys (device/plan/add‑ons) through prototyping, usability testing, and funnel analysis.
 - Establish design tokens and pattern library governance to reduce variance and accelerate cross‑market rollouts.
 - Align metrics and decision loops (HEART/North Star + DORA) with Tribe and Markets to focus on outcomes, not artifacts.
+- Rollout kit (tokens/patterns, messaging snippets, QA gates) ready for Market Enablement.
 
 ## 30‑60‑90 plan (indicative)
 - 0–30 days: discovery, alignment with Tribe/Markets; baseline metrics; consent‑gated instrumentation for CTA clicks and web‑vitals; prioritize 2–3 critical journeys.
