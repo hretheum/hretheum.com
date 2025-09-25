@@ -19,6 +19,8 @@ import {
   Quote,
   SectionTitle,
   Timeline,
+  ClosingBanner,
+  KeywordsBlock,
 } from '@/app/campaign/components'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
 
@@ -40,6 +42,8 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
     Quote,
     SectionTitle,
     Timeline,
+    ClosingBanner,
+    KeywordsBlock,
   }
   if (process.env.NODE_ENV !== 'production') {
     // Dev path: use client renderer to avoid React 19 dev mismatch
