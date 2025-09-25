@@ -8,6 +8,7 @@ import RumVitals from '@/app/components/RumVitals'
 import ConsentBanner from '@/app/components/ConsentBanner'
 import AiPolicyClient from '@/app/components/AiPolicyClient'
 import AiPolicyDemoEffects from '@/app/components/AiPolicyDemoEffects'
+import ChaosModeClient from '@/app/components/ChaosModeClient'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -115,6 +116,8 @@ export default function RootLayout({
         <AiPolicyClient />
         {/* Demo effects for Active Mode (safe actions only) */}
         <AiPolicyDemoEffects />
+        {/* Chaos Mode effects (flagged via NEXT_PUBLIC_CHAOS_MODE) */}
+        <ChaosModeClient />
         {children}
         {/* Vercel Analytics */}
         <Analytics />
