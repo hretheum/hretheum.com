@@ -7,6 +7,7 @@ import { Inter } from 'next/font/google'
 import RumVitals from '@/app/components/RumVitals'
 import ConsentBanner from '@/app/components/ConsentBanner'
 import AiPolicyClient from '@/app/components/AiPolicyClient'
+import AiPolicyDemoEffects from '@/app/components/AiPolicyDemoEffects'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -68,6 +69,7 @@ export default function RootLayout({
         {/* JSON-LD Schema */}
         <script
           type="application/ld+json"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
@@ -111,6 +113,8 @@ export default function RootLayout({
         <ConsentBanner />
         {/* Adaptive AI policy (shadow→active). CSR-only and consent-gated via useAdaptiveRules. */}
         <AiPolicyClient />
+        {/* Demo effects for Active Mode (safe actions only) */}
+        <AiPolicyDemoEffects />
         {children}
         {/* Vercel Analytics */}
         <Analytics />

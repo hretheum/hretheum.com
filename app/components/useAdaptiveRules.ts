@@ -31,10 +31,17 @@ export function useAdaptiveRules() {
         // Consent gating: do not call policy without behavioral consent
         if (!consent) return
         // Build a minimal session summary; engagement fields are optional
-        const summary = {
+        const summary: any = {
           route: pathname || '/',
           consent: !!consent,
           device: typeof window !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }
+        // Demo mode: enrich summary to increase likelihood of a visible safe action
+        const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'false').toLowerCase() === 'true'
+        const demoParam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('aiDemo')
+        if (demoEnv || demoParam) {
+          summary.engagement = { hesitation_ms: 3000, dwell_ms: 15000, cta_clicks: { brand_hero_cta: 0 } }
+          summary.rag = { intent: 'retrieval_core.case_study', confidence: 0.3, lowConfidence: true }
         }
         const res = await fetch('/api/decision/policy', {
           method: 'POST',

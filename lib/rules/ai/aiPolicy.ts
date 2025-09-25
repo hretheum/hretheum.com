@@ -49,6 +49,15 @@ export type SessionSummary = z.infer<typeof SessionSummarySchema>
 
 // ===== Config Helpers =====
 
+const DEBUG = String(process.env.RULES_AI_DEBUG ?? 'false').toLowerCase() === 'true'
+function dlog(message: string, extra?: any) {
+  if (!DEBUG) return
+  try {
+    // eslint-disable-next-line no-console
+    console.info('[rules.ai]', message, extra ?? '')
+  } catch {}
+}
+
 function parseAllowedActionsEnv(): AllowedAction[] {
   const raw = process.env.RULES_AI_ALLOWED_ACTIONS || 'ui.show_suggestions,ui.tooltip,ui.show_how_it_works'
   const items = raw
@@ -94,15 +103,30 @@ export function shouldSample(): boolean {
 // ===== Core Policy =====
 
 export async function recommendAiAction(summary: SessionSummary): Promise<AiPolicyResponse | null> {
-  if (!isAiEnabled()) return null
-  if (!summary?.consent) return null
-  if (!shouldSample()) return null
+  if (!isAiEnabled()) {
+    dlog('skip: disabled (RULES_AI_ENABLED=false)')
+    return null
+  }
+  if (!summary?.consent) {
+    dlog('skip: no consent')
+    return null
+  }
+  if (!shouldSample()) {
+    dlog('skip: sampling miss', { rate: process.env.RULES_AI_SAMPLE_RATE })
+    return null
+  }
 
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-  if (!OPENAI_API_KEY) return null
+  if (!OPENAI_API_KEY) {
+    dlog('skip: missing OPENAI_API_KEY')
+    return null
+  }
 
   const allowed = parseAllowedActionsEnv()
-  if (allowed.length === 0) return null
+  if (allowed.length === 0) {
+    dlog('skip: empty allowlist (RULES_AI_ALLOWED_ACTIONS)')
+    return null
+  }
 
   const client = new OpenAI({ apiKey: OPENAI_API_KEY })
   const model = process.env.AI_MODEL_GENERATION || 'gpt-4o-mini'
@@ -153,7 +177,10 @@ export async function recommendAiAction(summary: SessionSummary): Promise<AiPoli
       }
     }
     const result = AiPolicyResponseSchema.safeParse(parsed)
-    if (!result.success) return null
+    if (!result.success) {
+      dlog('skip: schema parse failed', { issues: result.error.issues })
+      return null
+    }
 
     // Enforce allowlist at runtime (defense in depth)
     const out = result.data
@@ -161,8 +188,10 @@ export async function recommendAiAction(summary: SessionSummary): Promise<AiPoli
       out.recommended_action = null
       out.confidence = 0
     }
+    dlog('ok: recommendation', out)
     return out
-  } catch (err) {
+  } catch (err: any) {
+    dlog('error: policy call failed', { message: err?.message || String(err) })
     return null
   } finally {
     clearTimeout(timeout)
