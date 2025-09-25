@@ -9,6 +9,10 @@ import path from 'path'
 import matter from 'gray-matter'
 import { z } from 'zod'
 import React from 'react'
+// Use jsxDEV in development to construct the MDX root element with dev properties.
+// This avoids the React 19 dev error: "Attempted to render MDXContent without development properties".
+// In production, we fall back to React.createElement.
+import { jsxDEV as _jsxDEV } from 'react/jsx-dev-runtime'
 import remarkGfm from 'remark-gfm'
 
 const ROOT = process.cwd()
@@ -167,6 +171,8 @@ export async function compileCampaignForBrand(
   const raw = await fs.readFile(found.filePath, 'utf8')
   // Lazy import MDX compiler to avoid pulling MDX toolchain in non-MDX contexts (e.g., CI frontmatter validation)
   const { compileMDX } = await import('next-mdx-remote/rsc')
+  // Normalize ESM namespace object (module with getters) into a plain object for MDX components mapping
+  const normalizedComponents: Record<string, any> = { ...(components as any) }
   const compileArgs: any = {
     source: raw,
     options: {
@@ -176,14 +182,19 @@ export async function compileCampaignForBrand(
         rehypePlugins: [],
       },
     },
-    components,
+    components: normalizedComponents,
   }
   if (process.env.NODE_ENV !== 'production') {
-    compileArgs.development = true
-    compileArgs.options.mdxOptions = {
-      ...compileArgs.options.mdxOptions,
+    // Ensure MDX compiles with jsxDEV in development to avoid React dev/runtime mismatch
+    compileArgs.options = {
+      ...compileArgs.options,
       development: true,
+      mdxOptions: {
+        ...compileArgs.options?.mdxOptions,
+        development: true,
+      },
     }
+    compileArgs.development = true
   }
   const { content, frontmatter } = await compileMDX<CampaignFrontmatter>(compileArgs)
   // Validate frontmatter
@@ -202,7 +213,48 @@ export async function compileCampaignForBrand(
       }))
     }
   } catch {}
-  return { content, frontmatter: fm }
+  // Re-create the element using JSX so React uses jsxDEV in development (avoids the dev-props warning)
+  const Content: any = (content as any)?.type || null
+  const element = Content
+    ? (process.env.NODE_ENV !== 'production'
+        ? _jsxDEV(Content, { components: normalizedComponents }, undefined, false, { fileName: 'lib/campaigns.ts', lineNumber: 0, columnNumber: 0 }, null)
+        : React.createElement(Content, { components: normalizedComponents }))
+    : content
+  return { content: element as React.ReactElement, frontmatter: fm }
+}
+
+// Serialize MDX for client-side rendering (MDXRemote) — used as a dev fallback to avoid React 19 dev runtime mismatch
+export async function serializeCampaignForBrand(
+  brandSlug: string
+): Promise<{ compiledSource: string; frontmatter: CampaignFrontmatter } | null> {
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) return null
+  const raw = await fs.readFile(found.filePath, 'utf8')
+  const { serialize } = await import('next-mdx-remote/serialize')
+  const result: any = await serialize(raw, {
+    parseFrontmatter: true,
+    mdxOptions: {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [],
+      development: process.env.NODE_ENV !== 'production',
+    } as any,
+  })
+  const { compiledSource, frontmatter } = result
+  const parsed = ZCampaignFrontmatter.safeParse(frontmatter || {})
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')
+    throw new Error(`Invalid campaign frontmatter in ${path.relative(ROOT, found.filePath)} → ${msg}`)
+  }
+  const fm: CampaignFrontmatter = parsed.data as CampaignFrontmatter
+  try {
+    if (Array.isArray(fm?.ctas)) {
+      fm.ctas = fm.ctas.map((c: any) => ({
+        ...c,
+        href: c?.href || DEFAULT_CALENDLY,
+      }))
+    }
+  } catch {}
+  return { compiledSource, frontmatter: fm }
 }
 
 // Schema-only validation helper (no MDX compilation). Useful for CI and pre-commit checks.

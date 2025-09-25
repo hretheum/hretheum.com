@@ -25,6 +25,47 @@ export function CampaignMeta(props: { role?: string; location?: string; contract
   )
 }
 
+export function KeywordsBlock() {
+  const keywords = [
+    'UX STRATEGY',
+    'DESIGN LEADERSHIP',
+    'STAKEHOLDER ALIGNMENT',
+    'USER RESEARCH',
+    'PROTOTYPING',
+    'WIREFRAMING',
+    'INFORMATION ARCHITECTURE',
+    'DESIGN SYSTEMS',
+    'B2B SAAS',
+    'ACCESSIBILITY',
+    'CONVERSION OPTIMIZATION',
+    'SERVICE DESIGN',
+    'MENTORING',
+    'TEAM LEADERSHIP',
+  ]
+  return (
+    <div className="mt-12">
+      <div className="px-1 md:px-2 space-y-4">
+        <h3 className="text-xs font-semibold tracking-[0.4em] uppercase text-neutral-500">KEYWORDS</h3>
+        <div className="flex flex-wrap gap-2">
+          {keywords.map((k, i) => (
+            <span
+              key={i}
+              className="rounded-full px-3 py-1 text-xs font-semibold uppercase"
+              style={{
+                background: 'color-mix(in srgb, var(--campaign-accent) 14%, transparent)',
+                color: '#1f1f1f',
+                letterSpacing: '0.18em',
+              }}
+            >
+              {k}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Richer components for full campaign content
 export function ExperienceItem({ company, period, role, bullets }: { company: string; period?: string; role?: string; bullets?: string[] }) {
   return (
@@ -261,6 +302,56 @@ export function Quote({ text, author, role }: { text: string; author?: string; r
   )
 }
 
+// Closing banner similar to homepage ClosingPage; kept server-safe (no hooks)
+export function ClosingBanner() {
+  return (
+    <section className="not-prose relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen min-h-[60vh] md:min-h-screen flex items-center justify-center overflow-x-hidden bg-black text-white mt-16 mb-0">
+      {/* Neon Slash */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-[200%] h-2 bg-gradient-to-r from-transparent via-purple-500 to-transparent transform -rotate-12 opacity-90"></div>
+      </div>
+      {/* Main Content */}
+      <div className="text-center z-10 px-4 sm:px-6 max-w-6xl">
+        <h2 className="text-[clamp(2.25rem,9vw,3.25rem)] md:text-[6rem] lg:text-[8rem] font-black leading-[1.02] tracking-tight mb-10 break-words [text-wrap:balance]">
+          HIRE ME<br/>
+          OR STAY<br/>
+          IRRELEVANT.
+        </h2>
+
+        <div className="mb-8">
+          <a
+            href={DEFAULT_CALENDLY}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cta-id="closing_banner_cta"
+            data-cta-source="closing_banner"
+            data-cta-variant="primary"
+            className="inline-block px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl font-black border transition-colors duration-200"
+            style={{ backgroundColor: 'var(--campaign-accent)', borderColor: 'var(--campaign-accent)', color: '#000' }}
+          >
+            Schedule a meeting
+          </a>
+        </div>
+
+        <div className="inline-block text-left md:text-center p-6 md:p-8" style={{ backgroundColor: 'var(--campaign-accent)', color: '#000' }}>
+          <div className="text-xl md:text-2xl font-black mb-3 md:mb-4">CONTACT</div>
+          <div className="text-lg md:text-xl">eof@offline.pl</div>
+          <div className="text-lg md:text-xl">+48 535 555 066</div>
+          <a
+            href="https://linkedin.com/in/eofek"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-base md:text-lg underline"
+            style={{ color: '#000' }}
+          >
+            linkedin.com/in/eofek
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // --- Brand-adapted components inspired by root domain ---
 
 export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -283,43 +374,37 @@ export function CaseGrid({ items, colsClass }: { items: Array<{ title: string; s
   const gridCols = colsClass || autoCols
   return (
     <section className="not-prose py-8">
-      <div className={`grid ${gridCols} gap-6`}>
+      <div className={`grid ${gridCols} gap-8`}>
         {items.map((it, index) => (
-          <div key={index} className="bg-black text-white p-6 cursor-pointer group relative overflow-hidden">
-            {/* Main content */}
-            <div className="group-hover:opacity-0 transition-opacity duration-300">
-              <h3 className="text-2xl font-black mb-1 break-words leading-tight">{it.title}</h3>
-              {it.subtitle && <h4 className="text-sm font-bold mb-4" style={{ color: 'var(--campaign-accent)' }}>{it.subtitle}</h4>}
-              <div className="space-y-3 text-sm">
-                {it.challenge && (
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400">CHALLENGE</div>
-                    <div>{it.challenge}</div>
-                  </div>
-                )}
-                {it.solution && (
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400">SOLUTION</div>
-                    <div>{it.solution}</div>
-                  </div>
-                )}
-                {it.outcome && (
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400">OUTCOME</div>
-                    <div className="font-bold" style={{ color: 'var(--campaign-accent)' }}>{it.outcome}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Hover details overlay */}
-            {(it.details || it.outcome) && (
-              <div className="absolute inset-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center" style={{ backgroundColor: 'var(--campaign-accent)' }}>
+          <div key={index} className="bg-black text-white p-8 md:p-10 min-h-[240px]">
+            <h3 className="text-2xl md:text-3xl font-black mb-2 leading-tight [text-wrap:balance]">{it.title}</h3>
+            {it.subtitle && <h4 className="text-sm md:text-base font-bold mb-5" style={{ color: 'var(--campaign-accent)' }}>{it.subtitle}</h4>}
+            <div className="space-y-4 text-sm md:text-base">
+              {it.challenge && (
                 <div>
-                  <h3 className="text-xl font-black mb-3">{it.title}</h3>
-                  <p className="text-sm leading-relaxed">{it.details || it.outcome}</p>
+                  <div className="text-[11px] font-bold text-gray-400">CHALLENGE</div>
+                  <div>{it.challenge}</div>
                 </div>
-              </div>
-            )}
+              )}
+              {it.solution && (
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400">SOLUTION</div>
+                  <div>{it.solution}</div>
+                </div>
+              )}
+              {it.outcome && (
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400">OUTCOME</div>
+                  <div className="font-bold" style={{ color: 'var(--campaign-accent)' }}>{it.outcome}</div>
+                </div>
+              )}
+              {it.details && (
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400">DETAILS</div>
+                  <p className="leading-relaxed opacity-95">{it.details}</p>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>

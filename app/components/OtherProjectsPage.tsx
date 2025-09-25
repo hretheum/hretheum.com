@@ -61,30 +61,15 @@ export default function OtherProjectsPage() {
           OTHER PROJECTS
         </h1>
         
-        <p className="text-center text-gray-400 text-sm mb-12 -mt-8">
-          hint: hover over the items for details
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {categories.map((category, index) => (
-            <div key={index} className={`${category.color} text-white p-8 group`}>
-              <h2 className="text-2xl font-black mb-6">{category.title}</h2>
-              <div className="space-y-4">
+            <div key={index} className={`${category.color} text-white p-10 min-h-[320px]`}>
+              <h2 className="text-2xl md:text-3xl font-black mb-6">{category.title}</h2>
+              <div className="space-y-5">
                 {category.projects.map((project, projectIndex) => (
-                  <div 
-                    key={projectIndex} 
-                    className="relative cursor-pointer group/project"
-                  >
-                    {/* Project name - always visible */}
-                    <div className="text-lg font-bold group-hover/project:opacity-0 transition-opacity duration-300">
-                      {project.name}
-                    </div>
-                    
-                    {/* Project details - shown on hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover/project:opacity-100 transition-opacity duration-300 bg-black/90 p-3 -m-3 rounded z-10 min-h-[80px] flex flex-col justify-center">
-                      <div className="text-sm font-bold text-purple-400 mb-1">{project.name}</div>
-                      <div className="text-xs leading-relaxed">{project.details}</div>
-                    </div>
+                  <div key={projectIndex} className="bg-black/20 p-4 rounded">
+                    <div className="text-lg md:text-xl font-bold">{project.name}</div>
+                    <div className="text-sm md:text-base leading-relaxed opacity-95 mt-1">{project.details}</div>
                   </div>
                 ))}
               </div>
