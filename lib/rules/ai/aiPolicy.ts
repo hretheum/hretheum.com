@@ -53,8 +53,8 @@ const DEBUG = String(process.env.RULES_AI_DEBUG ?? 'false').toLowerCase() === 't
 function dlog(message: string, extra?: any) {
   if (!DEBUG) return
   try {
-    // eslint-disable-next-line no-console
-    console.info('[rules.ai]', message, extra ?? '')
+    const logger = globalThis.console
+    logger?.info?.('[rules.ai]', message, extra ?? '')
   } catch {}
 }
 

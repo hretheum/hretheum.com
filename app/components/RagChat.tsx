@@ -40,14 +40,14 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     return { cls, isPortrait };
   }, []);
   const prefKey = (cls: 'compact' | 'desktop') => `ragChatPref.minimized.${cls}`;
-  const loadPref = (cls: 'compact' | 'desktop'): boolean | null => {
+  const loadPref = React.useCallback((cls: 'compact' | 'desktop'): boolean | null => {
     try {
       const v = window.localStorage.getItem(prefKey(cls));
       if (v === '1') return true;
       if (v === '0') return false;
     } catch {}
     return null;
-  };
+  }, []);
   const savePref = (cls: 'compact' | 'desktop', val: boolean) => {
     try { window.localStorage.setItem(prefKey(cls), val ? '1' : '0'); } catch {}
   };
@@ -107,7 +107,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     const pref = loadPref(cls);
     if (pref !== null) setMinimized(pref);
     else setMinimized(cls === 'compact' && isPortrait);
-  }, [getViewportInfo]);
+  }, [getViewportInfo, loadPref]);
 
   // Initialize persistent thread_id for this chat widget (session lifetime)
   useEffect(() => {
@@ -173,7 +173,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       window.removeEventListener('orientationchange', handler);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [getViewportInfo]);
+  }, [getViewportInfo, loadPref]);
 
   // Fire chat_open once per session when panel is first shown
   useEffect(() => {

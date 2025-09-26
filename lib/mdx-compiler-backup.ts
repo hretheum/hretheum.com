@@ -3,7 +3,6 @@
 
 import { compile } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
-import * as devRuntime from 'react/jsx-dev-runtime'
 import matter from 'gray-matter'
 import remarkGfm from 'remark-gfm'
 
@@ -42,7 +41,7 @@ export async function compileMDXDirect(
     
     // Use eval to execute MDX code with variables in closure scope
     // Wrap in IIFE to handle return statement
-    const result = eval('(function() {' + code + '})()'))
+    const result = eval('(function() {' + code + '})()')
     
     // MDX returns an object with a default function that creates the element
     let element;

@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
     // Optional: basic rate limiting or sampling could be added here
     // For now, we no-op and respond 204 to avoid storing PII server-side.
     if ((process.env.NODE_ENV || 'development') !== 'production') {
-      // eslint-disable-next-line no-console
       console.log('[RUM] web_vitals', {
         name: json.name,
         value: json.value,

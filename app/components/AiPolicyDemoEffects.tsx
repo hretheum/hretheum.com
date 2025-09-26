@@ -116,7 +116,13 @@ export default function AiPolicyDemoEffects() {
     setVisible(true)
     if (hideTimer.current) window.clearTimeout(hideTimer.current)
     hideTimer.current = window.setTimeout(() => setVisible(false), autoHideMs)
-  }, [policy])
+    return () => {
+      if (hideTimer.current) {
+        window.clearTimeout(hideTimer.current)
+        hideTimer.current = null
+      }
+    }
+  }, [policy, autoHideMs])
 
   if (!isDemoEnabled || !policy || policy.mode !== 'active' || !policy.action) return null
 

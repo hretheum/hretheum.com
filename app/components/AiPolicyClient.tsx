@@ -14,9 +14,8 @@ export default function AiPolicyClient() {
     if (!ai) return
     if (ai.mode === 'shadow') {
       if (process.env.NEXT_PUBLIC_TELEMETRY_DEBUG !== 'false') {
-        // Quiet in production by default; can be enabled via debug flag
-        // eslint-disable-next-line no-console
-        console.info('[ai-policy:shadow]', ai)
+        const logger = globalThis.console
+        logger?.info?.('[ai-policy:shadow]', ai)
       }
       return
     }

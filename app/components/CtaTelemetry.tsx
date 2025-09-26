@@ -11,7 +11,7 @@ export default function CtaTelemetry() {
   const defaultBehavioral = (process.env.NEXT_PUBLIC_BEHAVIORAL_DEFAULT || 'allow').toLowerCase()
   const debug = (process.env.NEXT_PUBLIC_TELEMETRY_DEBUG || 'false').toLowerCase() === 'true'
 
-  function hasBehavioralConsent(): boolean {
+  const hasBehavioralConsent = React.useCallback((): boolean => {
     try {
       const w: any = window
       if (debug) return true
@@ -24,17 +24,17 @@ export default function CtaTelemetry() {
     } catch {}
     // fallback to env default (allow/deny)
     return defaultBehavioral !== 'deny'
-  }
+  }, [debug, defaultBehavioral])
 
-  function dlPush(payload: Record<string, any>) {
+  const dlPush = React.useCallback((payload: Record<string, any>) => {
     try {
       if (!payload || !payload.event) return
       ;(window as any).dataLayer = (window as any).dataLayer || []
       ;(window as any).dataLayer.push(payload)
     } catch {}
-  }
+  }, [])
 
-  function deriveBrandAndSource(): { brand?: string; source?: 'subdomain' | 'brand-route' } {
+  const deriveBrandAndSource = React.useCallback((): { brand?: string; source?: 'subdomain' | 'brand-route' } => {
     try {
       const host = window.location.hostname.toLowerCase()
       if (host.endsWith('.' + apexDomain)) {
@@ -47,7 +47,7 @@ export default function CtaTelemetry() {
     } catch {
       return { brand: undefined, source: undefined }
     }
-  }
+  }, [apexDomain])
 
   useEffect(() => {
     // Optional debug heartbeat on mount
@@ -61,8 +61,8 @@ export default function CtaTelemetry() {
           brand: brand || null,
           campaign_source: source || null,
         })
-        // eslint-disable-next-line no-console
-        console.info('[CtaTelemetry] ready', { brand, source })
+        const logger = globalThis.console
+        logger?.info?.('[CtaTelemetry] ready', { brand, source })
       }
     } catch {}
 
@@ -166,7 +166,7 @@ export default function CtaTelemetry() {
       document.removeEventListener('mousedown', handle as any, true)
       document.removeEventListener('touchstart', handle as any, true as any)
     }
-  }, [])
+  }, [apexDomain, debug, deriveBrandAndSource, dlPush, hasBehavioralConsent])
 
   return null
 }
