@@ -30,12 +30,13 @@ export async function compileMDXDirect(
     // Build the component
     const code = String(compiled)
     
-    // Execute MDX code
+    // Execute MDX code with frontmatter in scope
     const fn = new Function(
       '_jsx',
       '_jsxs', 
       'Fragment',
       '_components',
+      'frontmatter',
       code
     )
     
@@ -43,18 +44,24 @@ export async function compileMDXDirect(
       runtime.jsx,
       runtime.jsxs,
       runtime.Fragment,
-      components
+      components,
+      frontmatter
     )
     
     // MDX returns an object with a default function that creates the element
     let element;
+    const props = { 
+      components,
+      frontmatter // Pass frontmatter to MDX
+    };
+    
     if (result && typeof result === 'object' && 'default' in result) {
       // Call the default MDXContent function
       const MDXContent = result.default;
-      element = typeof MDXContent === 'function' ? MDXContent({ components }) : MDXContent;
+      element = typeof MDXContent === 'function' ? MDXContent(props) : MDXContent;
     } else if (typeof result === 'function') {
       // Direct function result
-      element = result({ components });
+      element = result(props);
     } else {
       // Already a React element
       element = result;
