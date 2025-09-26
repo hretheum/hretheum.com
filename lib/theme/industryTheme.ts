@@ -98,6 +98,21 @@ const THEMES: Record<Industry | 'Generic', IndustryThemeTokens> = {
     heroLeadingTight: true,
     heroLargeScale: true,
   },
+  DigitalTech: {
+    accent: '#06b6d4', // cyan-500 (modern digital tech accent)
+    headlineCase: 'uppercase',
+    slashAngleDeg: 12,
+    slashOffsetYRem: -0.5,
+    gradientFrom: 'rgba(0,0,0,0)',
+    gradientVia: '#06b6d4',
+    gradientTo: 'rgba(0,0,0,0)',
+    ctaVariantPrimary: 'filled',
+    captionStyle: 'badge',
+    heroFont: 'spartan',
+    heroTightTracking: true,
+    heroLeadingTight: true,
+    heroLargeScale: true,
+  },
   Retail: {
     accent: '#f97316', // orange-500, retail/commerce friendly accent
     headlineCase: 'uppercase',

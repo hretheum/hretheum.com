@@ -11,7 +11,8 @@
     "Telecom",
     "Generic", 
     "Dummy",
-    "Retail"
+    "Retail",
+    "DigitalTech"
   ],
   "mapping": {
     "zendesk": "SaaS",
@@ -28,6 +29,8 @@
     "foo": "Dummy",
     "bar": "Dummy",
     "blix": "Retail",
-    "depot": "SaaS"
+    "depot": "SaaS",
+    "efigence": "DigitalTech",
+    "efi": "DigitalTech"
   }
 }

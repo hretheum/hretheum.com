@@ -115,12 +115,18 @@ export type CsrRuleAction =
   | { type: 'csr.telemetry.enable_debug'; payload: { reason: string } }
   | { type: 'csr.telemetry.suppress_event'; payload: { event: string } }
   | { type: 'csr.tag.append'; payload: { tag: string } }
+  | { type: 'csr.ui.tooltip'; payload: { target: 'primary_cta' | 'closing_cta' | string; message: string } }
+  | { type: 'csr.ui.novice_disclosure'; payload: { enable: boolean } }
 
 export interface CsrRuleEvaluation extends RuleEvaluationOutcome<CsrRuleAction> {
   effects: {
     debugTelemetry: boolean
     suppressedEvents: string[]
     tags: string[]
+    ui: {
+      tooltip?: { target: string; message: string }
+      noviceDisclosure?: boolean
+    }
   }
 }
 

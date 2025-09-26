@@ -106,6 +106,16 @@ export function IndustryHero({ industry, slug, source, confidence, accent, ctaLa
       ],
       cta: 'See Telecom playbook',
     },
+    DigitalTech: {
+      headline: `Digital technology leadership & UX signals`,
+      sub: <>Neutral, template-based content for digital consultancies and software houses — adapted for <strong className="font-semibold">{slug}</strong> (focus on fintech, insurance, retail, and public).</>,
+      bullets: [
+        'Design systems and experience platforms across multiple verticals',
+        'Discovery → delivery for financial/banking tech and complex enterprise',
+        'AI- and data-informed design operations; measurable business impact',
+      ],
+      cta: 'See DigitalTech playbook',
+    },
     eLearning: {
       headline: `Education & eLearning hiring signals`,
       sub: <>Neutral, template-based content for education technology and online learning — contextualized for <strong className="font-semibold">{slug}</strong>.</>,

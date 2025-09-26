@@ -100,6 +100,17 @@ import { MetricsStrip, CaseStudy, Playbook, Timeline } from '@/app/campaign/comp
 - SSR: `app/brand/[slug]/page.tsx` uses `runtime='nodejs'`, `dynamic='force-dynamic'`, `revalidate=0`.
 - Telemetry: CTA clicks and page events should include `brand`, `campaign`, `industry`. Consent gating required for behavioral analytics; RedirectBeacon respects `NEXT_PUBLIC_REDIRECT_BEACON_REQUIRES_CONSENT`.
 
+## Development stability
+- To avoid React 19 development/runtime mismatches during active work on campaign MDX, you can disable MDX campaign rendering in development and fall back to the generic brand page content:
+  ```bash
+  NEXT_PUBLIC_DISABLE_CAMPAIGN_DEV=true
+  ```
+  This flag is only effective when `NODE_ENV !== 'production'`. Production always renders campaigns via SSR (`lib/campaigns.ts → compileCampaignForBrand`).
+  
+  Rendering notes:
+  - In dev, `lib/campaigns.ts` compiles MDX with `jsxDEV` to preserve React dev properties and avoid warnings.
+  - Above-the-fold is SSR to minimize flicker; CSR is used for in-session micro-adaptations (e.g., tooltips).
+
 ## Governance & safety
 - Legal safeguards: textual brand references; no unapproved logos.
 - Admin visibility: DB tables `brand_industries`, `brand_industry_suggestions`, `industry_resolution_events` support auditing and review.

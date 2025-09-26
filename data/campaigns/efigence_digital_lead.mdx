@@ -1,0 +1,111 @@
+---
+slug: efigence_digital_lead
+brand: efigence
+industry: DigitalTech
+accent: "#06b6d4"
+role: Lead UX/UI Designer
+location: Remote | Warsaw
+contract: B2B, full-time
+period: "2025-09-26 – 2025-10-26"
+ctas:
+  - label: "Schedule the Interview"
+    href: "https://calendly.com/hretheum/short-intro"
+    variant: primary
+  - label: "See case studies"
+    href: "https://www.efigence.com/case-studies/"
+    variant: secondary
+---
+
+import { CampaignMeta, SectionTitle, MetricsStrip, CaseGrid, CaseStudyRich, Playbook, PlaybookDiagram, CTAGroup, Timeline, Quote, OutcomeBanner, ClosingBanner, KeywordsBlock } from '@/app/campaign/components'
+
+<CampaignMeta role={frontmatter.role} location={frontmatter.location} contract={frontmatter.contract} period={frontmatter.period} />
+
+<SectionTitle title="DIGITAL CONSULTANCY FOR FINANCIAL BRANDS" subtitle="Efigence • UX/UI • Digital transformation" />
+
+<MetricsStrip items={[
+  { label: 'Enterprise projects', value: '7+ yrs' },
+  { label: 'Design leadership', value: 'Teams 5–12' },
+  { label: 'Sectors', value: 'FinTech · Insurance · Retail' },
+  { label: 'Delivery', value: 'Discovery→Scale' },
+]} />
+
+<CaseGrid items={[
+  {
+    title: 'Lead UX/UI · Wealth & Investments',
+    subtitle: 'Banking / KSA',
+    challenge: 'Designing complex financial journeys with high compliance and localization requirements.',
+    solution: 'End-to-end process: workshops → flows → prototyping → validation → design system integration.',
+    outcome: '+NPS, reduced time-to-first-value, stakeholder alignment.',
+    details: 'Led the design vision and mentored the team; built cross-functional cadence and governance.'
+  },
+  {
+    title: 'Omnichannel retail experience',
+    subtitle: 'Retail / e‑commerce',
+    challenge: 'Unifying browse → list → coupon → store → purchase journeys.',
+    solution: 'Data-informed UX with cohorts and retention signals; performance-minded UI patterns.',
+    outcome: 'Improved conversion and session depth; portable patterns across markets.',
+    details: 'Scaled design system across apps; aligned with merchandising cycles.'
+  },
+  {
+    title: 'Insurance self‑service flows',
+    subtitle: 'Insurance',
+    challenge: 'Clarity and trust for policy management flows.',
+    solution: 'Information architecture + progressive disclosure; accessible components.',
+    outcome: 'Reduced support load; higher completion rates.',
+    details: 'Collaborated closely with product and engineering to operationalize patterns.'
+  }
+]} />
+
+<SectionTitle title="SELECTED PROJECTS" subtitle="Banking • Insurance • Retail" />
+
+<CaseStudyRich
+  title="Design system & migration"
+  context="Cross-market component library and tokens for enterprise scale."
+  role="Design Lead (strategy, tokens, review)"
+  challenge="Multiple legacy stacks and visual languages across domains."
+  approach={["Audit & inventory", "Token strategy & theming", "Accessibility & performance gates", "Governance & contribution model"]}
+  outcome="Unified experience, faster delivery, consistent quality."
+/>
+
+<Playbook title="Leadership Playbook" bullets={[
+  'Vision → Execution: translate goals into measurable UX outcomes',
+  'Cross‑functional cadence: product × design × engineering',
+  'Design Systems: tokens-first, performance-aware, a11y by default',
+]} />
+
+<PlaybookDiagram steps={['Discovery', 'Prototyping', 'Validation', 'Scale']} />
+
+<SectionTitle title="HOW I WORK" subtitle="Approach & philosophy" />
+
+<Quote text="Start with clarity: define measurable outcomes, align stakeholders, and iterate in short loops." />
+
+<Timeline steps={["Workshops & alignment", "Flows & prototypes", "Usability & metrics", "Handover & governance"]} />
+
+<SectionTitle title="LEADERSHIP" subtitle="Mentoring • Quality • Collaboration" />
+
+<CaseGrid items={[
+  { title: 'Mentorship & quality', details: 'Grow designers through feedback, design reviews, and pairing.' },
+  { title: 'Stakeholder communication', details: 'Transparent decisions and narrative around trade‑offs.' },
+  { title: 'Scalable practices', details: 'Set up rituals, design ops, and playbooks for consistency.' },
+]} colsClass="grid-cols-1 md:grid-cols-3" />
+
+<SectionTitle title="AI BUILDER" subtitle="Accelerate with AI & data" />
+
+<CaseGrid items={[
+  { title: 'Data‑informed UX', details: 'Use product analytics and AI to identify friction and opportunities.' },
+  { title: 'AI assistants', details: 'Support operations with LLMs for summarization and synthesis.' },
+  { title: 'Safe rollout', details: 'Guardrails, evaluation, and continuous improvement.' },
+]} colsClass="grid-cols-1 md:grid-cols-3" />
+
+<SectionTitle title="OTHER PROJECTS" subtitle="Breadth across domains" />
+
+<CTAGroup align="center" ctas={[
+  { label: 'Efigence Case Studies', href: 'https://www.efigence.com/case-studies/', variant: 'secondary' },
+  { label: 'Get in touch', href: 'https://www.efigence.com/contact/', variant: 'primary' }
+]} />
+
+<OutcomeBanner text="Let’s make digital experiences that matter. On time, on spec, with measurable impact." />
+
+<KeywordsBlock />
+
+<ClosingBanner />

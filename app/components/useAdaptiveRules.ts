@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useConsent } from '@/app/hooks/useConsent'
+import { evaluateCsrRules } from '@/lib/rules'
+import { csrRules } from '@/config/rules'
 
 export type AiPolicyResult = {
   source: 'ai'
@@ -17,6 +19,7 @@ export function useAdaptiveRules() {
   const pathname = usePathname()
   const { behavioral: consent } = useConsent()
   const [ai, setAi] = useState<AiPolicyResult | null>(null)
+  const [csr, setCsr] = useState<ReturnType<typeof evaluateCsrRules> | null>(null)
 
   const isEnabled = useMemo(() => {
     const v = String(process.env.NEXT_PUBLIC_RULES_AI_ENABLED ?? 'true').toLowerCase()
@@ -59,5 +62,26 @@ export function useAdaptiveRules() {
     }
   }, [pathname, consent, isEnabled])
 
-  return { ai }
+  // Evaluate deterministic CSR rules (T14) alongside AI policy.
+  useEffect(() => {
+    // Build CSR context and evaluate whenever route/consent changes
+    const brandSlug = (() => {
+      try {
+        const p = pathname || '/'
+        const m = p.match(/^\/brand\/(\w[\w-]*)/)
+        return m ? m[1] : undefined
+      } catch { return undefined }
+    })()
+    const isMobile = typeof window !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent)
+    const effects = evaluateCsrRules(csrRules, {
+      brandSlug,
+      route: pathname || '/',
+      consentGranted: !!consent,
+      device: isMobile ? 'mobile' : 'desktop',
+      debugBrands: [],
+    }, false)
+    setCsr(effects)
+  }, [pathname, consent])
+
+  return { ai, csr }
 }

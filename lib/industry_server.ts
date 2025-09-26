@@ -87,7 +87,8 @@ async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ 
             'manufacturing':'Manufacturing',
             'public':'Public','government':'Public','gov':'Public',
             'elearning':'eLearning','edtech':'eLearning','education':'eLearning',
-            'telecom':'Telecom','telecommunications':'Telecom','telco':'Telecom','carrier':'Telecom','isp':'Telecom','wireless':'Telecom','mobilecarrier':'Telecom','mobileoperator':'Telecom','5g':'Telecom'
+            'telecom':'Telecom','telecommunications':'Telecom','telco':'Telecom','carrier':'Telecom','isp':'Telecom','wireless':'Telecom','mobilecarrier':'Telecom','mobileoperator':'Telecom','5g':'Telecom',
+            'digitaltech':'DigitalTech','digitaltechnology':'DigitalTech','digitalagency':'DigitalTech','softwarehouse':'DigitalTech','techconsultancy':'DigitalTech','itservices':'DigitalTech','itconsulting':'DigitalTech'
           }
           const k = v.toLowerCase()
           const viaSyn = m[k]

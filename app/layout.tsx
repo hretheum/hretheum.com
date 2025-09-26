@@ -6,9 +6,7 @@ import CtaTelemetry from '@/app/components/CtaTelemetry'
 import { Inter } from 'next/font/google'
 import RumVitals from '@/app/components/RumVitals'
 import ConsentBanner from '@/app/components/ConsentBanner'
-import AiPolicyClient from '@/app/components/AiPolicyClient'
-import AiPolicyDemoEffects from '@/app/components/AiPolicyDemoEffects'
-import ChaosModeClient from '@/app/components/ChaosModeClient'
+import ClientGlobals from '@/app/components/ClientGlobals'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -112,12 +110,8 @@ export default function RootLayout({
         <RumVitals />
         {/* Consent banner (behavioral analytics) */}
         <ConsentBanner />
-        {/* Adaptive AI policy (shadow→active). CSR-only and consent-gated via useAdaptiveRules. */}
-        <AiPolicyClient />
-        {/* Demo effects for Active Mode (safe actions only) */}
-        <AiPolicyDemoEffects />
-        {/* Chaos Mode effects (flagged via NEXT_PUBLIC_CHAOS_MODE) */}
-        <ChaosModeClient />
+        {/* Client-side global mounts (AI policy, demo effects, CTA tooltip, chaos) */}
+        <ClientGlobals />
         {children}
         {/* Vercel Analytics */}
         <Analytics />

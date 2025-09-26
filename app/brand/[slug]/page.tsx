@@ -34,6 +34,7 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
   const hasCampaign = await hasCampaignForBrand(slug)
   const ctaLabel = await getCampaignPrimaryCtaLabelForBrand(slug)
   const heroHeadline = await getCampaignHeroHeadlineForBrand(slug)
+  const disableCampaignDev = (process.env.NODE_ENV !== 'production') && (String(process.env.NEXT_PUBLIC_DISABLE_CAMPAIGN_DEV ?? 'false').toLowerCase() === 'true')
   return (
     <>
       <RedirectBeacon />
@@ -49,7 +50,7 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
         heroHeadline={heroHeadline}
       />
       {/* Campaign-first: render campaign MDX when present; otherwise fallback to generic homepage content */}
-      {hasCampaign ? (
+      {hasCampaign && !disableCampaignDev ? (
         <CampaignRenderer slug={slug} industry={industry} />
       ) : (
         <Content />

@@ -137,3 +137,41 @@ This non-deterministic layer complements the minimal rules engine. It consumes a
 - Should rules be persisted in Supabase for runtime editing (v2)?
 - Do we need multi-tenant rule sets (per brand)?
 - Is there a need for rule conflict resolution UI or telemetry dashboard?
+
+---
+
+## Suspend/Resume Guidance (Dev)
+
+This section summarizes how to pause T14 work safely and resume later without losing context. For a detailed, step-by-step guide, see `docs/aui/T14-DEV-RUNBOOK.md`.
+
+### Current Integration Points
+- `app/components/ClientGlobals.tsx` mounts client-only components globally (AI policy, demo effects, CTA tooltip, chaos).
+- `app/layout.tsx` renders `<ClientGlobals />` from a Server Component (no `next/dynamic({ ssr:false })`).
+- `app/brand/[slug]/_components/CampaignRenderer.tsx` uses SSR `compileCampaignForBrand`.
+- `lib/campaigns.ts` compiles MDX with `jsxDEV` in dev to avoid React dev-prop mismatches.
+- `app/brand/[slug]/page.tsx` supports `NEXT_PUBLIC_DISABLE_CAMPAIGN_DEV` in development to fall back to generic content.
+
+### Environment Flags
+```
+NEXT_PUBLIC_RULES_ENABLED=true
+NEXT_PUBLIC_RULES_CSR_HESITATION_TOOLTIP=true
+NEXT_PUBLIC_DISABLE_CAMPAIGN_DEV=true   # dev-only stability toggle
+```
+
+### Verification Steps
+1. `npm run dev`, open `/brand/tmobile`.
+2. Ensure no server 500. If MDX instability occurs, set `NEXT_PUBLIC_DISABLE_CAMPAIGN_DEV=true` and restart.
+3. Tooltip appears once per session near main CTA (auto-hide ~8s).
+4. E2E redirects:
+   ```
+   REDIRECT_E2E_BASE=http://localhost:3000 npm run test:e2e -- --reporter=line
+   ```
+
+### Known Risks
+- React 19 dev/runtime sensitivity for MDX: mitigated by `jsxDEV` in `lib/campaigns.ts`; dev-only flag available.
+- Tooltip depends on DOM anchor; delayed appearance up to ~5s while anchor is awaited.
+
+### Next Recommended Work
+- Add Playwright tests: consent on/off, CTA tooltip visibility with flags enabled.
+- Document `.env.example` flags and rollout policy.
+
