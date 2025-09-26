@@ -335,12 +335,37 @@ export function ClosingBanner() {
 
         <div className="inline-block text-left md:text-center p-6 md:p-8" style={{ backgroundColor: 'var(--campaign-accent)', color: '#000' }}>
           <div className="text-xl md:text-2xl font-black mb-3 md:mb-4">CONTACT</div>
-          <div className="text-lg md:text-xl">eof@offline.pl</div>
-          <div className="text-lg md:text-xl">+48 535 555 066</div>
+          <div className="text-lg md:text-xl">
+            <a
+              href="mailto:eof@offline.pl"
+              data-cta-id="contact_email"
+              data-cta-source="contact"
+              data-cta-variant="secondary"
+              className="underline decoration-transparent hover:decoration-current transition"
+              style={{ color: '#000' }}
+            >
+              eof@offline.pl
+            </a>
+          </div>
+          <div className="text-lg md:text-xl">
+            <a
+              href="tel:+48535555066"
+              data-cta-id="contact_phone"
+              data-cta-source="contact"
+              data-cta-variant="secondary"
+              className="underline decoration-transparent hover:decoration-current transition"
+              style={{ color: '#000' }}
+            >
+              +48 535 555 066
+            </a>
+          </div>
           <a
             href="https://linkedin.com/in/eofek"
             target="_blank"
             rel="noopener noreferrer"
+            data-cta-id="contact_linkedin"
+            data-cta-source="contact"
+            data-cta-variant="secondary"
             className="text-base md:text-lg underline"
             style={{ color: '#000' }}
           >

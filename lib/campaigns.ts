@@ -12,7 +12,6 @@ import React from 'react'
 // Use jsxDEV in development to construct the MDX root element with dev properties.
 // This avoids the React 19 dev error: "Attempted to render MDXContent without development properties".
 // In production, we fall back to React.createElement.
-import { jsxDEV as _jsxDEV } from 'react/jsx-dev-runtime'
 import remarkGfm from 'remark-gfm'
 
 const ROOT = process.cwd()
@@ -213,14 +212,8 @@ export async function compileCampaignForBrand(
       }))
     }
   } catch {}
-  // Re-create the element using JSX so React uses jsxDEV in development (avoids the dev-props warning)
-  const Content: any = (content as any)?.type || null
-  const element = Content
-    ? (process.env.NODE_ENV !== 'production'
-        ? _jsxDEV(Content, { components: normalizedComponents }, undefined, false, { fileName: 'lib/campaigns.ts', lineNumber: 0, columnNumber: 0 }, null)
-        : React.createElement(Content, { components: normalizedComponents }))
-    : content
-  return { content: element as React.ReactElement, frontmatter: fm }
+  // Return MDX content as compiled; dev props are handled by compileMDX when development=true
+  return { content: content as React.ReactElement, frontmatter: fm }
 }
 
 // Serialize MDX for client-side rendering (MDXRemote) — used as a dev fallback to avoid React 19 dev runtime mismatch
