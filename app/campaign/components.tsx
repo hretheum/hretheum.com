@@ -109,13 +109,13 @@ export function PortfolioShowcase({
                     </div>
                     <ul className="space-y-3">
                       {project.approach.map((step, stepIdx) => (
-                        <li key={`${idx}_approach_${stepIdx}`} className="flex gap-3">
-                          <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white" style={{ background: 'color-mix(in srgb, var(--campaign-accent) 88%, #0f172a 12%)' }}>
+                        <li key={`${idx}_approach_${stepIdx}`} className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-[3px] flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold text-white" style={{ background: 'color-mix(in srgb, var(--campaign-accent) 88%, #0f172a 12%)' }}>
                             {stepIdx + 1}
                           </div>
-                          <span className="text-sm md:text-base text-neutral-700 leading-relaxed">
+                          <div className="flex-1 text-sm md:text-base text-neutral-700 leading-relaxed">
                             {step}
-                          </span>
+                          </div>
                         </li>
                       ))}
                     </ul>
