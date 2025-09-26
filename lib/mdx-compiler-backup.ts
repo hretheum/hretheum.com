@@ -3,6 +3,7 @@
 
 import { compile } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
+import * as devRuntime from 'react/jsx-dev-runtime'
 import matter from 'gray-matter'
 import remarkGfm from 'remark-gfm'
 
@@ -25,18 +26,23 @@ export async function compileMDXDirect(
     // Use production runtime even in dev to avoid signature mismatch
     // jsxDEV has different signature than jsx/jsxs
     const jsxRuntime = {
-      jsx: runtime.jsx,
-      jsxs: runtime.jsxs,
+      _jsx: runtime.jsx,
+      _jsxs: runtime.jsxs,
       Fragment: runtime.Fragment
     }
     
     // Build the component
     const code = String(compiled)
-    console.debug('[compileMDXDirect] compiled code', code)
     
     // MDX expects these in scope
-    const fn = new Function('runtime', 'components', 'frontmatter', code)
-    const result = fn(jsxRuntime, components, frontmatter)
+    const _jsx = jsxRuntime._jsx
+    const _jsxs = jsxRuntime._jsxs
+    const Fragment = jsxRuntime.Fragment
+    const _components = components
+    
+    // Use eval to execute MDX code with variables in closure scope
+    // Wrap in IIFE to handle return statement
+    const result = eval('(function() {' + code + '})()'))
     
     // MDX returns an object with a default function that creates the element
     let element;

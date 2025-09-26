@@ -16,98 +16,205 @@ ctas:
     variant: secondary
 ---
 
-<CampaignMeta role={frontmatter.role} location={frontmatter.location} contract={frontmatter.contract} period={frontmatter.period} />
-
 <SectionTitle title="I BUILD AND SCALE PRODUCT DESIGN ORGS" subtitle="AI‑powered systems • Outcomes • Velocity" />
 
-<Playbook bullets={[
-  'Build and scale high‑performing product design teams (org design, hiring, coaching).',
-  'Ship design systems and platform patterns across products and markets.',
-  'Build AI‑powered workflows and decision support tied to product goals.',
-  'Run an outcomes‑driven cadence: define, measure, iterate, ship.',
-]} />
-
-<MetricsStrip items={[
-  { label: 'Teams scaled', value: '5–12 designers' },
-  { label: 'Design systems shipped', value: '3+' },
-  { label: 'AI initiatives delivered', value: 'multiple' },
-  { label: 'Time‑to‑ship impact', value: '−35% (rep.)' },
-]} />
-
-<CaseGrid items={[
-  {
-    title: 'Product Design Org at Scale',
-    subtitle: 'Org design • Hiring • Rituals',
-    challenge: 'From one team to multi‑team organization while keeping quality and velocity.',
-    solution: 'Hiring pipeline, coaching, rituals, review cadence, measurable outcomes.',
-    outcome: 'High‑performing teams; predictable delivery; clear quality gates.',
-    details: 'Define structure, responsibilities, and interfaces with product/engineering.'
-  },
-  {
-    title: 'Design System Rollout',
-    subtitle: 'Tokens • Accessibility • Governance',
-    challenge: 'Cross‑product inconsistency and duplicated effort.',
-    solution: 'Token strategy, accessible components, contribution model, performance guardrails.',
-    outcome: 'Consistency across products and markets; faster shipping.',
-    details: 'Operationalize design systems with clear governance and adoption paths.'
-  },
-  {
-    title: 'AI‑Enabled Workflows',
-    subtitle: 'Research • Synthesis • Decision support',
-    challenge: 'Slow discovery and knowledge transfer; scattered insights.',
-    solution: 'LLM‑assisted research/synthesis; evaluation, guardrails, safe rollout.',
-    outcome: 'Faster learning loops and better decisions tied to product goals.',
-    details: 'Integrate AI where it shortens cycles and increases signal, not noise.'
-  }
-]} />
-
-<SectionTitle title="SELECTED PROJECTS" subtitle="Banking • Insurance • Retail" />
-
-<CaseStudyRich
-  title="Design system & migration"
-  context="Cross-market component library and tokens for enterprise scale."
-  role="Design Lead (strategy, tokens, review)"
-  challenge="Multiple legacy stacks and visual languages across domains."
-  approach={["Audit & inventory", "Token strategy & theming", "Accessibility & performance gates", "Governance & contribution model"]}
-  outcome="Unified experience, faster delivery, consistent quality."
+<CampaignCapabilityGrid
+  title="WHAT CAN I DO FOR YOUR CLIENTS"
+  items={[
+    {
+      icon: '⚙️',
+      heading: 'Org Design & Scale',
+      description: 'Design org blueprints, hiring systems, and coaching programs that produce high-performing product design teams.',
+    },
+    {
+      icon: '🧠',
+      heading: 'AI Workflow Enablement',
+      description: 'Integrate AI-assisted research, synthesis, and decision-support to speed discovery while keeping guardrails intact.',
+    },
+    {
+      icon: '📈',
+      heading: 'Outcomes Cadence',
+      description: 'Operationalize outcome-driven rituals—define, measure, iterate, ship—across product, design, and engineering.',
+    },
+  ]}
 />
 
-<Playbook title="Leadership Playbook" bullets={[
-  'Vision → Execution: translate goals into measurable UX outcomes',
-  'Cross‑functional cadence: product × design × engineering',
-  'Design Systems: tokens-first, performance-aware, a11y by default',
-]} />
 
-<PlaybookDiagram steps={['Discovery', 'Prototyping', 'Validation', 'Scale']} />
+<SectionTitle title="SELECTED PROJECTS" subtitle="Banking • Insurance • Retail" />
+<PortfolioShowcase
+  tags={['Banking', 'Insurance', 'Telecom', 'Media']}
+  projects={[
+    {
+      title: 'ING Business — Permission Management',
+      summary: 'Redesigned SME/MC access and authorization flows to cut support load and raise task success.',
+      context: 'Built the ING Business Banking UX chapter from zero to 15+ practitioners; co-created reusable systems for permissions, dashboards, and onboarding.',
+      role: 'UX Principal Expert / Chapter Lead',
+      challenge: 'Admins struggled with fragmented, legalistic permission workflows that triggered errors and tickets.',
+      approach: [
+        'Discovery across personas, journeys, and support ticket analysis; co-created problem framing with chapter members.',
+        'Design studio with Legal, Operations, and Product to replace legalese with contextual language and workflows.',
+        'Prototype validation with SMEs, iterating flows in Figma and pushing patterns into the ING design system.',
+      ],
+      outcome: 'Higher completion, reduced support, and a permissions pattern adopted by multiple ING squads.',
+    },
+    {
+      title: 'PKO iPKO Biznes Corporate Redesign',
+      summary: '18-month transformation of Poland’s largest corporate banking platform with new design system foundations.',
+      role: 'UX Strategist / Service Designer',
+      challenge: 'Legacy workflows and fragmented IA slowed enterprise users across critical processes.',
+      approach: [
+        'Structured discovery: interviews, workshops, and journey mapping.',
+        'Defined design system governance to scale consistency across squads.',
+        'Facilitated cross-functional alignment between Product, IT, and Compliance.',
+      ],
+      outcome: 'Future-ready B2B banking experience with higher adoption and reduced support noise.',
+    },
+    {
+      title: 'Bank BPH Digital Conversion',
+      summary: 'End-to-end overhaul of onboarding and transaction flows in a regulated banking environment.',
+      role: 'UX Lead',
+      challenge: 'Funnel friction across onboarding and transactions depressed conversion and raised support burden.',
+      approach: [
+        'Workflow redesign with IA cleanup and rapid prototyping.',
+        'Iterative usability validation and conversion funnel analysis.',
+      ],
+      outcome: 'Higher conversion and smoother transactional UX for retail banking customers.',
+    },
+    {
+      title: 'Warta.pl InsurTech Overhaul',
+      summary: 'Service design program that rebuilt the online insurance purchase journey end-to-end.',
+      role: 'Service Designer / UX Lead',
+      challenge: 'Quote funnel friction and unclear IA slowed time-to-quote and raised abandonment.',
+      approach: [
+        'Discovery via interviews, journey mapping, and aligned backlogs.',
+        'Progressive disclosure prototypes with iterative usability testing.',
+        'Stakeholder alignment across business, compliance, and tech.',
+      ],
+      outcome: 'Faster quote generation with measurable drop in abandonment across funnels.',
+    },
+    {
+      title: 'T-Mobile E-shop Conversion Paths',
+      summary: 'Improved telecom checkout experience through research-driven flow and copy experiments.',
+      role: 'UX Lead',
+      challenge: 'High drop-off in checkout due to unclear steps and friction in purchase flow.',
+      approach: [
+        'Prototype critical checkout paths and run moderated usability sessions.',
+        'Iterate copy and step ordering using funnel analytics and A/B tests.',
+      ],
+      outcome: 'More completed purchases and reduced abandonment across e-shop flows.',
+    },
+    {
+      title: 'TVP Media Portals Redesign',
+      summary: 'Multi-year redesign of national media portals with focus on IA, accessibility, and scalability.',
+      role: 'UX Lead',
+      challenge: 'Disparate properties with inconsistent navigation and accessibility standards.',
+      approach: [
+        'Unified IA patterns and accessibility improvements across portals.',
+        'Prototyping with usability verification and stakeholder workshops.',
+      ],
+      outcome: 'Consistent, accessible media experience across TVP’s national and regional properties.',
+    },
+  ]}
+/>
 
-<SectionTitle title="HOW I WORK" subtitle="Approach & philosophy" />
+<LeadershipSection
+  title="LEADERSHIP"
+  bannerText="SENIOR DESIGNERS SHOULD BUILD, NOT JUST COORDINATE."
+  items={[
+    { heading: 'ORG MODELS', detail: 'Tribe/Chapter operating model with clear interfaces.' },
+    { heading: 'COACHING', detail: 'Grow Senior → Lead leadership with purposeful ladders.' },
+    { heading: 'CROSS-FUNCTIONAL', detail: 'Product × Engineering × Data × QA working as one cadence.' },
+    { heading: 'STAKEHOLDER BUY-IN', detail: 'Executive alignment, narrative, and measurable commitments.' },
+  ]}
+/>
 
-<Quote text="I build teams and systems that ship. Fast, measurable, repeatable." />
+<LeadershipPlaybook
+  title="PRODUCT DESIGN LEADERSHIP PLAYBOOK"
+  columns={[
+    {
+      heading: 'DISCOVERY & DELIVERY',
+      bullets: [
+        'Shift-left discovery: embed research before sprinting.',
+        'Continuous discovery alongside OKR delivery.',
+        'Prototypes and experiments that de-risk bets.',
+      ],
+    },
+    {
+      heading: 'DESIGN OPS & SYSTEMS',
+      bullets: [
+        'Scalable systems with governance and contribution model.',
+        'Design tokens, accessibility checks, and performance guardrails.',
+        'Playbooks for squads to self-serve high quality UI.',
+      ],
+    },
+    {
+      heading: 'QUALITY & FEEDBACK',
+      bullets: [
+        'Regular critiques and craft bars with measurable progression.',
+        'Design reviews tied to product metrics.',
+        'Healthy feedback loops between squads and leadership.',
+      ],
+    },
+    {
+      heading: 'RESEARCH OPS',
+      bullets: [
+        'Centralized repositories (Aurelius, Dovetail) with tagging.',
+        'Standardized recruitment, consent, and playbooks.',
+        'Democratized observation for PMs, engineers, leadership.',
+      ],
+    },
+  ]}
+/>
 
-<Timeline steps={["Workshops & alignment", "Flows & prototypes", "Usability & metrics", "Handover & governance"]} />
+<CareerTimeline
+  items={[
+    {
+      company: 'SPORTRADAR',
+      period: '2022–2025',
+      role: 'TRIBE PRODUCT DESIGN LEAD • 15+ SQUADS',
+      tone: 'accent',
+    },
+    {
+      company: 'ING BANK',
+      period: '2017–2022',
+      role: 'UX PRINCIPAL EXPERT • BUSINESS BANKING',
+      tone: 'dark',
+    },
+    {
+      company: 'DELOITTE',
+      period: '2015–2016',
+      role: 'UX MANAGER • ENTERPRISE SCALE',
+      tone: 'accent',
+    },
+    {
+      company: 'KOMITYWA',
+      period: '2007–2009',
+      role: 'CO-FOUNDER • POLAND’S EARLIEST UX AGENCY',
+      tone: 'dark',
+    },
+    {
+      company: 'MRM WORLDWIDE',
+      period: '2006–2007',
+      role: 'UX DIRECTOR',
+      tone: 'accent',
+    },
+    {
+      company: 'OFFLINE.PL',
+      period: '2004–2017',
+      role: 'UX LEAD • POLAND’S FIRST USABILITY LAB',
+      tone: 'dark',
+      spotlight: true,
+    },
+    {
+      company: 'GREY',
+      period: '2003–2006',
+      role: 'UX LEAD • POLAND’S FIRST USABILITY LAB',
+      tone: 'accent',
+    },
+  ]}
+ />
 
-<SectionTitle title="LEADERSHIP" subtitle="Mentoring • Quality • Collaboration" />
 
-<CaseGrid items={[
-  { title: 'Mentorship & quality', details: 'Grow designers through feedback, design reviews, and pairing.' },
-  { title: 'Stakeholder communication', details: 'Transparent decisions and narrative around trade‑offs.' },
-  { title: 'Scalable practices', details: 'Set up rituals, design ops, and playbooks for consistency.' },
-]} colsClass="grid-cols-1 md:grid-cols-3" />
-
-<SectionTitle title="AI BUILDER" subtitle="Accelerate with AI & data" />
-
-<CaseGrid items={[
-  { title: 'Data‑informed UX', details: 'Use product analytics and AI to identify friction and opportunities.' },
-  { title: 'AI assistants', details: 'Support operations with LLMs for summarization and synthesis.' },
-  { title: 'Safe rollout', details: 'Guardrails, evaluation, and continuous improvement.' },
-]} colsClass="grid-cols-1 md:grid-cols-3" />
-
-<SectionTitle title="OTHER PROJECTS" subtitle="Breadth across domains" />
-
-<CTAGroup align="center" ctas={[
-  { label: 'Efigence Case Studies', href: 'https://www.efigence.com/case-studies/', variant: 'secondary' },
-  { label: 'Get in touch', href: 'https://www.efigence.com/contact/', variant: 'primary' }
-]} />
 
 <OutcomeBanner text="Let’s make digital experiences that matter. On time, on spec, with measurable impact." />
 

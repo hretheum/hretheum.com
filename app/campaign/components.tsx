@@ -3,6 +3,7 @@
 
 import React from 'react'
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
+
 export function CampaignMeta(props: { role?: string; location?: string; contract?: string; period?: string }) {
   const { role, location, contract, period } = props
   return (
@@ -23,6 +24,351 @@ export function CampaignMeta(props: { role?: string; location?: string; contract
       </div>
     </section>
   )
+}
+
+export function PortfolioShowcase({
+  projects,
+  tags,
+}: {
+  projects: Array<{
+    title: string
+    summary?: string
+    role?: string
+    challenge?: string
+    approach?: string[]
+    outcome?: string
+    context?: string
+  }>
+  tags?: string[]
+}) {
+  return (
+    <section className="not-prose py-12">
+      <div className="space-y-12">
+        {projects.map((project, idx) => (
+          <article
+            key={`${idx}_${project.title}`}
+            className="rounded-[28px] border border-neutral-200 bg-white/95 shadow-[0_28px_60px_-55px_rgba(15,23,42,0.55)] backdrop-blur"
+          >
+            <div className="px-8 md:px-12 py-9 md:py-11 space-y-7">
+              <header className="space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-1 text-[11px] font-semibold tracking-[0.28em] text-neutral-500 uppercase">
+                    Case Study
+                  </div>
+                  {project.role && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-neutral-600 uppercase">
+                      <CaseIcon name="users" />
+                      <span>{project.role}</span>
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight text-neutral-900">
+                  {project.title}
+                </h3>
+                {project.summary && (
+                  <p className="text-base md:text-lg text-neutral-700 leading-relaxed">
+                    {project.summary}
+                  </p>
+                )}
+                {project.context && (
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    {project.context}
+                  </p>
+                )}
+              </header>
+
+              <div className="grid gap-8 md:grid-cols-[minmax(0,260px)_1fr]">
+                <div className="space-y-4">
+                  {project.challenge && (
+                    <div className="rounded-2xl border border-neutral-800/10 bg-neutral-900 px-5 py-5 text-white">
+                      <div className="flex items-center gap-2.5 mb-2 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-300">
+                        <CaseIcon name="alert" />
+                        <span>Challenge</span>
+                      </div>
+                      <p className="text-sm md:text-base leading-relaxed text-neutral-100/90">{project.challenge}</p>
+                    </div>
+                  )}
+                  {project.outcome && (
+                    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-5">
+                      <div className="flex items-center gap-2.5 mb-2 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-500">
+                        <CaseIcon name="trend" />
+                        <span>Outcome</span>
+                      </div>
+                      <p className="text-sm md:text-base font-semibold text-neutral-900 leading-relaxed">
+                        {project.outcome}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {project.approach && project.approach.length > 0 && (
+                  <div className="rounded-2xl border border-dashed border-neutral-200 bg-white px-6 py-6 space-y-5">
+                    <div className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-500">
+                      <CaseIcon name="path" />
+                      <span>Approach</span>
+                    </div>
+                    <ul className="space-y-3">
+                      {project.approach.map((step, stepIdx) => (
+                        <li key={`${idx}_approach_${stepIdx}`} className="flex gap-3">
+                          <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white" style={{ background: 'color-mix(in srgb, var(--campaign-accent) 88%, #0f172a 12%)' }}>
+                            {stepIdx + 1}
+                          </div>
+                          <span className="text-sm md:text-base text-neutral-700 leading-relaxed">
+                            {step}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+      {tags && tags.length > 0 && (
+        <div className="mt-10 flex flex-wrap gap-2">
+          {tags.map((tag, tagIdx) => (
+            <span
+              key={`${tag}_${tagIdx}`}
+              className="px-3 py-1 rounded-full text-xs font-semibold tracking-[0.2em] uppercase"
+              style={{
+                background: 'color-mix(in srgb, var(--campaign-accent) 12%, transparent)',
+                color: '#0f172a',
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+const CASE_ICONS: Record<string, React.ReactElement> = {
+  users: (
+    <svg className="h-4 w-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  alert: (
+    <svg className="h-4 w-4 text-neutral-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+      <line x1="12" x2="12" y1="9" y2="13" />
+      <line x1="12" x2="12.01" y1="17" y2="17" />
+    </svg>
+  ),
+  trend: (
+    <svg className="h-4 w-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="3 17 9 11 13 15 21 7" />
+      <polyline points="14 7 21 7 21 14" />
+    </svg>
+  ),
+  path: (
+    <svg className="h-4 w-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 7h14" />
+      <path d="M8 7v10a1 1 0 0 1-1 1H5" />
+      <path d="M19 17h-2a1 1 0 0 1-1-1V7" />
+      <circle cx="5" cy="7" r="2" />
+      <circle cx="19" cy="17" r="2" />
+    </svg>
+  ),
+}
+
+function CaseIcon({ name }: { name: keyof typeof CASE_ICONS }) {
+  return CASE_ICONS[name]
+}
+
+export function CareerTimeline({
+  items,
+}: {
+  items: Array<{
+    company: string
+    period: string
+    role: string
+    tone?: 'accent' | 'dark'
+    spotlight?: boolean
+  }>
+}) {
+  return (
+    <section className="not-prose py-16">
+      <div className="space-y-16">
+        {items.map((item, idx) => {
+          const headingStyle = item.tone === 'dark' ? { color: '#0f172a' } : { color: 'var(--campaign-accent)' }
+          const periodStyle = item.tone === 'dark' ? { color: '#0f172a' } : { color: 'var(--campaign-accent)' }
+          const containerClass = item.spotlight
+            ? 'relative -mx-4 sm:-mx-8 lg:-mx-12'
+            : 'text-center'
+          return (
+            <div key={`${idx}_${item.company}`} className={containerClass}>
+              <div className={item.spotlight ? 'bg-neutral-50 py-16 px-6 sm:px-10 lg:px-16 text-center border border-neutral-200' : ''}>
+                <h3
+                  className="text-[clamp(2rem,8vw,4rem)] font-black leading-[1.02] tracking-tight break-words [text-wrap:balance] mb-3"
+                  style={headingStyle}
+                >
+                  {item.company}
+                </h3>
+                <div
+                  className="text-[clamp(1.25rem,5vw,2.25rem)] font-black mb-2"
+                  style={periodStyle}
+                >
+                  {item.period}
+                </div>
+                <div className="text-lg md:text-2xl font-semibold text-neutral-600 uppercase tracking-[0.08em]">
+                  {item.role}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+export function LeadershipSection({
+  title,
+  items,
+  bannerText,
+}: {
+  title: string
+  items: Array<{ heading: string; detail: string }>
+  bannerText?: string
+}) {
+  return (
+    <section className="not-prose py-16">
+      <div className="text-center mb-10">
+        <h2 className="text-[clamp(2.5rem,8vw,6rem)] font-black tracking-tight text-neutral-900 leading-[0.95]">
+          {title}
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {items.map((item, idx) => (
+          <div key={`${idx}_${item.heading}`} className="bg-neutral-900 text-white px-6 py-8 shadow-[0_20px_45px_-30px_rgba(15,23,42,0.9)]">
+            <div className="text-sm font-semibold tracking-[0.3em] uppercase text-neutral-400 mb-3">Details</div>
+            <h3 className="text-2xl font-black mb-2 leading-tight">{item.heading}</h3>
+            <p className="text-base text-neutral-100 opacity-90">{item.detail}</p>
+          </div>
+        ))}
+      </div>
+      {bannerText && (
+        <div className="mt-10">
+          <div className="text-center text-white font-black uppercase tracking-[0.18em] text-sm sm:text-base py-5 sm:py-6 px-4" style={{ backgroundColor: 'color-mix(in srgb, var(--campaign-accent) 85%, #0f172a 15%)' }}>
+            {bannerText}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+export function LeadershipPlaybook({
+  title,
+  columns,
+}: {
+  title: string
+  columns: Array<{ heading: string; bullets: string[] }>
+}) {
+  return (
+    <section className="not-prose py-16">
+      <div className="text-center mb-12">
+        <h2 className="text-[clamp(2rem,7vw,4.5rem)] font-black tracking-tight text-neutral-900 leading-[0.95]">
+          {title}
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        {columns.map((column, idx) => (
+          <div key={`${idx}_${column.heading}`}>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-neutral-500 mb-4">
+              {column.heading}
+            </h3>
+            <ul className="list-disc pl-6 space-y-2 text-neutral-700">
+              {column.bullets.map((bullet, bulletIdx) => (
+                <li key={`${idx}_${bulletIdx}`}>{bullet}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export function CampaignCapabilityGrid({
+  title,
+  items,
+}: {
+  title: string
+  items: Array<{ icon: 'org' | 'ai' | 'outcome' | string; heading: string; description: string }>
+}) {
+  return (
+    <section className="not-prose py-14">
+      <div className="text-center mb-10">
+        <h2 className="text-[clamp(2rem,7vw,4rem)] font-black tracking-tight text-neutral-900 leading-[0.95]">
+          {title}
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {items.map((item, idx) => (
+          <div
+            key={`${idx}_${item.heading}`}
+            className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-[0_30px_60px_-45px_rgba(15,23,42,0.45)]"
+          >
+            <div className="absolute inset-x-0 top-0 h-1" style={{ background: 'var(--campaign-accent)' }} />
+            <div className="px-8 py-10 space-y-4">
+              <CapabilityIcon name={item.icon} />
+              <h3 className="text-2xl font-black text-neutral-900 leading-tight">
+                {item.heading}
+              </h3>
+              <p className="text-sm md:text-base text-neutral-600 leading-relaxed">
+                {item.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function CapabilityIcon({ name }: { name: 'org' | 'ai' | 'outcome' | string }) {
+  const iconMap: Record<string, React.ReactElement> = {
+    org: (
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50">
+        <svg className="h-6 w-6 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <path d="M17.5 14v3" />
+          <path d="M19 17.5h-3" />
+          <path d="M6.5 10v4" />
+        </svg>
+      </div>
+    ),
+    ai: (
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50">
+        <svg className="h-6 w-6 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="4" />
+          <path d="M7 15s1.5 2 5 2 5-2 5-2" />
+          <path d="M9 11h.01" />
+          <path d="M15 11h.01" />
+        </svg>
+      </div>
+    ),
+    outcome: (
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50">
+        <svg className="h-6 w-6 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 12l4 4 7-7 4 4 3-3" />
+        </svg>
+      </div>
+    ),
+  }
+
+  return iconMap[name] ?? iconMap.org
 }
 
 export function KeywordsBlock() {
