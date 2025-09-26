@@ -1,7 +1,9 @@
 // Documentation: all comments/docstrings in English per policy.
 import React from 'react'
 import type { Industry } from '@/lib/industry'
-import { compileCampaignForBrand, serializeCampaignForBrand } from '@/lib/campaigns'
+import { compileCampaignForBrand, serializeCampaignForBrand, findCampaignForBrand } from '@/lib/campaigns'
+import { compileMDXDirect } from '@/lib/mdx-compiler'
+import fs from 'fs/promises'
 import {
   CTABanner,
   CTAGroup,
@@ -46,15 +48,17 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
     KeywordsBlock,
   }
   
-  // Always use SSR path for both dev and production
-  // The development flag in compileMDX handles React 19 compatibility
-  try {
-    const compiled = await compileCampaignForBrand(slug, components)
+  // Use custom MDX compiler in dev to avoid React 19 issues
+  if (process.env.NODE_ENV !== 'production') {
+    const found = await findCampaignForBrand(slug)
+    if (!found) return null
+    const raw = await fs.readFile(found.filePath, 'utf8')
+    const compiled = await compileMDXDirect(raw, components)
     if (!compiled) return null
     const { content, frontmatter } = compiled
     const base = getIndustryTheme(industry)
     const tokens = withOverrides(base, frontmatter?.accent ? { accent: frontmatter.accent } : undefined)
-
+    
     return (
       <div className="px-4 sm:px-6 max-w-7xl mx-auto" style={{ ['--campaign-accent' as any]: tokens.accent }}>
         <div className="prose prose-zinc max-w-none prose-headings:scroll-mt-20">
@@ -62,25 +66,20 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
         </div>
       </div>
     )
-  } catch (error) {
-    // Fallback to client-side rendering ONLY if SSR fails
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[CampaignRenderer] SSR failed, falling back to CSR:', error)
-      const ser = await serializeCampaignForBrand(slug)
-      if (!ser) return null
-      const { compiledSource, frontmatter } = ser
-      const base = getIndustryTheme(industry)
-      const tokens = withOverrides(base, frontmatter?.accent ? { accent: frontmatter.accent } : undefined)
-      const CampaignClient = (await import('./CampaignClient')).default
-      return (
-        <div className="px-4 sm:px-6 max-w-7xl mx-auto" style={{ ['--campaign-accent' as any]: tokens.accent }}>
-          <div className="prose prose-zinc max-w-none prose-headings:scroll-mt-20">
-            <CampaignClient compiledSource={compiledSource} />
-          </div>
-        </div>
-      )
-    }
-    // In production, throw the error
-    throw error
   }
+  
+  // Production path: Use next-mdx-remote (works fine in prod)
+  const compiled = await compileCampaignForBrand(slug, components)
+  if (!compiled) return null
+  const { content, frontmatter } = compiled
+  const base = getIndustryTheme(industry)
+  const tokens = withOverrides(base, frontmatter?.accent ? { accent: frontmatter.accent } : undefined)
+
+  return (
+    <div className="px-4 sm:px-6 max-w-7xl mx-auto" style={{ ['--campaign-accent' as any]: tokens.accent }}>
+      <div className="prose prose-zinc max-w-none prose-headings:scroll-mt-20">
+        {content}
+      </div>
+    </div>
+  )
 }
