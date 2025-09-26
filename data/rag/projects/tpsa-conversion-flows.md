@@ -14,26 +14,27 @@ date: 2010-05-01
 ---
 
 ## Summary — Telekomunikacja Polska (TP SA) — Conversion Flows
-Redesigned conversion flows across multiple telecom products ensuring usability at scale.
+Optimized multiple telecom product journeys (broadband, mobile, bundles) to lift acquisition and upgrade conversions while keeping UX consistent.
 
 ## Problem — Telekomunikacja Polska (TP SA) — Conversion Flows
-Fragmented flows and unclear steps hurting conversion.
+High abandonment in plan upgrades and contract renewals caused by disjointed steps, eligibility confusion, and unclear value messaging.
 
 ## Approach — Telekomunikacja Polska (TP SA) — Conversion Flows
-- Prototyping key flows; iterative testing.
-- IA cleanup and consistency improvements.
+- Audited end-to-end journeys from landing through checkout, surfacing friction across product lines.
+- Created prototype playbooks covering upgrade wizards, eligibility steps, and post-purchase confirmations.
+- Ran iterative usability tests and analytics reviews to prioritize fixes and measure lift.
 
 ## Stakeholder Management — Telekomunikacja Polska (TP SA) — Conversion Flows
-- Collaboration with marketing, product, and IT teams.
+- Partnered with product, e-commerce, and marketing teams to synchronize offers, approvals, and launch sequencing.
 
 ## Metrics & Experiments — Telekomunikacja Polska (TP SA) — Conversion Flows
-- Funnel analysis; task success studies.
+- Funnel analysis, task success benchmarking, and pre/post conversion dashboards for targeted offers.
 
 ## Results & Impact — Telekomunikacja Polska (TP SA) — Conversion Flows
-- Improved conversion and reduced churn.
+- Higher completion rates on targeted flows and a reusable conversion kit applied by multiple TP SA product squads.
 
 ## Learnings — Telekomunikacja Polska (TP SA) — Conversion Flows
-- Consistency across products simplifies user mental models.
+- Conversion UX libraries accelerate future launches and reduce drop-offs when teams share patterns.
 
 ## Links — Telekomunikacja Polska (TP SA) — Conversion Flows
 - Case: /portfolio/tpsa#summary

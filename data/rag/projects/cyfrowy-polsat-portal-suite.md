@@ -14,26 +14,27 @@ date: 2011-09-01
 ---
 
 ## Summary — Cyfrowy Polsat — Portal Suite Redesign
-Led redesign of multiple portals focusing on content discoverability and user flows.
+Redesigned cyfrowypolsat.pl, iCOK, rozrywka-online, and polsatsport.pl into a cohesive media and entertainment ecosystem spanning acquisition, self-care, and sports content.
 
 ## Problem — Cyfrowy Polsat — Portal Suite Redesign
-Fragmented experiences across portals; accessibility gaps.
+Siloed sites, inconsistent UX patterns, and accessibility gaps diluted cross-sell opportunities and confused subscribers moving between properties.
 
 ## Approach — Cyfrowy Polsat — Portal Suite Redesign
-- IA and navigation patterns harmonized across properties.
-- Prototyping flows; accessibility improvements.
+- Journey mapping across acquisition, self-service, and content consumption paths for satellite and OTT products.
+- Designed modular page templates and navigation patterns for live TV, VOD, account management, and support touchpoints.
+- Embedded accessibility and responsive prototyping to ensure parity across devices and content types.
 
 ## Stakeholder Management — Cyfrowy Polsat — Portal Suite Redesign
-- Alignment with editorial and tech stakeholders.
+- Facilitated alignment between digital, broadcast, and customer-care teams to lock taxonomy, personalization hooks, and governance.
 
 ## Metrics & Experiments — Cyfrowy Polsat — Portal Suite Redesign
-- Content discoverability heuristics; engagement KPIs.
+- Content discoverability heuristics, engagement dashboards, and cross-sell funnel tracking.
 
 ## Results & Impact — Cyfrowy Polsat — Portal Suite Redesign
-- More consistent experience; better content discovery.
+- Connected digital touchpoints that improved cross-sell paths and set the foundation for future OTT initiatives.
 
 ## Learnings — Cyfrowy Polsat — Portal Suite Redesign
-- Shared patterns improve scalability of large media ecosystems.
+- Multi-property design systems require editorial + product stewardship to keep experiences cohesive over time.
 
 ## Links — Cyfrowy Polsat — Portal Suite Redesign
 - Case: /portfolio/cyfrowypolsat#summary

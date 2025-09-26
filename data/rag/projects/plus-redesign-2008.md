@@ -14,26 +14,27 @@ date: 2008-06-01
 ---
 
 ## Summary — Plus.pl — Full Redesign (2008)
-End‑to‑end redesign focused on IA, findability, and modernized digital presence.
+End-to-end redesign of Plus.pl that modernized the digital storefront, unified campaigns, and prepared omnichannel handoffs.
 
 ## Problem — Plus.pl — Full Redesign (2008)
-Outdated IA and navigation causing friction for key tasks.
+Fragmented navigation, dated visual language, and siloed offers made bundle configuration and discovery painful for consumers and business buyers.
 
 ## Approach — Plus.pl — Full Redesign (2008)
-- Information architecture overhaul; wireframed new structures.
-- Quick validation via moderated tests.
+- Re-architected information architecture and sitemap to converge mobile, broadband, TV, and business offers.
+- Created component-driven UI templates (hero, configurators, support flows) that kept campaigns consistent.
+- Ran moderated usability walkthroughs with retail and call-center stakeholders to validate omnichannel transitions.
 
 ## Stakeholder Management — Plus.pl — Full Redesign (2008)
-- Coordinated content, marketing, and IT.
+- Coordinated marketing, CX, and IT to keep campaign timelines, brand requirements, and platform constraints aligned.
 
 ## Metrics & Experiments — Plus.pl — Full Redesign (2008)
-- Task success and time‑to‑task benchmarks; IA tree tests.
+- Task success benchmarks, tree tests, and post-launch analytics on conversion funnels and support deflection.
 
 ## Results & Impact — Plus.pl — Full Redesign (2008)
-- Better findability and improved conversion paths.
+- Launch-ready storefront that aligned offer presentation across web, retail, and ATL campaigns; improved findability and conversion.
 
 ## Learnings — Plus.pl — Full Redesign (2008)
-- IA clarity drives conversion improvements.
+- Harmonized IA + UI systems reduce cross-channel confusion and accelerate future campaign launches.
 
 ## Links — Plus.pl — Full Redesign (2008)
 - Case: /portfolio/plus-2008#summary

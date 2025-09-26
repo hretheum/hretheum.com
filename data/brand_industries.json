@@ -12,7 +12,8 @@
     "Generic", 
     "Dummy",
     "Retail",
-    "DigitalTech"
+    "DigitalTech",
+    "iGaming"
   ],
   "mapping": {
     "zendesk": "SaaS",
@@ -31,6 +32,7 @@
     "blix": "Retail",
     "depot": "SaaS",
     "efigence": "DigitalTech",
-    "efi": "DigitalTech"
+    "efi": "DigitalTech",
+    "softswiss": "iGaming"
   }
 }

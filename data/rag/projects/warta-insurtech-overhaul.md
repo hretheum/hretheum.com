@@ -14,29 +14,27 @@ date: 2019-03-01
 ---
 
 ## Summary — Warta.pl — InsurTech Service Design Overhaul
-End‑to‑end transformation of online insurance purchase journey using discovery, journey mapping, and iterative prototyping/testing.
+End-to-end transformation of the online insurance purchase journey, translating discovery insights into a sequenced service roadmap and reusable playbook.
 
 ## Problem — Warta.pl — InsurTech Service Design Overhaul
-Barriers in quote funnel and unclear IA caused drop‑offs and slow time‑to‑quote.
+Quote funnel friction, unclear IA, and manual fallbacks slowed time-to-quote and pushed prospects back to phone channels.
 
 ## Approach — Warta.pl — InsurTech Service Design Overhaul
-- Discovery: interviews, workshops, journey mapping.
-- Requirements: translated research into prioritized design backlog.
-- Prototyping: progressive disclosure, smart defaults; iterative usability testing.
+- Ran discovery interviews, workshops, and journey mapping to surface drop-off triggers along the insurance path.
+- Translated research into a prioritized backlog, progressive disclosure prototypes, and smart defaults tested with moderated usability sessions.
+- Structured navigational taxonomy and reusable service blueprints for corporate and product pages informed by multiple usability-test cycles.
 
 ## Stakeholder Management — Warta.pl — InsurTech Service Design Overhaul
-- Alignment workshops across business, compliance, tech.
-- Clear decision capture and rationale.
+- Facilitated alignment ceremonies across business, compliance, and engineering; documented decisions, risks, and rollout plans.
 
 ## Metrics & Experiments — Warta.pl — InsurTech Service Design Overhaul
-- Hypotheses around funnel steps and cognitive load.
-- Tests on copy/flow; tracked conversion and abandonment.
+- Hypotheses around funnel friction and cognitive load; copy/flow experiments measured via conversion and abandonment tracking.
 
 ## Results & Impact — Warta.pl — InsurTech Service Design Overhaul
-- Faster quote generation; reduced friction and abandonment.
+- Faster quote generation, reduced abandonment, and a reusable playbook for future product lines anchored in research-backed taxonomy and governance.
 
 ## Learnings — Warta.pl — InsurTech Service Design Overhaul
-- IA clarity and defaults can outperform minor visual tweaks.
+- IA clarity, defaults, and structured service blueprints outperform cosmetic tweaks when scaling insurance journeys.
 
 ## Links — Warta.pl — InsurTech Service Design Overhaul
 - Case: /portfolio/warta#summary

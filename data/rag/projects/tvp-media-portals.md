@@ -13,27 +13,28 @@ intent_tags: ["experience", "accessibility_compliance"]
 date: 2010-02-01
 ---
 
-## Summary — Telewizja Polska (TVP) — Media Portals Redesign
-Oversaw redesigns across multiple portals over several years, focusing on IA, accessibility, and scalable patterns.
+## Summary — TVP Media Portals — Multi-Property Redesign
+Led multi-year redesigns of tvp.pl, tvp.info, TVP Sport, and regional portals to deliver a cohesive, accessible public-service media experience.
 
-## Problem — Telewizja Polska (TVP) — Media Portals Redesign
-Disparate properties with inconsistent navigation and accessibility.
+## Problem — TVP Media Portals — Multi-Property Redesign
+Disparate properties with inconsistent navigation, accessibility gaps, and competing editorial priorities across national and regional teams.
 
-## Approach — Telewizja Polska (TVP) — Media Portals Redesign
-- Unified IA patterns; accessibility improvements.
-- Prototyping and usability verification.
+## Approach — TVP Media Portals — Multi-Property Redesign
+- Defined a shared IA, navigation taxonomy, and pattern library that scaled from national news to local broadcasters.
+- Prototyped responsive layouts, accessibility improvements, and component libraries validated with user testing.
+- Documented governance, editorial workflows, and release cadence so teams could adopt patterns without regressions.
 
-## Stakeholder Management — Telewizja Polska (TVP) — Media Portals Redesign
-- Workshops with public service stakeholders; alignment on standards.
+## Stakeholder Management — TVP Media Portals — Multi-Property Redesign
+- Facilitated workshops with national broadcasters, regional boards, and accessibility advocates to prioritize roadmap decisions.
 
-## Metrics & Experiments — Telewizja Polska (TVP) — Media Portals Redesign
-- Accessibility audits; navigation success metrics.
+## Metrics & Experiments — TVP Media Portals — Multi-Property Redesign
+- Accessibility audits (WCAG), engagement dashboards, and editorial workflow telemetry.
 
-## Results & Impact — Telewizja Polska (TVP) — Media Portals Redesign
-- Consistent UX and improved accessibility across properties.
+## Results & Impact — TVP Media Portals — Multi-Property Redesign
+- Consistent, accessible media experience and reusable design standards adopted across national and regional properties over seven years.
 
-## Learnings — Telewizja Polska (TVP) — Media Portals Redesign
-- Accessibility upfront reduces downstream costs.
+## Learnings — TVP Media Portals — Multi-Property Redesign
+- Long-term stewardship and shared design systems are critical when public-service mandates and editorial autonomy must coexist.
 
 ## Links — Telewizja Polska (TVP) — Media Portals Redesign
 - Case: /portfolio/tvp#summary

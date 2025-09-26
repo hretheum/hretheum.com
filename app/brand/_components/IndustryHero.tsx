@@ -136,6 +136,16 @@ export function IndustryHero({ industry, slug, source, confidence, accent, ctaLa
       ],
       cta: 'See how it works',
     },
+    iGaming: {
+      headline: `Experience design and ops signals for iGaming`,
+      sub: <>Template tuned for regulated gaming and betting organizations — brand-neutral for <strong className="font-semibold">{slug}</strong>.</>,
+      bullets: [
+        'Player lifecycle: acquisition → retention → reactivation across jurisdictions',
+        'Safety, compliance, and RG telemetry woven into product rituals',
+        'Cross-team orchestration: product, trading, CS, compliance, and HR',
+      ],
+      cta: 'See iGaming playbook',
+    },
     Dummy: {
       headline: `I see what you did there`,
       sub: <>Neutral, template-based overview — brand-safe for <strong className="font-semibold">{slug}</strong>.</>,

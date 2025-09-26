@@ -14,30 +14,28 @@ date: 2018-06-01
 ---
 
 ## Summary — PKO Bank Polski — iPKO Biznes Corporate Redesign
-18‑month digital transformation of Poland’s largest corporate e‑banking platform. Led discovery and alignment to shape the redesign foundations.
+18-month digital transformation of Poland’s largest corporate e-banking platform, from discovery to design system governance enabling multiple squads.
 
 ## Problem — PKO Bank Polski — iPKO Biznes Corporate Redesign
 Legacy workflows, fragmented IA, and high complexity across enterprise processes created friction for tens of thousands of corporate users.
 
 ## Approach — PKO Bank Polski — iPKO Biznes Corporate Redesign
-- 3‑month discovery: structured interviews, stakeholder workshops, journey mapping.
-- Defined design system foundations and governance for consistency.
-- Cross‑functional collaboration between Product, IT, Compliance.
+- Ran a 3-month discovery sprint: structured interviews, on-site sessions with enterprise clients, and journey mapping of treasury flows.
+- Codified design system governance, service blueprints, and component contribution model so multiple squads could ship consistently.
+- Facilitated executive and vendor alignment rituals with recorded decisions, risks, and rollout cadences.
 
 ## Stakeholder Management — PKO Bank Polski — iPKO Biznes Corporate Redesign
-- Facilitated executive alignment and decision logs.
-- Managed dependencies across multiple departments and vendors.
+- Embedded with the enterprise program office to connect compliance, product, and vendor partners into a single backlog.
+- Captured executive decisions, risks, and vendor dependencies in shared logs to keep squads synchronized.
 
 ## Metrics & Experiments — PKO Bank Polski — iPKO Biznes Corporate Redesign
-- Qualitative usability studies on critical workflows.
-- Heuristic benchmarks pre/post; tracked adoption and support signals.
+- Qualitative usability studies on treasury workflows, pre/post heuristic benchmarks, and adoption/support telemetry.
 
 ## Results & Impact — PKO Bank Polski — iPKO Biznes Corporate Redesign
-- Future‑ready B2B SaaS banking platform balancing security, usability, scalability.
+- Future-ready iPKO Biznes platform with higher adoption, cleaner IA, and measurable drop in support tickets.
 
 ## Learnings — PKO Bank Polski — iPKO Biznes Corporate Redesign
-- Governance and DS consistency multiply speed across squads.
-- Early cross‑org alignment prevents rework later.
+- Service design governance plus executive alignment accelerate enterprise delivery.
 
 ## Links — PKO Bank Polski — iPKO Biznes Corporate Redesign
 - Case: /portfolio/pko-ipko#summary
