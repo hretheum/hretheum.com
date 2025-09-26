@@ -38,7 +38,8 @@ export function evaluateSsrRules(rules: RuleDefinition<SsrRuleContext, SsrRuleAc
 }
 
 export function evaluateCsrRules(rules: RuleDefinition<CsrRuleContext, CsrRuleAction>[], ctx: CsrRuleContextInput, debug = false): CsrRuleEvaluation {
-  const context: CsrRuleContext = { debug, scope: 'csr', debugBrands: [], device: 'unknown', consentGranted: false, ...ctx }
+  const { debugBrands = [], device = 'unknown', consentGranted = false, ...rest } = (ctx || {}) as CsrRuleContextInput & Partial<Pick<CsrRuleContext, 'debugBrands' | 'device' | 'consentGranted'>>
+  const context: CsrRuleContext = { debug, scope: 'csr', debugBrands, device, consentGranted, ...rest }
   const out = evaluateRulesGeneric<CsrRuleContext, CsrRuleAction>(rules, context, { debug })
   const effects: CsrRuleEvaluation['effects'] = { debugTelemetry: false, suppressedEvents: [], tags: [], ui: {} }
   for (const r of out.actions) {
