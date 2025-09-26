@@ -1,6 +1,6 @@
 export default function ProfilePage() {
   return (
-    <section className="min-h-screen bg-white py-16 px-6">
+    <section className="bg-white pt-16 pb-0 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Contact Block */}
         <div className="mb-24">
@@ -9,23 +9,56 @@ export default function ProfilePage() {
               {/* Full-bleed on mobile: offset section padding */}
               <div className="bg-gray-900 text-white p-8 -mx-6 md:mx-0">
                 <div className="text-3xl font-black mb-4">ERYK ORŁOWSKI</div>
-                <div className="text-xl">Warsaw, Poland</div>
+                <div className="text-xl">Warsaw, Poland • EU CET Remote</div>
               </div>
               <div className="bg-purple-600 text-white p-8 -mx-6 md:mx-0">
                 <div className="text-2xl font-black mb-4">REACH ME</div>
-                <div className="text-lg">eof@offline.pl</div>
-                <div className="text-lg">+48 535 555 066</div>
-                <div className="text-lg">linkedin.com/in/eofek</div>
+                <div className="text-lg">
+                  <a
+                    href="mailto:eof@offline.pl"
+                    data-cta-id="contact_email"
+                    data-cta-source="contact"
+                    data-cta-variant="secondary"
+                    className="underline decoration-transparent hover:decoration-current transition"
+                  >
+                    eof@offline.pl
+                  </a>
+                </div>
+                <div className="text-lg">
+                  <a
+                    href="tel:+48535555066"
+                    data-cta-id="contact_phone"
+                    data-cta-source="contact"
+                    data-cta-variant="secondary"
+                    className="underline decoration-transparent hover:decoration-current transition"
+                  >
+                    +48 535 555 066
+                  </a>
+                </div>
+                <div className="text-lg">
+                  <a
+                    href="https://linkedin.com/in/eofek"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-cta-id="contact_linkedin"
+                    data-cta-source="contact"
+                    data-cta-variant="secondary"
+                    className="underline decoration-transparent hover:decoration-current transition"
+                  >
+                    linkedin.com/in/eofek
+                  </a>
+                </div>
               </div>
             </div>
-            <div className="bg-gray-100 p-8 -mx-6 md:mx-0">
-              <div className="text-2xl font-black mb-6">WHAT I DO</div>
-              <div className="text-lg leading-relaxed">
-                Design leader and builder with a unique career arc:<br/>
-                • Pioneered usability in Poland (2003)<br/>
-                • Built large-scale design systems at ING<br/>
-                • Now building AI-powered systems
-              </div>
+            <div className="bg-gray-100 p-8 -mx-6 md:mx-0 rounded-lg border border-gray-200">
+              <div className="text-2xl font-black tracking-tight mb-4">WHAT I DO</div>
+              <p className="text-base font-semibold text-neutral-700 mb-4">Design leadership that ships</p>
+              <ul className="list-none grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-[15px] leading-relaxed text-neutral-800">
+                <li>Build and scale high‑performing product design teams (org design, hiring, coaching).</li>
+                <li>Ship design systems and platform patterns across products and markets.</li>
+                <li>Build AI‑powered workflows and decision support tied to product goals.</li>
+                <li>Run an outcomes‑driven cadence: define, measure, iterate, ship.</li>
+              </ul>
             </div>
           </div>
         </div>

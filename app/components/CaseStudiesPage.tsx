@@ -73,7 +73,8 @@ export default function CaseStudiesPage() {
     <section className="py-16 px-6 bg-white">
       <div className="max-w-7xl mx-auto" style={{ ['--campaign-accent' as any]: '#7c3aed' }}>
         <SectionTitle title="Case Studies" subtitle="Selected outcomes across industries" />
-        <CaseGrid items={items} />
+        {/* Enforce two columns per row on wider screens */}
+        <CaseGrid items={items} colsClass="grid-cols-1 md:grid-cols-2 xl:grid-cols-2" />
         <OutcomeBanner text={"MEASURABLE IMPACT: IMPROVED ADOPTION • REDUCED COSTS • HIGHER SUCCESS RATES"} />
       </div>
     </section>

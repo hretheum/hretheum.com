@@ -45,9 +45,9 @@ export default function Content() {
     <div className="min-h-screen bg-white">
       <div className="pt-0 print:pt-0">
         <div data-section="profile"><ProfilePage /></div>
+        <div data-section="leadership"><LeadershipPage /></div>
         <div data-section="career"><CareerPage /></div>
         <div data-section="case-studies"><CaseStudiesPage /></div>
-        <div data-section="leadership"><LeadershipPage /></div>
         <div data-section="ai-builder"><AIBuilderPage /></div>
         <div data-section="other-projects"><OtherProjectsPage /></div>
         <div data-section="closing"><ClosingPage /></div>
