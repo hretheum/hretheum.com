@@ -29,21 +29,36 @@ export async function compileMDXDirect(
     
     // Build the component
     const code = String(compiled)
-    const MDXContent = new Function(
+    
+    // Execute MDX code
+    const fn = new Function(
       '_jsx',
-      '_jsxs',
+      '_jsxs', 
       'Fragment',
-      ...Object.keys(components),
+      '_components',
       code
     )
     
-    // Execute with runtime and components
-    const element = MDXContent(
+    const result = fn(
       runtime.jsx,
       runtime.jsxs,
       runtime.Fragment,
-      ...Object.values(components)
+      components
     )
+    
+    // MDX returns an object with a default function that creates the element
+    let element;
+    if (result && typeof result === 'object' && 'default' in result) {
+      // Call the default MDXContent function
+      const MDXContent = result.default;
+      element = typeof MDXContent === 'function' ? MDXContent({ components }) : MDXContent;
+    } else if (typeof result === 'function') {
+      // Direct function result
+      element = result({ components });
+    } else {
+      // Already a React element
+      element = result;
+    }
     
     return {
       content: element as React.ReactElement,
