@@ -71,18 +71,16 @@ export default function CareerPage() {
           </div>
 
           {/* Offline.pl */}
-          <div className="relative -mx-6 md:-mx-12 lg:-mx-24">
-            <div className="bg-gray-50 py-16 px-6 md:px-12 lg:px-24">
-              <div className="text-center">
-                <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-emerald-600 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
-                  OFFLINE.PL
-                </h2>
-                <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-emerald-600 mb-1">
-                  2004–2017
-                </div>
-                <div className="text-xl md:text-2xl font-bold text-gray-600">
-                  UX LEAD • POLAND&apos;S FIRST USABILITY LAB
-                </div>
+          <div className="relative w-screen left-1/2 -translate-x-1/2 bg-gray-50 py-16 px-6 md:px-12 lg:px-24">
+            <div className="max-w-7xl mx-auto text-center">
+              <h2 className="text-[clamp(2rem,9vw,3.25rem)] md:text-[6rem] font-black text-emerald-600 mb-3 leading-[1.02] tracking-tight break-words [text-wrap:balance]">
+                OFFLINE.PL
+              </h2>
+              <div className="text-[clamp(1.25rem,5.5vw,1.75rem)] md:text-[3rem] font-black text-emerald-600 mb-1">
+                2004–2017
+              </div>
+              <div className="text-xl md:text-2xl font-bold text-gray-600">
+                UX LEAD • POLAND&apos;S FIRST USABILITY LAB
               </div>
             </div>
           </div>

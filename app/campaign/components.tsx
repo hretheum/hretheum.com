@@ -783,11 +783,22 @@ export function CaseGrid({ items, colsClass }: { items: Array<{ title: string; s
   )
 }
 
-export function OutcomeBanner({ text }: { text: string }) {
+export function OutcomeBanner({ text, className, fullBleed = false }: { text: string; className?: string; fullBleed?: boolean }) {
+  const wrapperCls = fullBleed
+    ? 'relative w-screen left-1/2 -translate-x-1/2'
+    : ''
+  const innerCls = ['not-prose mt-10 text-white p-8 text-center', className]
+    .filter(Boolean)
+    .join(' ')
   return (
-    <div className="not-prose mt-10 -mx-4 sm:mx-0 text-white p-8 text-center" style={{ backgroundColor: 'var(--campaign-accent)' }}>
-      <div className="text-2xl md:text-3xl font-black">
-        {text}
+    <div className={wrapperCls} style={fullBleed ? { backgroundColor: 'var(--campaign-accent)' } : undefined}>
+      <div
+        className={fullBleed ? `${innerCls} max-w-7xl mx-auto px-4 sm:px-6 bg-[var(--campaign-accent)]` : innerCls}
+        style={!fullBleed ? { backgroundColor: 'var(--campaign-accent)' } : undefined}
+      >
+        <div className="text-2xl md:text-3xl font-black">
+          {text}
+        </div>
       </div>
     </div>
   )

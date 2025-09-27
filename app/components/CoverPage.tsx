@@ -63,13 +63,11 @@ export default function CoverPage() {
         </section>
 
         {/* Section Title under hero (UI-only for T37/3) */}
-        <div className="px-4 sm:px-6 max-w-5xl mx-auto">
+        <div className="px-4 sm:px-6 max-w-7xl mx-auto">
           <SectionTitle title="Selected Work" subtitle="Case studies and outcomes" />
         </div>
         {/* Outcome banner under hero (T37/4) */}
-        <div className="px-4 sm:px-6 max-w-5xl mx-auto">
-          <OutcomeBanner text="Design leadership that turns metrics into outcomes" />
-        </div>
+        <OutcomeBanner text="Design leadership that turns metrics into outcomes" fullBleed />
         <div className="md:hidden">
           <CTABanner ctas={[{ label: 'Schedule a meeting', variant: 'primary' }]} />
         </div>

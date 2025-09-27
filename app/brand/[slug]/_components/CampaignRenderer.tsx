@@ -29,10 +29,11 @@ import {
   ClosingBanner,
   KeywordsBlock,
 } from '@/app/campaign/components'
+import { AIOriginalsSection } from '@/app/campaign/AIOriginalsSection'
 import { getIndustryTheme, withOverrides } from '@/lib/theme/industryTheme'
 
 export async function CampaignRenderer({ slug, industry }: { slug: string; industry: Industry }) {
-  const components = {
+  const components: Record<string, any> = {
     CTABanner,
     CTAGroup,
     CampaignMeta,
@@ -56,8 +57,9 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
     Timeline,
     ClosingBanner,
     KeywordsBlock,
+    AIOriginalsSection,
   }
-  
+
   // Use custom MDX compiler in dev to avoid React 19 issues
   if (process.env.NODE_ENV !== 'production') {
     const found = await findCampaignForBrand(slug)
@@ -68,7 +70,7 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
     const { content, frontmatter } = compiled
     const base = getIndustryTheme(industry)
     const tokens = withOverrides(base, frontmatter?.accent ? { accent: frontmatter.accent } : undefined)
-    
+
     return (
       <div className="px-4 sm:px-6 max-w-7xl mx-auto" style={{ ['--campaign-accent' as any]: tokens.accent }}>
         <div className="prose prose-zinc max-w-none prose-headings:scroll-mt-20">

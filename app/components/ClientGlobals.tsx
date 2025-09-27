@@ -5,6 +5,7 @@ import AiPolicyClient from '@/app/components/AiPolicyClient'
 import AiPolicyDemoEffects from '@/app/components/AiPolicyDemoEffects'
 import MainCtaTooltipClient from '@/app/components/MainCtaTooltipClient'
 import ChaosModeClient from '@/app/components/ChaosModeClient'
+import MermaidGlobalConfig from '@/app/components/MermaidGlobalConfig'
 
 export default function ClientGlobals() {
   return (
@@ -17,6 +18,8 @@ export default function ClientGlobals() {
       <MainCtaTooltipClient />
       {/* Chaos Mode effects (flagged via NEXT_PUBLIC_CHAOS_MODE) */}
       <ChaosModeClient />
+      {/* Mermaid global config: silence overlay, keep console logs only */}
+      <MermaidGlobalConfig />
     </>
   )
 }

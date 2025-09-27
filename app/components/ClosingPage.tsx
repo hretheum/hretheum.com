@@ -1,3 +1,5 @@
+"use client";
+
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
 
 export default function ClosingPage() {
