@@ -16,6 +16,8 @@ import {
   csrUiNoviceDisclosure,
   ragFlagLowConfidence,
   ragRespondRequestClarification,
+  hesitationDetected,
+  consentGranted,
 } from '@/lib/rules'
 
 // --- CSR rules (client) ---
@@ -25,7 +27,7 @@ export const csrRules: RuleDefinition<CsrRuleContext, CsrRuleAction>[] = [
     description: 'Show a short helper tooltip on primary CTA when hesitation is detected',
     scope: 'csr',
     priority: 90,
-    conditions: [gates.rulesEnabledCSR, gates.csrHesitationTooltip],
+    conditions: [gates.rulesEnabledCSR, consentGranted, gates.csrHesitationTooltip, hesitationDetected],
     actions: [csrUiTooltip('primary_cta', 'Tip: możesz zacząć od krótkiej rozmowy lub obejrzeć Playbook.')],
   }),
   defineRule<CsrRuleContext, CsrRuleAction>({
@@ -33,7 +35,7 @@ export const csrRules: RuleDefinition<CsrRuleContext, CsrRuleAction>[] = [
     description: 'Enable novice progressive disclosure UI hints',
     scope: 'csr',
     priority: 100,
-    conditions: [gates.rulesEnabledCSR, gates.csrNoviceDisclosure],
+    conditions: [gates.rulesEnabledCSR, consentGranted, gates.csrNoviceDisclosure],
     actions: [csrUiNoviceDisclosure(true)],
   }),
 ]

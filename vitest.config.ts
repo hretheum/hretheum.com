@@ -1,12 +1,15 @@
 import { defineConfig } from 'vitest/config'
+import path from 'path'
 
 export default defineConfig({
-  test: {
-    include: ['tests/**/*.test.ts'],
-    environment: 'node',
-    reporters: ['default'],
-    coverage: {
-      enabled: false,
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname),
     },
+  },
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['tests/**/*.test.ts']
   },
 })

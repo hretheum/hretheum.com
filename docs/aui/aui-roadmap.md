@@ -1,6 +1,6 @@
 # Adaptive UI (AUI) Roadmap for hretheum-bolt
 
-Last updated: 2025-09-22
+Last updated: 2025-09-28
 Status: Draft (for review)
 
  See also: [AUI Task DAG](./AUI_DAG.md).
@@ -53,9 +53,9 @@ Status: Draft (for review)
   - Hero headline/subheadline, CTA text and placement, module order.
   - Navigation pre-highlights to the most relevant sections for the brand/industry.
 - CSR (in-session micro-adaptations):
-  - Tooltips on `hesitation > 2s` over CTA (brand-aware micro-copy).
+  - ✅ Tooltips on `hesitation > 2s` over CTA (brand-aware micro-copy).
   - Suggested queries in RAG UI based on `brand`/industry, especially when `intent_confidence < INTENT_THRESHOLD`.
-  - Progressive disclosure: simpler onboarding for Novice; shortcuts for Power users.
+  - ✅ Progressive disclosure: simpler onboarding for Novice; shortcuts for Power users.
 - Example If–Then rules:
   - If `brand=zendesk` then `hero_variant=zendesk_support_ops`, `cta=Book support-focused demo`.
   - If `brand=bayer` then `hero_variant=regulated_envs`, `cta=See how we deliver in regulated environments`.

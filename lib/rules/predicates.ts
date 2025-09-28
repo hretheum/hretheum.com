@@ -22,8 +22,15 @@ export function brandInDebugList(ctx: CsrRuleContext): boolean {
   return ctx.debugBrands?.some((b) => b.toLowerCase() === slug) || false
 }
 
-// Placeholder for hesitation detection (to be wired with actual signal)
-export function hesitationDetected(_ctx: CsrRuleContext): boolean { return false }
+// Hesitation detection (CSR): reads a transient flag set by HesitationFlagClient
+export function hesitationDetected(_ctx: CsrRuleContext): boolean {
+  try {
+    if (typeof window === 'undefined') return false
+    return !!(window as any).__hre_hesitation
+  } catch {
+    return false
+  }
+}
 
 // RAG predicates
 export function lowConfidence(ctx: RagRuleContext): boolean { return ctx.confidence < ctx.thresholdLowConfidence }

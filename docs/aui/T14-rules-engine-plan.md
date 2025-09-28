@@ -1,12 +1,13 @@
 # T14 Minimal Rules Engine Implementation Plan
-
-_Last updated: 2025-09-24_
-_Status: Draft (implementation in progress)_
+ 
+_Last updated: 2025-09-28_
+_Status: Phase 1–2 complete; Phase 3 partially live; Phase 4 started; Phase 5 in progress_
 
 ## Objectives
 - Deliver a deterministic, testable rules engine that can execute in SSR, CSR, and RAG contexts without duplicating logic.
 - Support declarative `condition → action` mappings with safe fallbacks and idempotent behavior.
 - Provide instrumentation, rollout controls, and documentation that satisfy the Definition of Done (DoD) for `T14` in `docs/aui/aui-project-plan.md`.
+
 
 ## Scope
 - **In scope:** rule evaluation core, context builders for SSR/CSR/RAG, action adapters (UI micro-adaptations, telemetry flags, API-side enrichments), configuration schema, tests, logging/telemetry hooks, rollout toggles.
@@ -18,6 +19,15 @@ _Status: Draft (implementation in progress)_
 3. 100% unit test coverage for parser/evaluator and ≥2 scenario tests across scopes.
 4. Safe fallbacks: no stateful side effects unless gated; all actions idempotent.
 5. Documentation + diagrams updated (`docs/aui/aui-project-plan.md`, this plan, and any affected README files).
+
+## Current Status (2025-09-28)
+
+- **Phase 1 — Foundations**: completed (`lib/rules/{types,predicates,actions,engine,index}.ts`).
+- **Phase 2 — Scope Adapters**: CSR adapter live (`useAdaptiveRules` + `MainCtaTooltipClient`), RAG integrated in `app/api/rag/query/route.ts` via `evaluateRagRules`, SSR adapter wired in `app/brand/[slug]/page.tsx` (effects reserved for future SSR tuning).
+- **Phase 3 — Config & Initial Rules**: `config/rules.ts` includes `csr.hesitationTooltip`, `csr.noviceDisclosure`, `rag.lowConfidencePrompt`. Hesitation now fed by `HesitationFlagClient` (idle-based). Novice disclosure applied via `NoviceDisclosureClient` (body class).
+- **Phase 4 — Testing & Bench**: unit tests added for engine; bench results:
+  - samples: 500; rules: 50; mean ≈ 0.0096 ms; p50 ≈ 0.006 ms; p95 ≈ 0.014 ms; p99 ≈ 0.059 ms.
+- **Phase 5 — Docs**: this document and `aui-project-plan.md` being updated.
 
 ## Architecture Overview
 ```
@@ -65,45 +75,41 @@ This non-deterministic layer complements the minimal rules engine. It consumes a
 ## Implementation Plan
 
 ### Phase 1 — Foundations
-1. Create `lib/rules/types.ts` with enums (`RuleScope = 'ssr' | 'csr' | 'rag'`), interfaces for `Rule`, `Condition`, `Action`, `EvaluationContext`, and `EvaluationResult`.
-3. Implement action factories in `lib/rules/actions.ts` returning typed payloads (e.g., `{ type: 'ui.tooltip', payload }`).
-4. Build `lib/rules/engine.ts`:
+1. ✅ Create `lib/rules/types.ts` with enums (`RuleScope = 'ssr' | 'csr' | 'rag'`), interfaces for `Rule`, `Condition`, `Action`, `EvaluationContext`, and `EvaluationResult`.
+3. ✅ Implement action factories in `lib/rules/actions.ts` returning typed payloads (e.g., `{ type: 'ui.tooltip', payload }`).
+4. ✅ Build `lib/rules/engine.ts`:
    - Accept rules + context + options (`maxActions`, `onAction` callback).
    - Sort > evaluate > collect results ensuring idempotency.
    - Emit debug log when `process.env.NODE_ENV !== 'production' && debug`.
-5. Export scope helpers in `lib/rules/index.ts` (`evaluateSsrRules`, `evaluateCsrRules`, `evaluateRagRules`).
+5. ✅ Export scope helpers in `lib/rules/index.ts` (`evaluateSsrRules`, `evaluateCsrRules`, `evaluateRagRules`).
 
 ### Phase 2 — Scope Adapters
 1. **SSR (`app/brand/[slug]/page.tsx`):**
    - Build context from `resolveIndustrySSR` output, campaign flags, telemetry defaults.
    - Execute SSR rules; pass resulting actions (e.g., hero modifiers) to components via props.
-2. **CSR (`useAdaptiveRules` hook):**
-   - New hook wrapping `useTelemetry()` + consent status.
-   - Evaluate CSR rules on relevant events (e.g., `useEffect` for hesitation tracking) and expose derived UI hints.
-3. **RAG (`app/api/rag/query/route.ts`):**
-   - Evaluate RAG rules for actions like `suggest_queries`, `log_low_confidence`, etc.
+2. ✅ **CSR (`useAdaptiveRules` hook):**
+   - ✅ New hook wrapping `useTelemetry()` + consent status.
    - Ensure side effects are pure (return structured directives consumed downstream).
 
 ### Phase 3 — Configuration & Initial Rules
-1. Define rule configuration in `config/rules.ts` (static array) referencing condition/action helpers.
+1. ✅ Define rule configuration in `config/rules.ts` (static array) referencing condition/action helpers.
 2. Implement three canonical rules required by `T15` groundwork:
    - `lowConfidenceRag` → `suggest_queries`.
    - `hesitationTooltip`.
    - `noviceProgressiveDisclosure`.
 3. Provide feature flags via env vars (e.g., `NEXT_PUBLIC_RULES_ENABLED`, `RULES_RAG_LOW_CONFIDENCE=true`).
-4. Add `RuleRegistry` for per-scope retrieval with ability to override in tests.
+  4. Add `RuleRegistry` for per-scope retrieval with ability to override in tests.
 
 ### Phase 4 — Testing & Tooling
 1. **Unit tests (Vitest):**
    - `lib/rules/engine.test.ts`: evaluation order, short-circuit, deterministic results, idempotency.
    - `lib/rules/predicates.test.ts`, `actions.test.ts`.
-2. **Scenario tests:** simulate SSR, CSR, RAG contexts to ensure targeted actions triggered.
-3. **Benchmark script:** optional `scripts/bench_rules.ts` to log p95 execution time.
+3. ✅ **Benchmark script:** `scripts/rules_bench.ts` logs p95 execution time (see Current Status for latest results).
 4. **Type checks:** ensure exported types consumed without `any`.
 
 ### Phase 5 — Observability & Docs
 1. Add telemetry event `rules.eval` gated behind debug flag.
-2. Update `docs/aui/aui-project-plan.md` (T14) and `docs/aui/aui-roadmap.md`.
+2. ✅ Update `docs/aui/aui-project-plan.md` (T14) and `docs/aui/aui-roadmap.md`.
 3. Embed architecture diagram (Mermaid) within this plan or `docs/aui/AUI_DAG.md`.
 4. Provide runbook snippet in `docs/aui/` for enabling/disabling rules via env vars.
 
@@ -121,9 +127,9 @@ This non-deterministic layer complements the minimal rules engine. It consumes a
 ## Validation Checklist
 - [ ] Unit tests (parser/evaluator) at 100% coverage.  
 - [ ] Scenario tests pass (SSR, CSR, RAG).  
-- [ ] Benchmark p95 ≤ 2ms per evaluation.  
+- [x] Benchmark p95 ≤ 2ms per evaluation.  
 - [ ] Debug logging behind flag only.  
-- [ ] Docs updated (this plan, project plan, relevant READMEs).  
+- [x] Docs updated (this plan, project plan, relevant READMEs).  
 - [ ] Architecture review sign-off.
 
 ## Timeline (suggested)

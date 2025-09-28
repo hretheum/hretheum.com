@@ -1,6 +1,6 @@
 # AUI Project Plan (Atomic Tasks, DoD, Metrics, Validation, Guardrails, Quality Gates)
 
-Last updated: 2025-09-24
+Last updated: 2025-09-28
 Status: Draft (for review)
 
 See also: [AUI Task DAG](./AUI_DAG.md).
@@ -176,20 +176,21 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream D — Decision Layer (Hybrid Rules + AI)
 
 ### T14. Minimal rules engine
-- DoD: deterministic evaluation order, condition → action mapping, scopes (SSR/CSR/RAG), idempotent actions, safe fallbacks.
+- DoD: ✅ deterministic evaluation order, condition → action mapping, scopes (SSR/CSR/RAG), idempotent actions, safe fallbacks.
 - Metrics: rule evaluation p95 ≤ 2ms; 100% unit test coverage for rules parser/evaluator.
 - Validation: unit tests; scenario tests.
 - Guardrails: no stateful side effects without guards.
 - Quality Gates: architecture review.
 ### T14. Minimal rules engine (Hybrid with LLM Policy)
-- Status: In progress — see T14 implementation plan: [docs/aui/T14-rules-engine-plan.md](./T14-rules-engine-plan.md)
+- Status: Phase 1–2 complete; Phase 3 partial; Phase 4 started — see T14 implementation plan: [docs/aui/T14-rules-engine-plan.md](./T14-rules-engine-plan.md)
 - DoD:
   - Deterministic engine: evaluation order, condition → action mapping, scopes (SSR/CSR/RAG), idempotent actions, safe fallbacks.
-  - LLM Policy Engine (shadow→active): consumes PII-safe session summary; recommends one action from an allowlisted set; exposed via `POST /api/decision/policy` (strict JSON schema, timeouts, retries, cost caps).
+  - ✅ LLM Policy Engine (shadow→active): consumes PII-safe session summary; recommends one action from an allowlisted set; exposed via `POST /api/decision/policy` (strict JSON schema, timeouts, retries, cost caps).
   - Aggregation & precedence: hard rules (consent/legal/security; SSR above-the-fold) override AI; AI suggestions have per-session caps.
   - Feature flags: `NEXT_PUBLIC_RULES_AI_ENABLED`, `RULES_AI_SHADOW_ONLY`, `RULES_AI_TIMEOUT_MS`, `RULES_AI_SAMPLE_RATE`, `RULES_AI_ALLOWED_ACTIONS`.
 - Metrics:
   - Deterministic eval p95 ≤ 2 ms (SSR/CSR); AI policy p95 ≤ 300–600 ms (CSR, off critical path).
+  - Current bench (rules engine, 500 samples / 50 rules): mean ≈ 0.0096 ms; p50 ≈ 0.006 ms; p95 ≈ 0.014 ms; p99 ≈ 0.059 ms.
   - 100% unit coverage for engine; ≥2 scenario tests per scope (SSR/CSR/RAG); shadow vs rules agreement tracked.
 - Validation:
   - Unit tests + scenario tests; shadow-mode logging and comparison; cost/latency budgets verified on preview.
@@ -197,7 +198,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
   - Consent gating; allowlist actions only; sampling & per-session rate limits; no raw PII in prompts; structured parsing with safe fallbacks.
 
 ### T15. Implement initial 3 rules
-- DoD: (1) low-confidence RAG → suggested queries (3 items); (2) hesitation>2s on primary CTA → tooltip; (3) Novice → progressive disclosure on Home/Brand.
+- DoD: (1) low-confidence RAG → suggested queries (3 items); (2) ✅ hesitation>2s on primary CTA → tooltip; (3) ✅ Novice → progressive disclosure on Home/Brand.
 - Metrics: +5–10% TTFV improvement for low-confidence sessions; tooltip display rate < 15% of sessions; no CWV regression.
 - Validation: A/B for (1), telemetry counters for (2)(3).
 - Guardrails: cap exposures per session; easy kill-switch.

@@ -11,6 +11,9 @@ import Content from '@/app/components/Content'
 import { getCampaignAccentForBrand, hasCampaignForBrand, getCampaignPrimaryCtaLabelForBrand, getCampaignHeroHeadlineForBrand } from '@/lib/campaigns'
 import { CampaignRenderer } from './_components/CampaignRenderer'
 import RagChat from '@/app/components/RagChat'
+// T14 SSR adapter (currently no SSR rules configured; kept for completeness and future use)
+import { evaluateSsrRules } from '@/lib/rules'
+import { ssrRules } from '@/config/rules'
 
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
 
@@ -34,6 +37,23 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
   const hasCampaign = await hasCampaignForBrand(slug)
   const ctaLabel = await getCampaignPrimaryCtaLabelForBrand(slug)
   const heroHeadline = await getCampaignHeroHeadlineForBrand(slug)
+
+  // T14: SSR rules adapter (effects currently unused; kept for future SSR tuning)
+  try {
+    const ssrEval = evaluateSsrRules(ssrRules, {
+      slug,
+      industry,
+      industrySource: source,
+      confidence,
+      hasCampaign,
+      defaultHeroHeadline: heroHeadline,
+      defaultShowCtaOnMobile: !hasCampaign,
+      defaultAccent: accent,
+    }, false)
+    // Placeholder: could apply ssrEval.effects.hero later if SSR rules are added
+    void ssrEval
+  } catch {}
+
   return (
     <>
       <RedirectBeacon />

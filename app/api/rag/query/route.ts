@@ -15,6 +15,8 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
 import { rerankWithLLM } from '@/lib/intent/rerank';
 import type { IntentId } from '@/lib/intent/intents';
+import { evaluateRagRules } from '@/lib/rules'
+import { ragRules } from '@/config/rules'
 
 // Helper: create Supabase client for server-side logging. Prefer Service Role to bypass RLS for write-only logs.
 function getSupabaseLoggingClient() {
@@ -305,43 +307,55 @@ export async function POST(req: NextRequest) {
     const intentRes = await classifyIntent(message);
     let intentId = intentRes.topIntent;
 
-    // If low-confidence intent, ask for clarification (Section 18.3)
-    if (intentRes.confidence < 0.45) {
-      // telemetry (low-confidence)
-      console.log('[rag.query:intent]', {
-        msg: String(message).slice(0, 120),
-        intent: intentId,
-        confidence: Number(intentRes.confidence.toFixed(3)),
-        note: 'low-confidence',
-      });
-      // best-effort logging update for low-confidence
-      if (chatEventId && logUseSupabase) {
-        try {
-          const supabase = getSupabaseLoggingClient();
-          const { error } = await supabase
-            .from('chat_events')
-            .update({ intent: intentId, confidence: intentRes.confidence, meta: { lowConfidence: true, brand_slug: brandSlug, campaign_source: campaignSource, campaign_type: campaignType } })
-            .eq('id', chatEventId);
-          if (error && process.env.NODE_ENV !== 'production') {
-            console.warn('[chat_events:update-lowconf]', { error: error.message || error });
-          }
-        } catch {}
+    // T14: Evaluate RAG rules (low-confidence and clarification) instead of hardcoded threshold
+    {
+      const threshold = Number(process.env.RULES_RAG_LOW_CONFIDENCE_THRESHOLD || '0.45');
+      const ragEval = evaluateRagRules(ragRules, {
+        intentId,
+        confidence: intentRes.confidence,
+        messagePreview: String(message).slice(0, 200),
+        brandSlug,
+        campaignSource,
+        campaignType,
+        thresholdLowConfidence: Number.isFinite(threshold) ? threshold : 0.45,
+      }, false);
+      if (ragEval.effects.lowConfidence) {
+        // telemetry (low-confidence)
+        console.log('[rag.query:intent]', {
+          msg: String(message).slice(0, 120),
+          intent: intentId,
+          confidence: Number(intentRes.confidence.toFixed(3)),
+          note: 'low-confidence (T14)',
+        });
+        // best-effort logging update for low-confidence
+        if (chatEventId && logUseSupabase) {
+          try {
+            const supabase = getSupabaseLoggingClient();
+            const { error } = await supabase
+              .from('chat_events')
+              .update({ intent: intentId, confidence: intentRes.confidence, meta: { lowConfidence: true, brand_slug: brandSlug, campaign_source: campaignSource, campaign_type: campaignType } })
+              .eq('id', chatEventId);
+            if (error && process.env.NODE_ENV !== 'production') {
+              console.warn('[chat_events:update-lowconf]', { error: error.message || error });
+            }
+          } catch {}
+        }
+        const clarification = ragEval.effects.clarification?.message ||
+          "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?";
+        // also log assistant answer (best-effort)
+        if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+          try {
+            const supabase = getSupabaseLoggingClient();
+            await supabase
+              .from('chat_events')
+              .insert({ session_id: sessionId || null, parent_id: chatEventId, thread_id: threadId, turn_index: turnIndex, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence, meta: { brand_slug: brandSlug, campaign_source: campaignSource, campaign_type: campaignType } });
+          } catch {}
+        }
+        return NextResponse.json({
+          answer: clarification,
+          intent: { id: intentId, confidence: intentRes.confidence },
+        }, { headers: corsHeaders });
       }
-      const clarification =
-        "I want to make sure I understand. Are you asking about competencies, leadership, experience, or a specific case study?";
-      // also log assistant answer (best-effort)
-      if (logUseSupabase && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
-        try {
-          const supabase = getSupabaseLoggingClient();
-          await supabase
-            .from('chat_events')
-            .insert({ session_id: sessionId || null, parent_id: chatEventId, thread_id: threadId, turn_index: turnIndex, type: 'assistant_answer', message: clarification, intent: intentId, confidence: intentRes.confidence, meta: { brand_slug: brandSlug, campaign_source: campaignSource, campaign_type: campaignType } });
-        } catch {}
-      }
-      return NextResponse.json({
-        answer: clarification,
-        intent: { id: intentId, confidence: intentRes.confidence },
-      }, { headers: corsHeaders });
     }
 
     // Try LLM rerank if top-2 candidates are close (delta < 10%)
