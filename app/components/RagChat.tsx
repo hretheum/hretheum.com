@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { streamRag } from '@/lib/client/streamRag';
 import SuggestedQueries from '@/app/components/SuggestedQueries';
 import { getSuggestedQueries } from '@/lib/suggestions';
+import { getFollowupsForIntent } from '@/lib/suggestions/followups';
 import type { Industry } from '@/lib/industry';
 import { useConsent } from '@/app/hooks/useConsent';
 
@@ -21,10 +22,12 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const listRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const tokenBufferRef = useRef<string>('');
+  const answerTextRef = useRef<string>('');
   const flushTimerRef = useRef<number | null>(null);
   const pauseTimerRef = useRef<number | null>(null);
   const gtmEnabled = (process.env.NEXT_PUBLIC_ENABLE_GTM ?? 'true') !== 'false';
   const chatVariant = process.env.NEXT_PUBLIC_CHAT_VARIANT || 'default';
+  const aiFollowupsEnabled = String(process.env.NEXT_PUBLIC_RULES_AI_FOLLOWUPS ?? 'true').toLowerCase() === 'true';
   // Thread management for stable pairing in admin: thread_id + turn_index
   const threadIdRef = useRef<string>('');
   const turnIndexRef = useRef<number>(0);
@@ -35,6 +38,10 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'false').toLowerCase() === 'true';
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showExplainerFollowups, setShowExplainerFollowups] = useState(false);
+  const [genericFollowups, setGenericFollowups] = useState<string[]>([]);
+  const [showGenericFollowups, setShowGenericFollowups] = useState(false);
+  const genericViewSentRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const suggestViewSentRef = useRef(false);
   const trackSuggestViewOnce = React.useCallback((brand?: string, source?: string, ind?: string) => {
@@ -278,13 +285,15 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     bottomRef.current.scrollIntoView({ behavior: loading ? 'instant' as ScrollBehavior : 'smooth' });
   }, [messages, loading]);
 
-  async function onSend(e?: React.FormEvent) {
-    e?.preventDefault();
-    const message = input.trim();
-    if (!message || loading) return;
-    // reset suggestions on new turn
+  async function sendCore(message: string) {
+    const msg = (message || '').trim();
+    if (!msg || loading) return;
+    // reset suggestions/followups on new turn
     setShowSuggestions(false);
+    setShowExplainerFollowups(false);
+    setShowGenericFollowups(false);
     suggestViewSentRef.current = false;
+    genericViewSentRef.current = false;
 
     // cancel any in-flight stream
     abortRef.current?.abort();
@@ -296,7 +305,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       dlPush({
         event: 'chat_interaction',
         chat_action: 'chat_message_sent',
-        message_len: message.length,
+        message_len: msg.length,
         chat_widget: 'custom-react',
         chat_variant: chatVariant,
       });
@@ -306,7 +315,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     const currentTurn = turnIndexRef.current;
     try { turnIndexRef.current = currentTurn + 1; window.sessionStorage.setItem('ragTurnIndex', String(turnIndexRef.current)); } catch {}
 
-    setMessages((m) => [...m, { role: 'user', content: message }]);
+    setMessages((m) => [...m, { role: 'user', content: msg }]);
     setDraft('');
     setLoading(true);
 
@@ -320,6 +329,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     try {
       // start throttled flush of token buffer with punctuation-based pauses
       tokenBufferRef.current = '';
+      answerTextRef.current = '';
       if (flushTimerRef.current) window.clearInterval(flushTimerRef.current);
       const baseInterval = 45; // ms (natural pace)
       const scheduleFlush = () => {
@@ -328,6 +338,8 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
           const chunk = tokenBufferRef.current;
           if (!chunk) return;
           tokenBufferRef.current = '';
+          // accumulate full assistant answer text for follow-ups generation
+          answerTextRef.current += chunk;
           setMessages((m) => {
             const copy = m.slice();
             const last = copy[assistantIndex];
@@ -353,7 +365,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       };
       scheduleFlush();
 
-      for await (const evt of streamRag(message, {
+      for await (const evt of streamRag(msg, {
         signal: ctrl.signal,
         onToken: (t) => {
           tokenBufferRef.current += t;
@@ -362,6 +374,8 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
           const citations: Citation[] = Array.isArray(d.citations) ? d.citations : [];
           const remainder = tokenBufferRef.current;
           tokenBufferRef.current = '';
+          // include any remainder into full answer text accumulator for follow-ups
+          answerTextRef.current += remainder;
           setMessages((m) => {
             const copy = m.slice();
             const last = copy[assistantIndex];
@@ -385,8 +399,47 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
               chat_widget: 'custom-react',
               chat_variant: chatVariant,
             });
+            const inds = (props.industry || 'Generic') as Industry | 'Generic';
+            // Always build intent-based followups (deterministic + optional AI)
+            const baseFu = getFollowupsForIntent(intentId, inds);
+            const buildHybrid = async () => {
+              let llmFu: string[] = [];
+              if (aiFollowupsEnabled && consent) {
+                try {
+                  const resp = await fetch('/api/followups/generate', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answer: String(answerTextRef.current || '').slice(-4000), intentId, industry: String(inds), max: 2 })
+                  });
+                  const data = await resp.json().catch(() => ({ followups: [] }));
+                  if (Array.isArray(data.followups)) llmFu = data.followups.map((s: any) => String(s || '').trim()).filter(Boolean);
+                } catch {}
+              }
+              // Merge unique, prefer deterministic first
+              const seen = new Set<string>();
+              const merged: string[] = [];
+              for (const s of [...baseFu, ...llmFu]) {
+                const k = s.toLowerCase();
+                if (!seen.has(k)) { seen.add(k); merged.push(s); }
+              }
+              setGenericFollowups(merged);
+              if (consent && merged.length > 0) {
+                setShowGenericFollowups(true);
+                if (!genericViewSentRef.current) {
+                  genericViewSentRef.current = true;
+                  dlPush({
+                    event: 'chat_interaction',
+                    chat_action: 'generic_followups_view',
+                    intent_id: intentId,
+                    followups_count: merged.length,
+                    chat_widget: 'custom-react',
+                    chat_variant: chatVariant,
+                  });
+                }
+              }
+            };
+            void buildHybrid();
+
             if (featureEnabled && consent && lowConf) {
-              const inds = (props.industry || 'Generic') as Industry | 'Generic';
               const qs = getSuggestedQueries(inds, brandSlug);
               setSuggestions(qs);
               setShowSuggestions(true);
@@ -438,6 +491,11 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
         pauseTimerRef.current = null;
       }
     }
+  }
+
+  async function onSend(e?: React.FormEvent) {
+    e?.preventDefault();
+    await sendCore(input.trim());
   }
 
   return (
@@ -566,10 +624,104 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                         chat_variant: chatVariant,
                       });
                     } catch {}
-                    setDraft(q);
-                    if (inputRef.current) inputRef.current.focus();
+                    // One-click send
+                    void sendCore(q);
                   }}
+                  onLearnMore={() => {
+                    try {
+                      if (gtmEnabled && consent) {
+                        dlPush({
+                          event: 'chat_interaction',
+                          chat_action: 'suggested_queries_learn_more',
+                          brand: brandSlug || null,
+                          campaign_source: campaignSource || null,
+                          industry: String(props.industry || 'Generic'),
+                          chat_widget: 'custom-react',
+                          chat_variant: chatVariant,
+                        });
+                      }
+                    } catch {}
+                    const expl = `### How these hints work\n\nThese suggestions are generated by our Adaptive UI (AUI) engine—a hybrid of deterministic rules and light AI policy:\n\n- Rules detect low-confidence intents and offer safe, brand/industry-aware options.\n- AI stays on a short leash: allowlisted actions, timeouts, sampling, and consent gating.\n- Privacy-first: we avoid raw PII and hash any free-text hints we track.\n- Performance-aware: decisions run in milliseconds; LLM is off the critical path.\n\nIn short: you get fast, relevant guidance powered by robust engineering—not magic.`;
+                    setMessages((m) => [...m, { role: 'assistant', content: expl }]);
+                    setShowSuggestions(false);
+                    setShowExplainerFollowups(true);
+                  }}
+                  learnMoreLabel="How these hints work"
                 />
+              </div>
+            )}
+            {/* Lightweight follow-ups for explainer (one-click send) */}
+            {consent && showExplainerFollowups && (
+              <div className="border-t border-gray-200 px-2 pt-2 pb-0">
+                <div className="text-[11px] text-gray-500 mb-1">Continue with:</div>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex items-center rounded-full border border-gray-300 bg-white/80 px-3 py-1 text-[12px] text-gray-700 shadow-sm hover:bg-white"
+                    onClick={() => {
+                      try {
+                        dlPush({
+                          event: 'chat_interaction',
+                          chat_action: 'explainer_followup_click',
+                          query_key: 'aui_rules',
+                          chat_widget: 'custom-react',
+                          chat_variant: chatVariant,
+                        });
+                      } catch {}
+                      void sendCore('Tell me about AUI rules');
+                    }}
+                  >
+                    Tell me about "AUI rules"
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center rounded-full border border-gray-300 bg-white/80 px-3 py-1 text-[12px] text-gray-700 shadow-sm hover:bg-white"
+                    onClick={() => {
+                        try {
+                          dlPush({
+                            event: 'chat_interaction',
+                            chat_action: 'explainer_followup_click',
+                            query_key: 'ai_policy',
+                            chat_widget: 'custom-react',
+                            chat_variant: chatVariant,
+                          });
+                        } catch {}
+                        void sendCore('Tell me about AI policy');
+                      }}
+                  >
+                    Tell me about "AI policy"
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* Intent-based generic follow-ups (one-click send) */}
+            {consent && showGenericFollowups && genericFollowups.length > 0 && (
+              <div className="border-t border-gray-200 px-2 pt-2 pb-0">
+                <div className="text-[11px] text-gray-500 mb-1">You could also ask:</div>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {genericFollowups.map((q, i) => (
+                    <button
+                      key={`fu-${i}-${q.slice(0,16)}`}
+                      type="button"
+                      className="inline-flex items-center rounded-full border border-gray-300 bg-white/80 px-3 py-1 text-[12px] text-gray-700 shadow-sm hover:bg-white"
+                      onClick={() => {
+                        try {
+                          dlPush({
+                            event: 'chat_interaction',
+                            chat_action: 'generic_followup_click',
+                            followup_index: i,
+                            followup_text_hash: hashText(q),
+                            chat_widget: 'custom-react',
+                            chat_variant: chatVariant,
+                          });
+                        } catch {}
+                        void sendCore(q);
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             <form onSubmit={onSend} className="flex items-center gap-2 border-t border-gray-200 p-2">

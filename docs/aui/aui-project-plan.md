@@ -5,6 +5,13 @@ Status: Draft (for review)
 
 See also: [AUI Task DAG](./AUI_DAG.md).
 
+## Project Status Snapshot
+- **[stage]** Phase 2 — Micro-adaptations & Admin
+- **[completed]** ✅ T1–T5 (Routing/SEO/Legal), ✅ T6–T11 (Telemetry & Signals), ✅ T14–T15 (Rules + Three micro-adaptations), ✅ T32–T39 (Campaigns & Theming)
+- **[in_progress]** T27 (RUM dashboard + p75 widgets + optional alerts)
+- **[up_next]** T28 (subdomain regex & rate limiting), T29 (accessibility pass), T20/T22 (admin mapping & SSR A/B flags)
+- **[notes]** Hybrid follow-ups enabled (API + UI), Suggested Queries live; ingest path for AI Originals prepared (converter + ingest route).
+
 This plan enumerates atomic tasks to deliver the Adaptive UI (AUI) roadmap. Each task includes: Definition of Done, measurable success metrics with validation methods, guardrails, and quality gates.
 
 Conventions
