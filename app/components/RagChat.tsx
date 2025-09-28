@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { streamRag } from '@/lib/client/streamRag';
 import SuggestedQueries from '@/app/components/SuggestedQueries';
-import { getSuggestedQueries } from '@/lib/suggestions';
+import { getEnhancedSuggestedQueries } from '@/lib/suggestions';
 import { getFollowupsForIntent } from '@/lib/suggestions/followups';
 import type { Industry } from '@/lib/industry';
 import { getFeatureFlag } from '@/lib/featureFlags';
@@ -34,7 +34,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const apexDomain = (process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com').toLowerCase();
   // T15 suggested queries feature gating and state
   const { behavioral: consent } = useConsent();
-  const featureEnabled = String(process.env.NEXT_PUBLIC_RULES_CSR_SUGGESTED_QUERIES ?? 'false').toLowerCase() === 'true';
+  const featureEnabled = String(process.env.NEXT_PUBLIC_RULES_CSR_SUGGESTED_QUERIES ?? 'true').toLowerCase() === 'true'; // Default to true for safe actions
   const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'true').toLowerCase() === 'true'; // Default to true for demo mode
   const [abTestVariant, setAbTestVariant] = useState<'control' | 'variant'>('control')
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -156,10 +156,11 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       const demoParam = new URLSearchParams(window.location.search).has('aiDemo');
       if (featureEnabled && (demoEnv || demoParam)) {
         const inds = (props.industry || 'Generic') as Industry | 'Generic';
-        const qs = getSuggestedQueries(inds, brandSlug);
-        setSuggestions(qs);
-        setShowSuggestions(true);
-        trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
+        getEnhancedSuggestedQueries(inds, brandSlug).then((qs) => {
+          setSuggestions(qs);
+          setShowSuggestions(true);
+          trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
+        });
       }
     } catch (err) {
       console.error('[RagChat] Error in suggestions useEffect:', err);
@@ -181,6 +182,25 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
       }
     } catch {}
   }, [])
+
+  // Session interpreter (shadow mode)
+  useEffect(() => {
+    if (messages.length >= 3 && messages.length % 5 === 0) { // Every 5 messages
+      fetch('/api/session/interpreter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: threadIdRef.current,
+          messages,
+          metadata: {
+            brandSlug: brandSlug || null,
+            industry: String(props.industry || 'Generic'),
+            campaignSource: campaignSource || null
+          }
+        })
+      }).catch(() => {}) // Fire and forget
+    }
+  }, [messages, brandSlug, props.industry, campaignSource])
 
   // Do not persist minimized state automatically; persistence happens only on explicit user actions.
 
