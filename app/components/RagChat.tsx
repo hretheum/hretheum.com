@@ -671,7 +671,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                       void sendCore('Tell me about AUI rules');
                     }}
                   >
-                    Tell me about "AUI rules"
+                    Tell me about &quot;AUI rules&quot;
                   </button>
                   <button
                     type="button"
@@ -689,7 +689,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                         void sendCore('Tell me about AI policy');
                       }}
                   >
-                    Tell me about "AI policy"
+                    Tell me about &quot;AI policy&quot;
                   </button>
                 </div>
               </div>

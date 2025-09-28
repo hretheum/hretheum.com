@@ -16,7 +16,6 @@ export default function MermaidGlobalConfig() {
         try {
           // Prevent global UI overlays; log errors to console instead
           mermaid.parseError = (err: unknown) => {
-            // eslint-disable-next-line no-console
             console.error('[Mermaid parse error]', err)
           }
         } catch {}

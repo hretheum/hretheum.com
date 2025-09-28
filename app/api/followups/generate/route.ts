@@ -38,16 +38,18 @@ export async function POST(req: NextRequest) {
     const ctrl = new AbortController()
     const t = setTimeout(() => ctrl.abort('followups_timeout'), Math.min(2500, Number(process.env.RULES_AI_TIMEOUT_MS || 2500)))
     try {
-      const res = await client.chat.completions.create({
-        model,
-        messages: [
-          { role: 'system', content: sys },
-          { role: 'user', content: usr }
-        ],
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-        signal: ctrl.signal as any,
-      })
+      const res = await client.chat.completions.create(
+        {
+          model,
+          messages: [
+            { role: 'system', content: sys },
+            { role: 'user', content: usr }
+          ],
+          temperature: 0.3,
+          response_format: { type: 'json_object' },
+        },
+        { signal: ctrl.signal as any }
+      )
       const content = res.choices?.[0]?.message?.content || ''
       let parsed: any = null
       try { parsed = JSON.parse(content) } catch { parsed = { followups: [] } }

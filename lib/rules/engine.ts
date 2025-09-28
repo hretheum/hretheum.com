@@ -77,7 +77,6 @@ export function evaluateRulesGeneric<C extends RuleContextBase, A extends RuleAc
     if (enabled && Math.random() < rate) {
       // Keep this light; consumers may collect logs server-side or in dev tools
       // Do not include PII; only metrics and scope
-      // eslint-disable-next-line no-console
       console.log('[rules.eval]', {
         scope: context.scope,
         metrics: outcome.metrics,
