@@ -86,3 +86,33 @@ export function evaluateRagRules(rules: RuleDefinition<RagRuleContext, RagRuleAc
   }
   return { ...out, effects }
 }
+
+// --- Simple in-memory RuleRegistry (per scope) ---
+let _registry = {
+  ssr: [] as RuleDefinition<SsrRuleContext, SsrRuleAction>[],
+  csr: [] as RuleDefinition<CsrRuleContext, CsrRuleAction>[],
+  rag: [] as RuleDefinition<RagRuleContext, RagRuleAction>[],
+}
+
+export function registerRules(scope: 'ssr', rules: RuleDefinition<SsrRuleContext, SsrRuleAction>[]): void
+export function registerRules(scope: 'csr', rules: RuleDefinition<CsrRuleContext, CsrRuleAction>[]): void
+export function registerRules(scope: 'rag', rules: RuleDefinition<RagRuleContext, RagRuleAction>[]): void
+export function registerRules(scope: any, rules: any[]): void {
+  if (scope === 'ssr') _registry.ssr = rules as any
+  else if (scope === 'csr') _registry.csr = rules as any
+  else if (scope === 'rag') _registry.rag = rules as any
+}
+
+export function getRules(scope: 'ssr'): RuleDefinition<SsrRuleContext, SsrRuleAction>[]
+export function getRules(scope: 'csr'): RuleDefinition<CsrRuleContext, CsrRuleAction>[]
+export function getRules(scope: 'rag'): RuleDefinition<RagRuleContext, RagRuleAction>[]
+export function getRules(scope: any): any[] {
+  if (scope === 'ssr') return _registry.ssr
+  if (scope === 'csr') return _registry.csr
+  if (scope === 'rag') return _registry.rag
+  return []
+}
+
+export function resetRulesRegistry() {
+  _registry = { ssr: [], csr: [], rag: [] }
+}

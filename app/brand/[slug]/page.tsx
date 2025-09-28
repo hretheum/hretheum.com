@@ -38,7 +38,13 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
   const ctaLabel = await getCampaignPrimaryCtaLabelForBrand(slug)
   const heroHeadline = await getCampaignHeroHeadlineForBrand(slug)
 
-  // T14: SSR rules adapter (effects currently unused; kept for future SSR tuning)
+  // T14: SSR rules adapter (apply safe hero effects with full fallbacks)
+  let heroProps = {
+    accent,
+    ctaLabel,
+    showCtaOnMobile: !hasCampaign,
+    heroHeadline,
+  }
   try {
     const ssrEval = evaluateSsrRules(ssrRules, {
       slug,
@@ -50,12 +56,17 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
       defaultShowCtaOnMobile: !hasCampaign,
       defaultAccent: accent,
     }, false)
-    // Placeholder: could apply ssrEval.effects.hero later if SSR rules are added
-    void ssrEval
+    const eff = ssrEval.effects?.hero || {}
+    heroProps = {
+      accent: eff.accent ?? heroProps.accent,
+      ctaLabel: eff.ctaLabel ?? heroProps.ctaLabel,
+      showCtaOnMobile: typeof eff.showCtaOnMobile === 'boolean' ? eff.showCtaOnMobile : heroProps.showCtaOnMobile,
+      heroHeadline: eff.heroHeadline ?? heroProps.heroHeadline,
+    }
   } catch {}
 
   return (
-    <>
+    <> 
       <RedirectBeacon />
       {/* Full-bleed hero like root CoverPage */}
       <IndustryHero
@@ -63,10 +74,10 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
         slug={slug}
         source={source}
         confidence={confidence}
-        accent={accent}
-        ctaLabel={ctaLabel}
-        showCtaOnMobile={!hasCampaign}
-        heroHeadline={heroHeadline}
+        accent={heroProps.accent}
+        ctaLabel={heroProps.ctaLabel}
+        showCtaOnMobile={heroProps.showCtaOnMobile}
+        heroHeadline={heroProps.heroHeadline}
       />
       {/* Always render campaign MDX when present */}
       {hasCampaign ? (

@@ -63,9 +63,25 @@ export function evaluateRulesGeneric<C extends RuleContextBase, A extends RuleAc
   }
 
   const durationMs = (opts.now || Date.now)() - start
-  return {
+  const outcome: RuleEvaluationOutcome<A> = {
     actions: results,
     metrics: { evaluated, matched, actions: results.length, durationMs },
     debugLog: debug ? debugLog : undefined,
   }
+  // Optional telemetry (gated via env)
+  try {
+    const enabled = String(process.env.RULES_TELEMETRY_ENABLED || 'false').toLowerCase() === 'true'
+    const sample = Number(process.env.RULES_TELEMETRY_SAMPLE_RATE || '1')
+    const rate = Number.isFinite(sample) && sample > 0 ? Math.min(sample, 1) : 1
+    if (enabled && Math.random() < rate) {
+      // Keep this light; consumers may collect logs server-side or in dev tools
+      // Do not include PII; only metrics and scope
+      // eslint-disable-next-line no-console
+      console.log('[rules.eval]', {
+        scope: context.scope,
+        metrics: outcome.metrics,
+      })
+    }
+  } catch {}
+  return outcome
 }
