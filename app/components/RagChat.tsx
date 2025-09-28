@@ -35,7 +35,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   // T15 suggested queries feature gating and state
   const { behavioral: consent } = useConsent();
   const featureEnabled = String(process.env.NEXT_PUBLIC_RULES_CSR_SUGGESTED_QUERIES ?? 'false').toLowerCase() === 'true';
-  const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'false').toLowerCase() === 'true';
+  const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'true').toLowerCase() === 'true'; // Default to true for demo mode
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showExplainerFollowups, setShowExplainerFollowups] = useState(false);
