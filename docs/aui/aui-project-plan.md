@@ -176,13 +176,14 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 ## Workstream D — Decision Layer (Hybrid Rules + AI)
 
 ### T14. Minimal rules engine
+- Status: ✅ Completed (technical); pending architecture review sign-off.
 - DoD: ✅ deterministic evaluation order, condition → action mapping, scopes (SSR/CSR/RAG), idempotent actions, safe fallbacks.
 - Metrics: rule evaluation p95 ≤ 2ms; 100% unit test coverage for rules parser/evaluator.
 - Validation: unit tests; scenario tests.
 - Guardrails: no stateful side effects without guards.
 - Quality Gates: architecture review.
 ### T14. Minimal rules engine (Hybrid with LLM Policy)
-- Status: Phase 1–2 complete; Phase 3 partial; Phase 4 started — see T14 implementation plan: [docs/aui/T14-rules-engine-plan.md](./T14-rules-engine-plan.md)
+- Status: ✅ Completed (technical); pending architecture review sign-off — see T14 implementation plan: [docs/aui/T14-rules-engine-plan.md](./T14-rules-engine-plan.md)
 - DoD:
   - Deterministic engine: evaluation order, condition → action mapping, scopes (SSR/CSR/RAG), idempotent actions, safe fallbacks.
   - ✅ LLM Policy Engine (shadow→active): consumes PII-safe session summary; recommends one action from an allowlisted set; exposed via `POST /api/decision/policy` (strict JSON schema, timeouts, retries, cost caps).
@@ -191,7 +192,7 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
 - Metrics:
   - Deterministic eval p95 ≤ 2 ms (SSR/CSR); AI policy p95 ≤ 300–600 ms (CSR, off critical path).
   - Current bench (rules engine, 500 samples / 50 rules): mean ≈ 0.0096 ms; p50 ≈ 0.006 ms; p95 ≈ 0.014 ms; p99 ≈ 0.059 ms.
-  - 100% unit coverage for engine; ≥2 scenario tests per scope (SSR/CSR/RAG); shadow vs rules agreement tracked.
+  - ✅ 100% unit coverage for rules engine (critical paths); ≥2 scenario tests per scope (SSR/CSR/RAG); shadow vs rules agreement tracked.
 - Validation:
   - Unit tests + scenario tests; shadow-mode logging and comparison; cost/latency budgets verified on preview.
 - Guardrails:

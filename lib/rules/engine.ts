@@ -72,7 +72,8 @@ export function evaluateRulesGeneric<C extends RuleContextBase, A extends RuleAc
   try {
     const enabled = String(process.env.RULES_TELEMETRY_ENABLED || 'false').toLowerCase() === 'true'
     const sample = Number(process.env.RULES_TELEMETRY_SAMPLE_RATE || '1')
-    const rate = Number.isFinite(sample) && sample > 0 ? Math.min(sample, 1) : 1
+    // Clamp to [0,1]; NaN → default 1
+    const rate = Number.isFinite(sample) ? Math.max(0, Math.min(sample, 1)) : 1
     if (enabled && Math.random() < rate) {
       // Keep this light; consumers may collect logs server-side or in dev tools
       // Do not include PII; only metrics and scope

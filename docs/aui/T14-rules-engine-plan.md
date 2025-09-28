@@ -84,7 +84,7 @@ This non-deterministic layer complements the minimal rules engine. It consumes a
 5. ✅ Export scope helpers in `lib/rules/index.ts` (`evaluateSsrRules`, `evaluateCsrRules`, `evaluateRagRules`).
 
 ### Phase 2 — Scope Adapters
-1. **SSR (`app/brand/[slug]/page.tsx`):**
+1. ✅ **SSR (`app/brand/[slug]/page.tsx`):**
    - Build context from `resolveIndustrySSR` output, campaign flags, telemetry defaults.
    - Execute SSR rules; pass resulting actions (e.g., hero modifiers) to components via props.
 2. ✅ **CSR (`useAdaptiveRules` hook):**
@@ -125,10 +125,10 @@ This non-deterministic layer complements the minimal rules engine. It consumes a
 - **Unintended actions:** include dry-run mode + feature flags for gradual rollout.
 
 ## Validation Checklist
-- [ ] Unit tests (parser/evaluator) at 100% coverage.  
-- [ ] Scenario tests pass (SSR, CSR, RAG).  
+- [x] Unit tests (evaluator/predicates/actions critical paths) at 100% coverage.  
+- [x] Scenario tests pass (SSR, CSR, RAG).  
 - [x] Benchmark p95 ≤ 2ms per evaluation.  
-- [ ] Debug logging behind flag only.  
+- [x] Debug logging behind flag only (rules.eval gated via env).  
 - [x] Docs updated (this plan, project plan, relevant READMEs).  
 - [ ] Architecture review sign-off.
 

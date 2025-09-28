@@ -19,12 +19,21 @@ describe('evaluateRulesGeneric', () => {
     // r1 should match before r2 due to lower priority
     expect(out.actions[0].ruleId).toBe('r1')
     expect(out.actions[1].ruleId).toBe('r2')
+    expect(out.debugLog).toBeUndefined() // debug off by default
   })
 
-  it('stops at maxActions', () => {
+  it('stops at maxActions (outer loop break)', () => {
     const rules: RuleDefinition<Ctx, Act>[] = [
       { id: 'r1', scope: 'csr', conditions: [() => true], actions: [() => act(), () => act()] },
       { id: 'r2', scope: 'csr', conditions: [() => true], actions: [() => act()] },
+    ]
+    const out = evaluateRulesGeneric<Ctx, Act>(rules, { scope: 'csr' }, { maxActions: 2 })
+    expect(out.actions.length).toBe(2)
+  })
+
+  it('stops inside actions loop when maxActions reached (inner loop break)', () => {
+    const rules: RuleDefinition<Ctx, Act>[] = [
+      { id: 'r1', scope: 'csr', conditions: [() => true], actions: [() => act(), () => act(), () => act()] },
     ]
     const out = evaluateRulesGeneric<Ctx, Act>(rules, { scope: 'csr' }, { maxActions: 2 })
     expect(out.actions.length).toBe(2)
@@ -40,6 +49,54 @@ describe('evaluateRulesGeneric', () => {
     expect(out.metrics.evaluated).toBe(3)
     expect(out.actions.length).toBe(1)
     expect(out.actions[0].ruleId).toBe('r3')
+    expect(out.debugLog && out.debugLog.length).toBeGreaterThan(0)
+  })
+
+  it('skips rules when conditions are false and ignores null actions', () => {
+    const rules: RuleDefinition<Ctx, Act>[] = [
+      { id: 'r1', scope: 'csr', conditions: [() => false], actions: [() => act()] },
+      { id: 'r2', scope: 'csr', conditions: [() => true], actions: [() => null as any, () => undefined as any, () => act()] },
+    ]
+    const out = evaluateRulesGeneric<Ctx, Act>(rules, { scope: 'csr' }, { debug: true })
+    expect(out.metrics.evaluated).toBe(2)
+    expect(out.metrics.matched).toBe(1)
+    expect(out.actions.length).toBe(1)
+  })
+
+  it('invokes onAction callback and uses custom clock', () => {
+    const rules: RuleDefinition<Ctx, Act>[] = [
+      { id: 'r1', scope: 'csr', conditions: [() => true], actions: [() => act()] },
+    ]
+    const called: string[] = []
+    const now = () => 42 // constant time → duration 0
+    const out = evaluateRulesGeneric<Ctx, Act>(rules, { scope: 'csr' }, {
+      onAction: (res) => called.push(res.ruleId),
+      now,
+    })
+    expect(called).toEqual(['r1'])
+    expect(out.metrics.durationMs).toBe(0)
+  })
+
+  it('uses context.debug when opts.debug is not set', () => {
+    const rules: RuleDefinition<Ctx, Act>[] = [
+      { id: 'r1', scope: 'csr', conditions: [() => false], actions: [() => act()] },
+      { id: 'r2', scope: 'csr', conditions: [() => true], actions: [() => act()] },
+    ]
+    const out = evaluateRulesGeneric<Ctx, Act>(rules, { scope: 'csr', debug: true } as any)
+    expect(out.debugLog && out.debugLog.join('\n')).toContain('[skip] r1')
+    expect(out.debugLog && out.debugLog.join('\n')).toContain('[match] r2')
+  })
+
+  it('handles undefined conditions/actions via defaults', () => {
+    const rules = [
+      { id: 'r1', scope: 'csr', actions: [] } as unknown as RuleDefinition<Ctx, Act>,
+      { id: 'r2', scope: 'csr' } as unknown as RuleDefinition<Ctx, Act>,
+    ]
+    const out = evaluateRulesGeneric<Ctx, Act>(rules, { scope: 'csr' }, { debug: true })
+    expect(out.metrics.evaluated).toBe(2)
+    // r1: conditions default [] -> true, but actions empty -> 0 actions
+    // r2: conditions undefined -> [], actions undefined -> []
+    expect(out.actions.length).toBe(0)
     expect(out.debugLog && out.debugLog.length).toBeGreaterThan(0)
   })
 })
