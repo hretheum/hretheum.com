@@ -609,7 +609,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
               <div ref={bottomRef} />
             </div>
             {/* T15: Suggested queries (low-confidence or demo), consent-gated */}
-            {featureEnabled && consent && showSuggestions && suggestions.length > 0 && (
+            {featureEnabled && showSuggestions && suggestions.length > 0 && (
               <div className="border-t border-gray-200 p-2">
                 <SuggestedQueries
                   suggestions={suggestions}
