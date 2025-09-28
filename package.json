@@ -16,6 +16,8 @@
     "ingest": "npx tsx scripts/rag_ingest.ts",
     "ingest:supabase": "RAG_STORE=supabase npx tsx scripts/rag_ingest.ts",
     "validate:campaigns": "npx tsx scripts/validate_campaigns.ts",
+    "a11y:audit": "node scripts/a11y_audit.js",
+    "a11y:audit:prod": "node scripts/a11y_audit.js https://hretheum.com https://hretheum.com/brand/tmobile https://hretheum.com/brand/codeandpepper https://hretheum.com/brand/fluxon",
     "lhci:mobile": "npx lhci autorun --config=lighthouserc.mobile.json",
     "lhci:desktop": "npx lhci autorun --config=lighthouserc.desktop.json",
     "lhci:all": "npm run lhci:mobile && npm run lhci:desktop"
@@ -58,6 +60,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.10.2",
     "@eslint/config-array": "0.19.1",
     "@eslint/js": "9.17.0",
     "@eslint/object-schema": "2.1.5",
@@ -66,6 +69,7 @@
     "@playwright/test": "^1.48.0",
     "@types/react": "19.1.12",
     "@vitest/coverage-v8": "^2.1.9",
+    "axe-core": "^4.10.3",
     "vitest": "^2.0.5"
   }
 }

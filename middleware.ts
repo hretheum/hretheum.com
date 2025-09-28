@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getFeatureFlag } from '@/lib/featureFlags'
 
 // Apex domain used for canonical brand routes. Can be overridden at build-time.
 const APEX_DOMAIN = process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com'
@@ -28,6 +29,25 @@ const NOINDEX_HOSTS = new Set(
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean)
 )
+
+// Simple in-memory rate limiting for unknown brands (production should use Redis/DB)
+const unknownBrandRequests = new Map<string, { count: number; resetTime: number }>()
+
+// Rate limiting config for unknown brands
+const UNKNOWN_BRAND_RATE_LIMIT = {
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 10, // max 10 requests per minute per IP for unknown brands
+}
+
+// Clean up old entries every 5 minutes
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, data] of unknownBrandRequests.entries()) {
+    if (now > data.resetTime) {
+      unknownBrandRequests.delete(key)
+    }
+  }
+}, 5 * 60 * 1000)
 
 // Validate and normalize a single-label brand slug
 export function normalizeSlug(label: string): string | null {
@@ -60,9 +80,43 @@ export function getHostname(req: NextRequest): string {
   return candidate.replace(/:\d+$/, '')
 }
 
-export function middleware(req: NextRequest) {
+function getClientIP(req: NextRequest): string {
+  // In production, use X-Forwarded-For or X-Real-IP
+  const forwarded = req.headers.get('x-forwarded-for')
+  if (forwarded) {
+    return forwarded.split(',')[0].trim()
+  }
+  const realIP = req.headers.get('x-real-ip')
+  if (realIP) return realIP.trim()
+  // Fallback to a generic key for development
+  return 'dev-localhost'
+}
+
+function isRateLimited(clientIP: string, slug: string): boolean {
+  const key = `${clientIP}:${slug}`
+  const now = Date.now()
+  const existing = unknownBrandRequests.get(key)
+
+  if (!existing || now > existing.resetTime) {
+    // First request or window expired
+    unknownBrandRequests.set(key, { count: 1, resetTime: now + UNKNOWN_BRAND_RATE_LIMIT.windowMs })
+    return false
+  }
+
+  if (existing.count >= UNKNOWN_BRAND_RATE_LIMIT.maxRequests) {
+    return true // Rate limited
+  }
+
+  existing.count++
+  return false
+}
+
+export async function middleware(req: NextRequest) {
   const hostname = getHostname(req)
   const isNoindexHost = NOINDEX_HOSTS.has(hostname.toLowerCase())
+
+  // Feature flag for A/B testing redirect behavior
+  const redirectAbTestEnabled = await getFeatureFlag('suggestedQueries') // Reuse existing flag for demo
 
   // Only act on subdomains of the APEX_DOMAIN
   if (!hostname.endsWith('.' + APEX_DOMAIN)) {
@@ -94,6 +148,23 @@ export function middleware(req: NextRequest) {
   }
 
   const slug = normalizeSlug(label)
+
+  // Rate limiting for unknown brands (brands not in our mapping)
+  const clientIP = getClientIP(req)
+  if (!slug) {
+    // Invalid slug - apply rate limiting
+    if (isRateLimited(clientIP, label)) {
+      // Rate limited - return 429 Too Many Requests
+      return new Response('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': '60',
+          'X-RateLimit-Limit': UNKNOWN_BRAND_RATE_LIMIT.maxRequests.toString(),
+          'X-RateLimit-Window': UNKNOWN_BRAND_RATE_LIMIT.windowMs.toString(),
+        }
+      })
+    }
+  }
 
   // Build destination: always root brand route; preserve query/UTM; avoid loops
   if (slug) {

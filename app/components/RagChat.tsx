@@ -8,7 +8,7 @@ import SuggestedQueries from '@/app/components/SuggestedQueries';
 import { getSuggestedQueries } from '@/lib/suggestions';
 import { getFollowupsForIntent } from '@/lib/suggestions/followups';
 import type { Industry } from '@/lib/industry';
-import { useConsent } from '@/app/hooks/useConsent';
+import { getFeatureFlag } from '@/lib/featureFlags';
 
 type Citation = { quote: string; source_name: string; link?: string };
 
@@ -36,6 +36,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const { behavioral: consent } = useConsent();
   const featureEnabled = String(process.env.NEXT_PUBLIC_RULES_CSR_SUGGESTED_QUERIES ?? 'false').toLowerCase() === 'true';
   const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'true').toLowerCase() === 'true'; // Default to true for demo mode
+  const [abTestVariant, setAbTestVariant] = useState<'control' | 'variant'>('control')
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showExplainerFollowups, setShowExplainerFollowups] = useState(false);
@@ -165,22 +166,21 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     }
   }, [featureEnabled, consent, demoEnv, props.industry, brandSlug, campaignSource, trackSuggestViewOnce]);
 
-  // Initialize persistent thread_id for this chat widget (session lifetime)
+  // Initialize A/B test variant (50/50 split)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      let tid = window.sessionStorage.getItem('ragThreadId') || '';
-      if (!tid) {
-        // generate UUID (best-effort)
-        const uuid = (window.crypto && (window.crypto as any).randomUUID) ? (window.crypto as any).randomUUID() : `tid_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        tid = uuid;
-        window.sessionStorage.setItem('ragThreadId', tid);
+      const KEY = 'hretheum:ab:suggestions'
+      const existing = window.sessionStorage.getItem(KEY)
+      if (!existing) {
+        const variant = Math.random() < 0.5 ? 'control' : 'variant'
+        window.sessionStorage.setItem(KEY, variant)
+        setAbTestVariant(variant)
+      } else {
+        setAbTestVariant(existing as 'control' | 'variant')
       }
-      threadIdRef.current = tid;
-      const savedTurn = window.sessionStorage.getItem('ragTurnIndex');
-      turnIndexRef.current = savedTurn ? parseInt(savedTurn, 10) || 0 : 0;
     } catch {}
-  }, []);
+  }, [])
 
   // Do not persist minimized state automatically; persistence happens only on explicit user actions.
 
@@ -608,7 +608,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
             </div>
             {/* T15: Suggested queries (low-confidence or demo), consent-gated */}
             {featureEnabled && showSuggestions && suggestions.length > 0 && (
-              <div className="border-t border-gray-200 p-2">
+              <div className={`border-t border-gray-200 p-2 ${abTestVariant === 'variant' ? 'bg-blue-50' : ''}`}>
                 <SuggestedQueries
                   suggestions={suggestions}
                   onPick={(q, index) => {
@@ -624,6 +624,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                         industry: String(props.industry || 'Generic'),
                         chat_widget: 'custom-react',
                         chat_variant: chatVariant,
+                        ab_test_variant: abTestVariant,
                       });
                     } catch {}
                     // One-click send
@@ -640,6 +641,7 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
                           industry: String(props.industry || 'Generic'),
                           chat_widget: 'custom-react',
                           chat_variant: chatVariant,
+                          ab_test_variant: abTestVariant,
                         });
                       }
                     } catch {}
