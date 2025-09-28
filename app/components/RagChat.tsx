@@ -152,15 +152,19 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
+      console.log('[RagChat] Debug - featureEnabled:', featureEnabled, 'demoEnv:', demoEnv, 'consent:', consent, 'brandSlug:', brandSlug, 'industry:', props.industry);
       const demoParam = new URLSearchParams(window.location.search).has('aiDemo');
-      if (featureEnabled && consent && (demoEnv || demoParam)) {
+      if (featureEnabled && (demoEnv || demoParam)) {
         const inds = (props.industry || 'Generic') as Industry | 'Generic';
         const qs = getSuggestedQueries(inds, brandSlug);
+        console.log('[RagChat] Setting suggestions:', qs.length, 'queries');
         setSuggestions(qs);
         setShowSuggestions(true);
         trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
       }
-    } catch {}
+    } catch (err) {
+      console.error('[RagChat] Error in suggestions useEffect:', err);
+    }
   }, [featureEnabled, consent, demoEnv, props.industry, brandSlug, campaignSource, trackSuggestViewOnce]);
 
   // Initialize persistent thread_id for this chat widget (session lifetime)
