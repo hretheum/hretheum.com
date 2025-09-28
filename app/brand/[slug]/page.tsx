@@ -86,7 +86,7 @@ export default async function BrandPage(props: { params: Promise<{ slug?: string
         <Content />
       )}
       {/* AI Chat widget (fixed position) */}
-      <RagChat brandSlug={slug} campaignSource={'brand-route'} />
+      <RagChat brandSlug={slug} campaignSource={'brand-route'} industry={industry} />
     </>
   )
 }

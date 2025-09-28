@@ -29,7 +29,7 @@ flowchart LR
     D2[T15 Three rules wired]
 
     E1[T16 Tooltip]
-    E2[T17 Suggested queries]
+    E2[✅ T17 Suggested queries]
     E3[T18 Progressive disclosure]
 
     F1[T19 Redirects Dashboard]

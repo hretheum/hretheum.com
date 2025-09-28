@@ -199,7 +199,8 @@ See also: [Consent vs Signal Matrix](./consent-signal-matrix.md).
   - Consent gating; allowlist actions only; sampling & per-session rate limits; no raw PII in prompts; structured parsing with safe fallbacks.
 
 ### T15. Implement initial 3 rules
-- DoD: (1) low-confidence RAG → suggested queries (3 items); (2) ✅ hesitation>2s on primary CTA → tooltip; (3) ✅ Novice → progressive disclosure on Home/Brand.
+- Status: ✅ Completed (suggested queries UI + wiring + consent-gated telemetry)
+- DoD: (1) ✅ low-confidence RAG → suggested queries (3 items); (2) ✅ hesitation>2s on primary CTA → tooltip; (3) ✅ Novice → progressive disclosure on Home/Brand.
 - Metrics: +5–10% TTFV improvement for low-confidence sessions; tooltip display rate < 15% of sessions; no CWV regression.
 - Validation: A/B for (1), telemetry counters for (2)(3).
 - Guardrails: cap exposures per session; easy kill-switch.

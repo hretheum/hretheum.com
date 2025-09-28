@@ -4,10 +4,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { streamRag } from '@/lib/client/streamRag';
+import SuggestedQueries from '@/app/components/SuggestedQueries';
+import { getSuggestedQueries } from '@/lib/suggestions';
+import type { Industry } from '@/lib/industry';
+import { useConsent } from '@/app/hooks/useConsent';
 
 type Citation = { quote: string; source_name: string; link?: string };
 
-export default function RagChat(props: { brandSlug?: string; campaignSource?: 'subdomain' | 'brand-route' }) {
+export default function RagChat(props: { brandSlug?: string; campaignSource?: 'subdomain' | 'brand-route'; industry?: Industry }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; citations?: Citation[] }[]>([]);
@@ -25,6 +29,34 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
   const threadIdRef = useRef<string>('');
   const turnIndexRef = useRef<number>(0);
   const apexDomain = (process.env.NEXT_PUBLIC_APEX_DOMAIN || 'hretheum.com').toLowerCase();
+  // T15 suggested queries feature gating and state
+  const { behavioral: consent } = useConsent();
+  const featureEnabled = String(process.env.NEXT_PUBLIC_RULES_CSR_SUGGESTED_QUERIES ?? 'false').toLowerCase() === 'true';
+  const demoEnv = String(process.env.NEXT_PUBLIC_RULES_AI_DEMO ?? 'false').toLowerCase() === 'true';
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const suggestViewSentRef = useRef(false);
+  const trackSuggestViewOnce = React.useCallback((brand?: string, source?: string, ind?: string) => {
+    if (!gtmEnabled || !consent) return;
+    if (suggestViewSentRef.current) return;
+    suggestViewSentRef.current = true;
+    try {
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      (window as any).dataLayer.push({
+        event: 'chat_interaction',
+        chat_action: 'suggested_queries_view',
+        brand: brand || null,
+        campaign_source: source || null,
+        industry: ind || null,
+        chat_widget: 'custom-react',
+        chat_variant: chatVariant,
+      });
+    } catch {}
+  }, [gtmEnabled, consent, chatVariant]);
+  const hashText = (s: string) => {
+    let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return String(h);
+  };
 
   // Viewport class awareness for minimized state preferences
   const classRef = useRef<'compact' | 'desktop'>('desktop');
@@ -108,6 +140,21 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     if (pref !== null) setMinimized(pref);
     else setMinimized(cls === 'compact' && isPortrait);
   }, [getViewportInfo, loadPref]);
+
+  // T15: demo-mode suggestions (env or ?aiDemo) gated by consent
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const demoParam = new URLSearchParams(window.location.search).has('aiDemo');
+      if (featureEnabled && consent && (demoEnv || demoParam)) {
+        const inds = (props.industry || 'Generic') as Industry | 'Generic';
+        const qs = getSuggestedQueries(inds, brandSlug);
+        setSuggestions(qs);
+        setShowSuggestions(true);
+        trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
+      }
+    } catch {}
+  }, [featureEnabled, consent, demoEnv, props.industry, brandSlug, campaignSource, trackSuggestViewOnce]);
 
   // Initialize persistent thread_id for this chat widget (session lifetime)
   useEffect(() => {
@@ -235,7 +282,9 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
     e?.preventDefault();
     const message = input.trim();
     if (!message || loading) return;
-    // reset state for a new turn (no escalation state)
+    // reset suggestions on new turn
+    setShowSuggestions(false);
+    suggestViewSentRef.current = false;
 
     // cancel any in-flight stream
     abortRef.current?.abort();
@@ -336,6 +385,13 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
               chat_widget: 'custom-react',
               chat_variant: chatVariant,
             });
+            if (featureEnabled && consent && lowConf) {
+              const inds = (props.industry || 'Generic') as Industry | 'Generic';
+              const qs = getSuggestedQueries(inds, brandSlug);
+              setSuggestions(qs);
+              setShowSuggestions(true);
+              trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
+            }
           } catch {}
         },
         extraBody: {
@@ -490,8 +546,35 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
               
               <div ref={bottomRef} />
             </div>
+            {/* T15: Suggested queries (low-confidence or demo), consent-gated */}
+            {featureEnabled && consent && showSuggestions && suggestions.length > 0 && (
+              <div className="border-t border-gray-200 p-2">
+                <SuggestedQueries
+                  suggestions={suggestions}
+                  onPick={(q, index) => {
+                    try {
+                      // Telemetry: suggested_queries_click (hash the text)
+                      dlPush({
+                        event: 'chat_interaction',
+                        chat_action: 'suggested_queries_click',
+                        suggestion_index: index,
+                        suggestion_text_hash: hashText(q),
+                        brand: brandSlug || null,
+                        campaign_source: campaignSource || null,
+                        industry: String(props.industry || 'Generic'),
+                        chat_widget: 'custom-react',
+                        chat_variant: chatVariant,
+                      });
+                    } catch {}
+                    setDraft(q);
+                    if (inputRef.current) inputRef.current.focus();
+                  }}
+                />
+              </div>
+            )}
             <form onSubmit={onSend} className="flex items-center gap-2 border-t border-gray-200 p-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setDraft(e.target.value)}
