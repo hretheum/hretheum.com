@@ -5,6 +5,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
+import { getJobPostingsForBrand, hasJobPostings } from '@/lib/job_postings/queries'
+import { matchUserProfile } from '@/lib/job_postings/profile_matcher'
+import { generateSuggestions } from '@/lib/job_postings/suggestion_generator'
+import { getCachedSuggestions, setCachedSuggestions } from '@/lib/job_postings/suggestion_cache'
+import { hashContext } from '@/lib/job_postings/prompt_builder'
 
 type CampaignIndexEntry = {
   slug: string
@@ -64,61 +69,129 @@ async function loadCampaignFrontmatter(filePath: string): Promise<CampaignFrontm
   }
 }
 
+function getGenericSuggestions(brandSlug: string, industry?: string, role?: string): string[] {
+  const suggestions = []
+  
+  if (role) {
+    suggestions.push(
+      `Experience relevant to ${role}`,
+      `Key achievements in similar positions`,
+      `Leadership and team management approach`,
+    )
+  }
+  
+  if (industry) {
+    suggestions.push(
+      `Industry-specific challenges and solutions in ${industry}`,
+      `Process and methodology expertise`,
+    )
+  }
+  
+  if (suggestions.length === 0) {
+    suggestions.push(
+      `Tell me about your experience relevant to ${brandSlug}`,
+      `What interests you about working at ${brandSlug}?`,
+      `Describe your key strengths for this role`,
+      `How do you handle challenging projects?`,
+      `What are your career goals?`,
+    )
+  }
+  
+  return suggestions.slice(0, 5)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { brandSlug } = await request.json()
 
     if (!brandSlug) {
-      return NextResponse.json({ suggestions: [] })
+      return NextResponse.json({ suggestions: [], source: 'empty' })
     }
 
+    console.log(`[api/suggestions] Request for brand: ${brandSlug}`)
+
+    // Check if brand has job postings (Step 6 - NEW)
+    const hasPostings = await hasJobPostings(brandSlug)
+    
+    if (hasPostings) {
+      console.log(`[api/suggestions] Brand has job postings, using personalized suggestions`)
+      
+      // Fetch job postings
+      const jobPostings = await getJobPostingsForBrand(brandSlug, 5)
+      
+      if (jobPostings.length > 0) {
+        // Match user profile with job posting (Step 3)
+        const profileMatch = await matchUserProfile(jobPostings[0])
+        
+        // Build context with personalization
+        const context = {
+          brand_slug: brandSlug,
+          job_postings: jobPostings,
+          user_profile_match: profileMatch,
+        }
+        
+        // Check cache first (Step 5)
+        const contextHash = hashContext(context)
+        const cached = await getCachedSuggestions(brandSlug, contextHash)
+        
+        if (cached) {
+          console.log(`[api/suggestions] Returning cached suggestions`)
+          return NextResponse.json({
+            suggestions: cached.suggestions,
+            source: 'cache',
+            generated_at: cached.generated_at,
+            cache_hit: true,
+          })
+        }
+        
+        // Generate new suggestions (Step 4)
+        console.log(`[api/suggestions] Generating new personalized suggestions`)
+        const generated = await generateSuggestions(context)
+        
+        // Cache for future use (Step 5)
+        await setCachedSuggestions(brandSlug, generated, 24)
+        
+        return NextResponse.json({
+          suggestions: generated.suggestions,
+          source: 'generated',
+          generated_at: generated.generated_at,
+          cache_hit: false,
+          personalized: true,
+        })
+      }
+    }
+    
+    // Fallback to campaign-based suggestions
+    console.log(`[api/suggestions] No job postings, using campaign-based suggestions`)
+    
     const found = await findCampaignForBrand(brandSlug)
     if (!found) {
-      return NextResponse.json({ suggestions: [] })
+      return NextResponse.json({ 
+        suggestions: getGenericSuggestions(brandSlug),
+        source: 'generic',
+      })
     }
 
     const fm = await loadCampaignFrontmatter(found.filePath)
     if (!fm) {
-      return NextResponse.json({ suggestions: [] })
+      return NextResponse.json({ 
+        suggestions: getGenericSuggestions(brandSlug),
+        source: 'generic',
+      })
     }
 
-    // Extract key information from job posting frontmatter
-    const role = fm.role || ''
-    const industry = fm.industry || ''
-    const skills = Array.isArray(fm.skills) ? fm.skills : []
-    const requirements = fm.requirements || ''
-
-    // Generate contextual suggestions based on job posting
-    const suggestions = []
-
-    if (role) {
-      suggestions.push(
-        `Experience relevant to ${role}`,
-        `Key achievements in similar positions`,
-        `Leadership and team management approach`,
-        `Industry-specific challenges and solutions`,
-        `Process and methodology expertise`,
-      )
-    }
-
-    if (skills.length > 0) {
-      suggestions.push(
-        `How have you applied ${skills.slice(0, 2).join(' and ')} in your work?`,
-        `Tell me about a project where ${skills[0]} was crucial`,
-      )
-    }
-
-    if (requirements) {
-      suggestions.push(
-        `How does your experience align with the requirements?`,
-        `What relevant challenges have you overcome?`,
-      )
-    }
-
-    return NextResponse.json({ suggestions })
+    const suggestions = getGenericSuggestions(brandSlug, fm.industry, fm.role)
+    
+    return NextResponse.json({ 
+      suggestions,
+      source: 'campaign',
+    })
 
   } catch (error) {
-    console.error('Campaign suggestions API error:', error)
-    return NextResponse.json({ suggestions: [] })
+    console.error('[api/suggestions] Error:', error)
+    return NextResponse.json({ 
+      suggestions: [],
+      source: 'error',
+    })
   }
 }
