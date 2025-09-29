@@ -18,7 +18,7 @@ Each step is:
 
 ## Workflow 1: File Upload Processing (9 Steps)
 
-### Step 1: File Watcher - Detection Only
+### ✅ Step 1: File Watcher - Detection Only (COMPLETED)
 **Goal**: Detect new files in `data/job_postings/` and log them
 
 #### Implementation
