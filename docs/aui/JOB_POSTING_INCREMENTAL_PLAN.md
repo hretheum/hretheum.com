@@ -844,6 +844,136 @@ describe('Embedding Generator - Step 6 (Mock)', () => {
 
 ---
 
+### Step 6b: Real Embedding Generation
+**Goal**: Replace mock with actual OpenAI embeddings
+
+#### Implementation
+```typescript
+// Update lib/job_postings/embeddings.ts
+
+import OpenAI from 'openai'
+import type { ExtractedData } from './extractor'
+
+async function generateWithOpenAI(
+  content: string,
+  extracted: ExtractedData
+): Promise<EmbeddingResult> {
+  const openai = new OpenAI({
+    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? process.env.AI_GATEWAY_URL : undefined,
+  })
+
+  const model = process.env.AI_MODEL_EMBEDDINGS || 'text-embedding-3-small'
+
+  try {
+    // Generate embeddings for three different contexts
+    const [fullTextEmb, requirementsEmb, skillsEmb] = await Promise.all([
+      // Full text embedding
+      openai.embeddings.create({
+        model,
+        input: content.slice(0, 8000), // ~8k chars limit
+      }),
+      // Requirements embedding
+      openai.embeddings.create({
+        model,
+        input: extracted.core_requirements.join(', ').slice(0, 8000),
+      }),
+      // Skills embedding
+      openai.embeddings.create({
+        model,
+        input: [...extracted.technical_skills, ...extracted.soft_skills].join(', ').slice(0, 8000),
+      }),
+    ])
+
+    return {
+      full_text: fullTextEmb.data[0].embedding,
+      requirements: requirementsEmb.data[0].embedding,
+      skills: skillsEmb.data[0].embedding,
+      model,
+      dimensions: fullTextEmb.data[0].embedding.length,
+    }
+  } catch (error: any) {
+    console.error(`[embeddings] Real embedding generation failed: ${error.message}`)
+    // Fallback to mock on error
+    console.log(`[embeddings] Falling back to mock embeddings`)
+    const mockVector = () => Array.from({ length: 1536 }, () => Math.random() * 2 - 1)
+    return {
+      full_text: mockVector(),
+      requirements: mockVector(),
+      skills: mockVector(),
+      model: 'mock-embedding-model-fallback',
+      dimensions: 1536,
+    }
+  }
+}
+
+export async function generateEmbeddings(
+  content: string,
+  extracted: ExtractedData,
+  useMock: boolean = false  // Changed default to false
+): Promise<EmbeddingResult> {
+  if (useMock) {
+    console.log(`[embeddings] Using MOCK embeddings`)
+    const mockVector = () => Array.from({ length: 1536 }, () => Math.random() * 2 - 1)
+    return {
+      full_text: mockVector(),
+      requirements: mockVector(),
+      skills: mockVector(),
+      model: 'mock-embedding-model',
+      dimensions: 1536
+    }
+  }
+  
+  console.log(`[embeddings] Using REAL OpenAI embeddings`)
+  return await generateWithOpenAI(content, extracted)
+}
+```
+
+#### Update Watcher
+```typescript
+// Change from mock to real embeddings
+const embeddings = await generateEmbeddings(normalized.normalized, extracted, false)  // false = use real
+```
+
+#### Test Plan
+```typescript
+// tests/integration/embeddings_openai.test.ts
+describe('OpenAI Embedding Generator - Step 6b (Real)', () => {
+  test('generates real embeddings from OpenAI', async () => {
+    const content = '# Senior Developer\n\nRequires 5+ years Python experience'
+    const extracted = await extractSemanticData(content, true)
+    
+    const result = await generateEmbeddings(content, extracted, false)
+    
+    expect(result.dimensions).toBe(1536)
+    expect(result.full_text).toHaveLength(1536)
+    expect(result.model).toContain('embedding')
+  }, 30000)
+  
+  test('handles API errors gracefully', async () => {
+    const content = 'test'
+    const extracted = await extractSemanticData(content, true)
+    
+    const result = await generateEmbeddings(content, extracted, false)
+    
+    // Should not crash, returns mock on error
+    expect(result).toBeDefined()
+    expect(result.dimensions).toBe(1536)
+  }, 30000)
+})
+```
+
+#### Acceptance Criteria
+- [ ] Real OpenAI embeddings generated
+- [ ] Three separate embeddings (full_text, requirements, skills)
+- [ ] Handles API errors with fallback to mock
+- [ ] Respects 8000 char limit per embedding
+- [ ] Uses AI_MODEL_EMBEDDINGS from env
+- [ ] Integration test passes with real API
+- [ ] Watcher uses real embeddings by default
+
+---
+
 ### Step 7: Database Storage
 **Goal**: Store processed job posting in Supabase
 
