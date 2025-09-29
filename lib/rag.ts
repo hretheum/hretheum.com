@@ -1,6 +1,9 @@
 // Utilities for RAG: chunking, embeddings, similarity
 // All documentation/comments are in English per project rule.
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs'
+
 import { promises as fs } from 'fs';
 import path from 'path';
 import OpenAI from 'openai';

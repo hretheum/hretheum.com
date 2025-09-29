@@ -1,6 +1,9 @@
 // Documentation: all comments/docstrings in English per policy.
 // Helpers to load AI Originals storytelling content from data/ai_originals/*.mdx
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs'
+
 import fs from 'fs/promises'
 import path from 'path'
 import { z } from 'zod'
