@@ -10,7 +10,28 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
 
 ## Workstream LL-1: Adaptive Grid Morphing
 
-### LL-1.1 Grid State Detection Engine
+
+### LL-1.1 Job Posting Intelligence Integration
+- **Definition of Done**:
+  - Ingest oryginalnych ogłoszeń pracy do bazy danych przy tworzeniu kampanii
+  - Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy)
+  - Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia
+  - Deduplikacja semantyczna sugerowanych pytań (eliminacja podobnych zapytań)
+- **Success Metrics** (with validation methods):
+  - Redukcja duplikatów sugestii ≥ 80% (analiza kosinusowej podobieństwa embeddingów)
+  - Zwiększenie trafności sugestii ≥ 60% (A/B testing vs. manualne oceny)
+  - Czas odpowiedzi na sugestie pytań ≤ 2s (monitoring RAG pipeline)
+- **Guardrails**:
+  - Fallback do generycznych sugestii jeśli analiza ogłoszenia nie powiedzie się
+  - Ograniczenie długości kontekstu ogłoszenia do 4000 tokenów dla wydajności
+  - Cache analizy ogłoszenia na poziomie kampanii (TTL: 24h)
+  - Graceful degradation przy problemach z bazą danych
+- **Quality Gates**:
+  - Semantyczna deduplikacja zachowuje ≥ 95% oryginalnego znaczenia
+  - Wszystkie sugestie pytań są bezpieczne i odpowiednie (content filtering)
+  - Wydajność RAG pipeline nie ulega degradacji (p95 < 3s)
+
+### LL-1.2 Grid State Detection Engine
 - **Definition of Done**:
   - Implement real-time analysis of user behavior patterns (scroll velocity, mouse movement, click patterns)
   - Create state machine for grid transitions (compact → expanded → focused → minimal)
@@ -30,7 +51,7 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
   - Accessibility audit passes (no new violations)
   - User testing with eye-tracking validation
 
-### LL-1.2 Smooth Animation Framework
+### LL-1.3 Smooth Animation Framework
 - **Definition of Done**:
   - CSS Grid animation system with GPU acceleration
   - Transition timing functions optimized for perceived performance
@@ -69,26 +90,6 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
   - Privacy audit compliance
   - Data protection impact assessment
   - Security code review
-
-### LL-1.4 Job Posting Intelligence Integration
-- **Definition of Done**:
-  - Ingest oryginalnych ogłoszeń pracy do bazy danych przy tworzeniu kampanii
-  - Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy)
-  - Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia
-  - Deduplikacja semantyczna sugerowanych pytań (eliminacja podobnych zapytań)
-- **Success Metrics** (with validation methods):
-  - Redukcja duplikatów sugestii ≥ 80% (analiza kosinusowej podobieństwa embeddingów)
-  - Zwiększenie trafności sugestii ≥ 60% (A/B testing vs. manualne oceny)
-  - Czas odpowiedzi na sugestie pytań ≤ 2s (monitoring RAG pipeline)
-- **Guardrails**:
-  - Fallback do generycznych sugestii jeśli analiza ogłoszenia nie powiedzie się
-  - Ograniczenie długości kontekstu ogłoszenia do 4000 tokenów dla wydajności
-  - Cache analizy ogłoszenia na poziomie kampanii (TTL: 24h)
-  - Graceful degradation przy problemach z bazą danych
-- **Quality Gates**:
-  - Semantyczna deduplikacja zachowuje ≥ 95% oryginalnego znaczenia
-  - Wszystkie sugestie pytań są bezpieczne i odpowiednie (content filtering)
-  - Wydajność RAG pipeline nie ulega degradacji (p95 < 3s)
 
 ---
 

@@ -5,10 +5,10 @@
 ```mermaid
 graph TD
     %% Phase 1: Foundation Layer
-    LL-1-1[LL-1.1<br/>Grid State<br/>Detection Engine]
-    LL-1-2[LL-1.2<br/>Smooth Animation<br/>Framework]
-    LL-1-3[LL-1.3<br/>Behavior Pattern<br/>Recognition]
-    LL-1-4[LL-1.4<br/>Job Posting<br/>Intelligence]
+    LL-1-1[LL-1.1<br/>Job Posting<br/>Intelligence]
+    LL-1-2[LL-1.2<br/>Grid State<br/>Detection Engine]
+    LL-1-3[LL-1.3<br/>Smooth Animation<br/>Framework]
+    LL-1-4[LL-1.4<br/>Behavior Pattern<br/>Recognition]
 
     %% Phase 2: Content Layer
     LL-2-1[LL-2.1<br/>Scroll Velocity<br/>Analysis]
@@ -32,11 +32,11 @@ graph TD
     LL-3-2 --> LL-3-3
 
     %% Cross-workstream dependencies
-    LL-1-1 --> LL-2-1
-    LL-1-3 --> LL-2-3
-    LL-1-4 --> LL-2-2
+    LL-1-2 --> LL-2-1
+    LL-1-4 --> LL-2-3
+    LL-1-1 --> LL-2-2
     LL-2-2 --> LL-3-1
-    LL-3-2 --> LL-1-2
+    LL-3-2 --> LL-1-3
     LL-2-3 --> LL-3-3
 
     %% Styling
@@ -54,7 +54,7 @@ graph TD
 ### **Phase 1: Foundation (Weeks 1-4)**
 **Parallel Development - Can be done simultaneously:**
 
-1. **LL-1.1 Grid State Detection Engine** → LL-1.2 → LL-1.3 → LL-1.4
+1. **LL-1.1 Job Posting Intelligence** → LL-1.2 → LL-1.3 → LL-1.4
    - Core behavior analysis system
    - Foundation for all adaptive features
 
