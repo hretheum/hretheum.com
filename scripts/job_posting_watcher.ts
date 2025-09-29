@@ -55,9 +55,9 @@ async function startWatcher() {
             console.log(`[watcher] Extracted ${extracted.technical_skills.length} technical skills`)
             console.log(`[watcher] Seniority: ${extracted.seniority_level}, Role: ${extracted.role_type}`)
             
-            // Step 6: Generate embeddings (mock)
-            const embeddings = await generateEmbeddings(normalized.normalized, extracted, true)
-            console.log(`[watcher] Generated embeddings (${embeddings.dimensions}D)`)
+            // Step 6b: Generate embeddings (real OpenAI)
+            const embeddings = await generateEmbeddings(normalized.normalized, extracted, false)
+            console.log(`[watcher] Generated embeddings (${embeddings.dimensions}D, model: ${embeddings.model})`)
             // TODO: Step 7 - Store in database
           } catch (error: any) {
             console.error(`[watcher] Failed to process file: ${error.message}`)
