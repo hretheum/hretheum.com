@@ -362,7 +362,7 @@ describe('Content Normalizer - Step 3', () => {
 
 ---
 
-### Step 4: Metadata Extraction (File Name Parsing)
+### ✅ Step 4: Metadata Extraction (File Name Parsing) (COMPLETED)
 **Goal**: Extract brand_slug and timestamp from filename
 
 #### Implementation
@@ -491,13 +491,19 @@ describe('Metadata Extraction - Step 4', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Extracts brand_slug correctly
-- [ ] Parses ISO 8601 timestamp correctly
-- [ ] Detects file format (.md/.txt/.json)
-- [ ] Validates filename format
-- [ ] Rejects invalid filenames with descriptive error
-- [ ] Handles brand slugs with hyphens
-- [ ] Unit tests pass
+- [x] Extracts brand_slug correctly
+- [x] Parses ISO 8601 timestamp correctly
+- [x] Detects file format (.md/.txt/.json)
+- [x] Validates filename format
+- [x] Rejects invalid filenames with descriptive error
+- [x] Handles brand slugs with hyphens
+- [x] Unit tests pass
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/metadata.ts`
+- Tests: `tests/unit/metadata.test.ts`
+- Watcher updated: `scripts/job_posting_watcher.ts`
+- All 19 tests passing ✅
 
 ---
 
@@ -1011,7 +1017,7 @@ role: Senior Designer
 - [x] **Step 1: File Watcher - Detection Only** ✅ (2025-01-29)
 - [x] **Step 2: File Reading** ✅ (2025-01-29)
 - [x] **Step 3: Content Normalization** ✅ (2025-01-29)
-- [ ] Step 4: Metadata Extraction
+- [x] **Step 4: Metadata Extraction** ✅ (2025-01-29)
 - [ ] Step 5: LLM Semantic Extraction (Mock)
 - [ ] Step 6: Embedding Generation (Mock)
 - [ ] Step 7: Database Storage
@@ -1019,7 +1025,7 @@ role: Senior Designer
 - [ ] Step 9: End-to-End Verification
 
 ### Current Step
-**Step 4: Metadata Extraction** ⬅️ Next
+**Step 5: LLM Semantic Extraction (Mock)** ⬅️ Next
 
 ### Next Steps After Workflow 1
 - [ ] Step 5b: Real LLM Extraction (replace mock)

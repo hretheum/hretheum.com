@@ -1,10 +1,11 @@
-// Job Posting File Watcher - Steps 1-3
-// Detects, reads, and normalizes job posting files
+// Job Posting File Watcher - Steps 1-4
+// Detects, reads, normalizes, and extracts metadata from job posting files
 
 import { watch } from 'fs/promises'
 import path from 'path'
 import { readJobPostingFile } from '../lib/job_postings/file_reader'
 import { normalizeContent } from '../lib/job_postings/normalizer'
+import { extractFileMetadata } from '../lib/job_postings/metadata'
 
 const JOB_POSTINGS_DIR = path.join(process.cwd(), 'data/job_postings')
 
@@ -26,6 +27,17 @@ async function startWatcher() {
           console.log(`[watcher] Full path: ${filePath}`)
           console.log(`[watcher] Format: ${ext}`)
           
+          // Step 4: Extract metadata from filename
+          const metadata = extractFileMetadata(event.filename)
+          
+          if (!metadata.valid) {
+            console.error(`[watcher] Invalid filename: ${metadata.error}`)
+            return
+          }
+          
+          console.log(`[watcher] Processing job posting for brand: ${metadata.brand_slug}`)
+          console.log(`[watcher] Timestamp: ${metadata.timestamp.toISOString()}`)
+          
           // Step 2: Read file content
           try {
             const content = await readJobPostingFile(filePath)
@@ -35,7 +47,7 @@ async function startWatcher() {
             const normalized = normalizeContent(content)
             console.log(`[watcher] Normalized content (${normalized.stats.normalizedLength} chars)`)
             console.log(`[watcher] Line breaks: ${normalized.lineBreaks}`)
-            // TODO: Step 4 - Extract metadata
+            // TODO: Step 5 - LLM extraction
           } catch (error: any) {
             console.error(`[watcher] Failed to process file: ${error.message}`)
           }
