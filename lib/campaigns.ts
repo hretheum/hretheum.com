@@ -99,19 +99,10 @@ export async function getCampaignHeroHeadlineForBrand(brandSlug: string): Promis
   throw new Error('getCampaignHeroHeadlineForBrand moved to page.tsx - use the component version')
 }
 
-export async function compileCampaignForBrand(
-  brandSlug: string,
-  components: Record<string, React.ComponentType<any>>
-): Promise<{ content: React.ReactElement; frontmatter: CampaignFrontmatter } | null> {
-  throw new Error('compileCampaignForBrand moved to CampaignRenderer.tsx - use the component version')
+export async function findCampaignForBrand(brandSlug: string): Promise<{ filePath: string; entry: CampaignIndexEntry } | null> {
+  throw new Error('findCampaignForBrand moved to CampaignRenderer.tsx - use the component version')
 }
 
-export async function serializeCampaignForBrand(
-  brandSlug: string
-): Promise<{ compiledSource: string; frontmatter: CampaignFrontmatter } | null> {
-  throw new Error('serializeCampaignForBrand moved to CampaignRenderer.tsx - use the component version')
-}
-
-export async function validateCampaignFrontmatterForBrand(brandSlug: string): Promise<CampaignFrontmatter> {
-  throw new Error('validateCampaignFrontmatterForBrand moved to CampaignRenderer.tsx - use the component version')
+export async function loadCampaignFrontmatter(filePath: string): Promise<CampaignFrontmatter | null> {
+  throw new Error('loadCampaignFrontmatter moved to CampaignRenderer.tsx - use the component version')
 }

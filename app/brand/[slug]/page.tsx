@@ -74,8 +74,8 @@ async function readJson<T = unknown>(filePath: string): Promise<T | null> {
   }
 }
 
-async function getCampaignIndex() {
-  const data = await readJson(INDEX_FILE)
+async function getCampaignIndex(): Promise<CampaignIndex> {
+  const data = await readJson<CampaignIndex>(INDEX_FILE)
   return data || {}
 }
 
