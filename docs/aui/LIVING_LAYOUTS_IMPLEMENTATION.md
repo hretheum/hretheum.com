@@ -23,10 +23,13 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
 
 
 ### LL-1.1 Job Posting Intelligence Integration
+
+📋 **[Detailed Technical Specification →](./JOB_POSTING_INTELLIGENCE_SPEC.md)**
+
 - **Definition of Done**:
   - ✅ Ingest oryginalnych ogłoszeń pracy do bazy danych przy tworzeniu kampanii
-  - ❌ Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy)
-  - ⚠️ Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia (częściowo - template-based)
+  - ❌ Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy) - **[see spec](./JOB_POSTING_INTELLIGENCE_SPEC.md#4-semantic-analysis)**
+  - ⚠️ Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia (częściowo - template-based) - **[see spec](./JOB_POSTING_INTELLIGENCE_SPEC.md#8-contextual-question-generation)**
   - ✅ Deduplikacja semantyczna sugerowanych pytań (eliminacja podobnych zapytań)
 - **Success Metrics** (with validation methods):
   - ⚠️ Redukcja duplikatów sugestii ≥ 80% (analiza kosinusowej podobieństwa embeddingów) - implementacja gotowa, brak testów A/B
