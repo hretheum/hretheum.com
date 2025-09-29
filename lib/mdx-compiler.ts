@@ -32,7 +32,10 @@ export async function compileMDXDirect(
     
     // Build the component
     const code = String(compiled)
-    console.debug('[compileMDXDirect] compiled code', code)
+    // Debug output gated by explicit env flag to avoid noisy logs
+    if (process.env.NEXT_PUBLIC_MDX_DEBUG === '1') {
+      console.debug('[compileMDXDirect] compiled length', code.length)
+    }
     
     // MDX expects these in scope
     const fn = new Function('runtime', 'components', 'frontmatter', code)

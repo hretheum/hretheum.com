@@ -464,10 +464,12 @@ export default function RagChat(props: { brandSlug?: string; campaignSource?: 's
             void buildHybrid();
 
             if (featureEnabled && consent && lowConf) {
-              const qs = getSuggestedQueries(inds, brandSlug);
-              setSuggestions(qs);
-              setShowSuggestions(true);
-              trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
+              // Use non-async version for now - will fix with proper async handling
+              getEnhancedSuggestedQueries(inds, brandSlug).then((qs) => {
+                setSuggestions(qs);
+                setShowSuggestions(true);
+                trackSuggestViewOnce(brandSlug, campaignSource, String(inds));
+              });
             }
           } catch {}
         },

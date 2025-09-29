@@ -1,15 +1,9 @@
+// Force Node.js runtime for OpenAI API calls
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
-import {
-  buildAnswerPrompt,
-  embedQuery,
-  getSimilarityThreshold,
-  getTopK,
-  loadIndex,
-  rankBySimilarity,
-  generateAnswer,
-} from '@/lib/rag';
 import { searchByEmbedding } from '@/lib/rag_store/supabase';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
@@ -17,6 +11,124 @@ import { rerankWithLLM } from '@/lib/intent/rerank';
 import type { IntentId } from '@/lib/intent/intents';
 import { evaluateRagRules } from '@/lib/rules'
 import { ragRules } from '@/config/rules'
+import { promises as fs } from 'fs';
+import path from 'path';
+
+// Types
+type RAGVector = {
+  id: string;
+  text: string;
+  metadata: Record<string, any>;
+  embedding: number[] | null;
+}
+
+type RAGIndex = {
+  vectors: RAGVector[];
+}
+
+// Constants
+const DATA_DIR = path.join(process.cwd(), 'data');
+const INDEX_PATH = path.join(DATA_DIR, 'index.json');
+
+// Helper functions
+function buildAnswerPrompt(question: string, contexts: { text: string; metadata: Record<string, any> }[]) {
+  const contextStr = contexts.map((c) => `Source: ${c.metadata?.source_name || 'Unknown'}\n${c.text}`).join('\n\n---\n\n');
+  const system = `You are answering as a senior design leader and product strategist in a job interview context. 
+
+CRITICAL INSTRUCTIONS:
+- Always respond in FIRST PERSON ("I have...", "My experience includes...", "I led...")
+- Never use third person ("You have...", "Your experience...")
+- Draw directly from the provided context about your background and projects
+- Be specific about projects, metrics, and outcomes from your experience
+- If the context doesn't contain relevant information, acknowledge what you can speak to from your background
+- Maintain a confident, professional tone appropriate for a senior leadership role
+
+Context about your background:
+${contextStr}
+
+Question: ${question}`;
+  const user = question;
+  return { system, user };
+}
+
+async function embedQuery(text: string): Promise<number[]> {
+  const openai = new OpenAI({
+    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? process.env.AI_GATEWAY_URL : undefined,
+  });
+
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: text,
+  });
+
+  return response.data[0].embedding;
+}
+
+function getTopK() {
+  return Math.max(1, Math.min(20, Number(process.env.RAG_TOP_K || '5')));
+}
+
+function getSimilarityThreshold() {
+  return Math.max(0.1, Math.min(0.95, Number(process.env.RAG_SIMILARITY_THRESHOLD || '0.7')));
+}
+
+function cosineSimilarity(a: number[], b: number[]): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  if (normA === 0 || normB === 0) return 0;
+
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function rankBySimilarity(query: number[], index: RAGVector[]) {
+  const withScores = index
+    .filter((v) => v.embedding)
+    .map((v) => ({
+      v,
+      score: cosineSimilarity(query, v.embedding!),
+    }))
+    .filter((item) => item.score >= getSimilarityThreshold())
+    .sort((a, b) => b.score - a.score);
+
+  return withScores;
+}
+
+async function loadIndex(): Promise<RAGIndex> {
+  try {
+    const buf = await fs.readFile(INDEX_PATH, 'utf8');
+    return JSON.parse(buf) as RAGIndex;
+  } catch {
+    return { vectors: [] };
+  }
+}
+
+async function generateAnswer(system: string, user: string): Promise<string> {
+  const openai = new OpenAI({
+    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? process.env.AI_GATEWAY_URL : undefined,
+  });
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    max_tokens: 800,
+    temperature: 0.1,
+  });
+
+  return response.choices[0]?.message?.content || 'No response generated.';
+}
 
 // Helper: create Supabase client for server-side logging. Prefer Service Role to bypass RLS for write-only logs.
 function getSupabaseLoggingClient() {
@@ -124,11 +236,47 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Load index only in JSON mode (fallback). Supabase mode queries remotely.
+    // Fetch job posting context for brand if available
+    let jobPostingContext = '';
+    if (brandSlug && logUseSupabase) {
+      try {
+        const supabase = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { persistSession: false } }
+        );
+        const { data: jobPosting } = await supabase
+          .from('job_postings')
+          .select('title, company, content, requirements, skills')
+          .eq('brand_slug', brandSlug)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (jobPosting) {
+          jobPostingContext = `
+JOB POSTING CONTEXT:
+Title: ${jobPosting.title}
+Company: ${jobPosting.company}
+Content: ${jobPosting.content?.slice(0, 2000) || ''}
+Requirements: ${jobPosting.requirements || ''}
+Skills: ${jobPosting.skills?.join(', ') || ''}
+---
+`;
+        }
+      } catch (error) {
+        console.warn('[rag.query:job-context]', error);
+      }
+    }
+
+    // Determine RAG store backend
     const useSupabase = process.env.RAG_STORE === 'supabase';
-    const index = useSupabase ? null : await loadIndex();
+    let index: RAGIndex | null = null;
+
     if (!useSupabase) {
-      if (!index!.vectors || index!.vectors.length === 0) {
+      index = await loadIndex();
+      if (!index.vectors || index.vectors.length === 0) {
         return NextResponse.json({
           answer: 'I do not have any indexed data yet. Please add Markdown sources to data/rag/ and run ingestion.',
           citations: [],
@@ -458,6 +606,19 @@ export async function POST(req: NextRequest) {
 
     // Prepare prompt from selected contexts
     const contexts = selected.map((s) => ({ text: s.v.text, metadata: s.v.metadata }));
+
+    // Add job posting context if available
+    if (jobPostingContext.trim()) {
+      contexts.unshift({
+        text: jobPostingContext.trim(),
+        metadata: {
+          source_name: 'job_posting',
+          source_type: 'job_context',
+          brand_slug: brandSlug
+        }
+      });
+    }
+
     const { system, user } = buildAnswerPrompt(message, contexts);
 
     // Build simple citations from selected chunks (first 200 chars)
@@ -703,7 +864,7 @@ function computeBoost(meta: any, intentId: string, userMessage: string) {
 function getOpenAIClientLocal() {
   const gatewayKey = process.env.AI_GATEWAY_API_KEY;
   if (gatewayKey) {
-    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' });
+    return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL });
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY');

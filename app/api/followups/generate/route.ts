@@ -5,7 +5,7 @@ import OpenAI from 'openai'
 function getOpenAIClient() {
   const gatewayKey = process.env.AI_GATEWAY_API_KEY
   if (gatewayKey) {
-    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' })
+    return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL })
   }
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY')
@@ -38,16 +38,24 @@ export async function POST(req: NextRequest) {
     const ctrl = new AbortController()
     const t = setTimeout(() => ctrl.abort('followups_timeout'), Math.min(2500, Number(process.env.RULES_AI_TIMEOUT_MS || 2500)))
     try {
+      // Build request params - only add response_format for compatible models
+      const requestParams: any = {
+        model,
+        messages: [
+          { role: 'system', content: sys },
+          { role: 'user', content: usr }
+        ],
+        temperature: 0.3,
+      }
+      
+      // Only add response_format for OpenAI models that support it (gpt-4o, gpt-4-turbo, etc.)
+      // Skip for AI Gateway or models that don't support structured outputs
+      if (!process.env.AI_GATEWAY_API_KEY && (model.includes('gpt-4o') || model.includes('gpt-4-turbo'))) {
+        requestParams.response_format = { type: 'json_object' }
+      }
+      
       const res = await client.chat.completions.create(
-        {
-          model,
-          messages: [
-            { role: 'system', content: sys },
-            { role: 'user', content: usr }
-          ],
-          temperature: 0.3,
-          response_format: { type: 'json_object' },
-        },
+        requestParams,
         { signal: ctrl.signal as any }
       )
       const content = res.choices?.[0]?.message?.content || ''

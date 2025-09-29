@@ -19,7 +19,7 @@ export default function SuggestedQueries({
         <button
           key={`${i}-${s.slice(0, 16)}`}
           type="button"
-          className="inline-flex items-center rounded-full border border-gray-300 bg-white/80 px-3 py-1 text-[12px] text-gray-700 shadow-sm hover:bg-white"
+          className="inline-flex items-center rounded-full border border-gray-300 bg-white/80 px-3 py-1 text-[12px] text-gray-700 shadow-sm hover:bg-white w-[70%] break-words text-left"
           onClick={() => onPick(s, i)}
         >
           {s}

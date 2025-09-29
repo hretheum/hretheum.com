@@ -23,84 +23,89 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
 
 
 ### LL-1.1 Job Posting Intelligence Integration
+
+📋 **[Detailed Technical Specification →](./JOB_POSTING_INTELLIGENCE_SPEC.md)**
+
 - **Definition of Done**:
-  - Ingest oryginalnych ogłoszeń pracy do bazy danych przy tworzeniu kampanii
-  - Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy)
-  - Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia
-  - Deduplikacja semantyczna sugerowanych pytań (eliminacja podobnych zapytań)
+  - ✅ Ingest oryginalnych ogłoszeń pracy do bazy danych przy tworzeniu kampanii
+  - ❌ Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy) - **[see spec](./JOB_POSTING_INTELLIGENCE_SPEC.md#4-semantic-analysis)**
+  - ⚠️ Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia (częściowo - template-based) - **[see spec](./JOB_POSTING_INTELLIGENCE_SPEC.md#8-contextual-question-generation)**
+  - ✅ Deduplikacja semantyczna sugerowanych pytań (eliminacja podobnych zapytań)
 - **Success Metrics** (with validation methods):
-  - Redukcja duplikatów sugestii ≥ 80% (analiza kosinusowej podobieństwa embeddingów)
-  - Zwiększenie trafności sugestii ≥ 60% (A/B testing vs. manualne oceny)
-  - Czas odpowiedzi na sugestie pytań ≤ 2s (monitoring RAG pipeline)
+  - ⚠️ Redukcja duplikatów sugestii ≥ 80% (analiza kosinusowej podobieństwa embeddingów) - implementacja gotowa, brak testów A/B
+  - ❌ Zwiększenie trafności sugestii ≥ 60% (A/B testing vs. manualne oceny) - brak A/B testingu
+  - ❌ Czas odpowiedzi na sugestie pytań ≤ 2s (monitoring RAG pipeline) - brak monitoringu
 - **Guardrails**:
-  - Fallback do generycznych sugestii jeśli analiza ogłoszenia nie powiedzie się
-  - Ograniczenie długości kontekstu ogłoszenia do 4000 tokenów dla wydajności
-  - Cache analizy ogłoszenia na poziomie kampanii (TTL: 24h)
-  - Graceful degradation przy problemach z bazą danych
+  - ✅ Fallback do generycznych sugestii jeśli analiza ogłoszenia nie powiedzie się
+  - ❌ Ograniczenie długości kontekstu ogłoszenia do 4000 tokenów dla wydajności
+  - ❌ Cache analizy ogłoszenia na poziomie kampanii (TTL: 24h)
+  - ⚠️ Graceful degradation przy problemach z bazą danych (częściowo - try/catch obecny)
 - **Quality Gates**:
-  - Semantyczna deduplikacja zachowuje ≥ 95% oryginalnego znaczenia
-  - Wszystkie sugestie pytań są bezpieczne i odpowiednie (content filtering)
-  - Wydajność RAG pipeline nie ulega degradacji (p95 < 3s)
+  - ❌ Semantyczna deduplikacja zachowuje ≥ 95% oryginalnego znaczenia - brak testów walidacyjnych
+  - ❌ Wszystkie sugestie pytań są bezpieczne i odpowiednie (content filtering) - brak filtrowania
+  - ❌ Wydajność RAG pipeline nie ulega degradacji (p95 < 3s) - brak monitoringu wydajności
 
 ### LL-1.2 Grid State Detection Engine
 - **Definition of Done**:
-  - Implement real-time analysis of user behavior patterns (scroll velocity, mouse movement, click patterns)
-  - Create state machine for grid transitions (compact → expanded → focused → minimal)
-  - Grid state persistence across page reloads with localStorage/sessionStorage
-  - Fallback to default grid on unsupported browsers
+  - ⚠️ Implement real-time analysis of user behavior patterns (scroll velocity, mouse movement, click patterns) - kod w `lib/behavior/index.ts` **NIE JEST UŻYWANY**
+  - ⚠️ Create state machine for grid transitions (compact → expanded → focused → minimal) - kod istnieje ale nie jest używany
+  - ⚠️ Grid state persistence across page reloads with localStorage/sessionStorage - kod istnieje ale nie jest używany
+  - ⚠️ Fallback to default grid on unsupported browsers - kod istnieje ale nie jest używany
 - **Success Metrics** (with validation methods):
-  - State detection accuracy ≥ 85% (A/B testing vs manual annotation)
-  - Grid transition smoothness ≥ 90% (frame rate monitoring, Core Web Vitals)
-  - State prediction accuracy ≥ 70% (cross-session behavior analysis)
+  - ❌ State detection accuracy ≥ 85% (A/B testing vs manual annotation) - brak testów walidacyjnych
+  - ❌ Grid transition smoothness ≥ 90% (frame rate monitoring, Core Web Vitals) - brak monitoringu
+  - ❌ State prediction accuracy ≥ 70% (cross-session behavior analysis) - brak analizy
 - **Guardrails**:
-  - Maximum 3 grid transitions per session to avoid disorientation
-  - Transitions disabled during critical user actions (form filling, checkout)
-  - Graceful degradation to static grid on performance issues
-  - User opt-out via accessibility preferences
+  - ❌ Maximum 3 grid transitions per session to avoid disorientation - kod istnieje ale nie jest używany
+  - ❌ Transitions disabled during critical user actions (form filling, checkout)
+  - ❌ Graceful degradation to static grid on performance issues - kod istnieje ale nie jest używany
+  - ❌ User opt-out via accessibility preferences - kod istnieje ale nie jest używany
 - **Quality Gates**:
-  - Lighthouse Performance score ≥ 0.90 during transitions
-  - Accessibility audit passes (no new violations)
-  - User testing with eye-tracking validation
+  - ❌ Lighthouse Performance score ≥ 0.90 during transitions - brak testów
+  - ❌ Accessibility audit passes (no new violations) - brak audytu
+  - ❌ User testing with eye-tracking validation - brak testów
+- **UWAGA**: Komponenty `GridStateProvider.tsx`, `AdaptiveGrid.tsx` i `lib/behavior/index.ts` (391 linii) zawierają pełną implementację ale **nie są importowane ani używane w żadnej stronie/layoucie**. To martwy kod.
 
 ### LL-1.3 Smooth Animation Framework
 - **Definition of Done**:
-  - CSS Grid animation system with GPU acceleration
-  - Transition timing functions optimized for perceived performance
-  - Intersection Observer API integration for scroll-triggered animations
-  - Animation queuing system to prevent conflicts
+  - ⚠️ CSS Grid animation system with GPU acceleration - kod w `lib/animation/index.ts` **NIE JEST UŻYWANY**, tylko prosty CSS transition w AdaptiveGrid
+  - ❌ Transition timing functions optimized for perceived performance - tylko basic `ease-in-out`
+  - ❌ Intersection Observer API integration for scroll-triggered animations - kod istnieje ale nie jest integrowany
+  - ❌ Animation queuing system to prevent conflicts - kod istnieje ale nie jest używany
 - **Success Metrics**:
-  - Animation frame rate ≥ 58 FPS (Performance API monitoring)
-  - Layout shift score ≤ 0.05 during transitions (Web Vitals)
-  - Animation completion rate ≥ 95% (event tracking)
+  - ❌ Animation frame rate ≥ 58 FPS (Performance API monitoring) - brak monitoringu FPS
+  - ❌ Layout shift score ≤ 0.05 during transitions (Web Vitals) - brak pomiaru CLS
+  - ❌ Animation completion rate ≥ 95% (event tracking) - brak trackingu
 - **Guardrails**:
-  - Animation duration capped at 300ms to avoid motion sickness
-  - Reduced motion media query support
-  - Animation batching for performance optimization
-  - Kill switch for users with vestibular disorders
+  - ❌ Animation duration capped at 300ms to avoid motion sickness - hardcoded 0.3s ale bez enforcement
+  - ❌ Reduced motion media query support - brak implementacji
+  - ❌ Animation batching for performance optimization - kod istnieje ale nie jest używany
+  - ❌ Kill switch for users with vestibular disorders - brak implementacji
 - **Quality Gates**:
-  - Chrome DevTools performance profiling
-  - Motion sensitivity user testing
-  - Cross-browser compatibility validation
+  - ❌ Chrome DevTools performance profiling - brak profilowania
+  - ❌ Motion sensitivity user testing - brak testów
+  - ❌ Cross-browser compatibility validation - brak testów
+- **UWAGA**: Plik `lib/animation/index.ts` zawiera pełną implementację ale **nie jest importowany ani używany w żadnym komponencie**. Faktycznie używany jest tylko prosty inline CSS transition.
 
-### LL-1.3 Behavior Pattern Recognition
+### LL-1.4 Behavior Pattern Recognition
 - **Definition of Done**:
-  - Machine learning model for user intent prediction
-  - Real-time pattern analysis with Web Workers
-  - Integration with existing telemetry systems
-  - Pattern export for analytics dashboard
+  - ❌ Machine learning model for user intent prediction - brak modelu ML
+  - ❌ Real-time pattern analysis with Web Workers - brak Web Workers
+  - ⚠️ Integration with existing telemetry systems - częściowa integracja (metrics tracking)
+  - ❌ Pattern export for analytics dashboard - brak eksportu
 - **Success Metrics**:
-  - Pattern recognition accuracy ≥ 80% (ML model validation)
-  - Processing latency ≤ 50ms (performance benchmarking)
-  - Memory usage ≤ 10MB (memory profiling)
+  - ❌ Pattern recognition accuracy ≥ 80% (ML model validation) - brak modelu
+  - ⚠️ Processing latency ≤ 50ms (performance benchmarking) - logika obecna, brak benchmarków
+  - ❌ Memory usage ≤ 10MB (memory profiling) - brak profilowania
 - **Guardrails**:
-  - Privacy-first: no PII in pattern analysis
-  - Consent-gated behavioral tracking
-  - Pattern data anonymization before storage
-  - User data deletion on request
+  - ✅ Privacy-first: no PII in pattern analysis
+  - ❌ Consent-gated behavioral tracking - brak consent gatingu
+  - ❌ Pattern data anonymization before storage - brak storage
+  - ❌ User data deletion on request - brak implementacji
 - **Quality Gates**:
-  - Privacy audit compliance
-  - Data protection impact assessment
-  - Security code review
+  - ❌ Privacy audit compliance - brak audytu
+  - ❌ Data protection impact assessment - brak DPIA
+  - ❌ Security code review - brak review
 
 ---
 
