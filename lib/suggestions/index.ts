@@ -2,7 +2,6 @@
 // Suggestions generator for low-confidence RAG scenarios (T15-1/T15-5).
 
 import type { Industry } from '@/lib/industry'
-import { loadCampaignFrontmatter, findCampaignForBrand } from '@/lib/campaigns'
 
 // Basic, safe, template-based suggestions per industry. No trademarks/logos.
 export async function getSuggestedQueries(industry: Industry | 'Generic', brandSlug?: string): Promise<string[]> {
@@ -309,8 +308,11 @@ export async function getEnhancedSuggestedQueries(
   }
 
   try {
+    // Import campaign functions directly since we're in Node.js runtime
+    const { findCampaignForBrand, loadCampaignFrontmatter } = await import('@/lib/campaigns')
+
     // Try to get campaign-specific suggestions first
-    const campaignSuggestions = await getCampaignSpecificSuggestions(brandSlug)
+    const campaignSuggestions = await getCampaignSpecificSuggestions(brandSlug, findCampaignForBrand, loadCampaignFrontmatter)
     if (campaignSuggestions.length > 0) {
       return campaignSuggestions
     }
@@ -318,12 +320,12 @@ export async function getEnhancedSuggestedQueries(
     // Fall back to generic suggestions if campaign lookup fails
   }
 
-  // Fall back to industry-based suggestions
-  return getSuggestedQueries(industry, brandSlug)
-}
-
 // Get campaign-specific suggestions based on job posting content
-async function getCampaignSpecificSuggestions(brandSlug: string): Promise<string[]> {
+async function getCampaignSpecificSuggestions(
+  brandSlug: string,
+  findCampaignForBrand: any,
+  loadCampaignFrontmatter: any
+): Promise<string[]> {
   try {
     const found = await findCampaignForBrand(brandSlug)
     if (!found) return []
