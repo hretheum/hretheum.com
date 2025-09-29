@@ -4,9 +4,6 @@
 // - Parses frontmatter via gray-matter
 // - Exposes helper to get accent override from frontmatter
 
-// Force Node.js runtime for file system operations
-export const runtime = 'nodejs'
-
 import fs from 'fs/promises'
 import path from 'path'
 import matter from 'gray-matter'
@@ -25,25 +22,6 @@ const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calend
 export type CampaignIndexEntry = {
   slug: string
   file?: string // optional direct file path (relative to data/campaigns)
-}
-
-// Helper: get hero headline override for a brand (frontmatter.hero_headline)
-export async function getCampaignHeroHeadlineForBrand(brandSlug: string): Promise<string | undefined> {
-  const found = await findCampaignForBrand(brandSlug)
-  if (!found) return undefined
-  const fm = await loadCampaignFrontmatter(found.filePath)
-  return (fm?.hero_headline as string | undefined) || undefined
-}
-
-// Helper: get the primary CTA label for a brand's campaign (falls back to first CTA if no primary; undefined if none)
-export async function getCampaignPrimaryCtaLabelForBrand(brandSlug: string): Promise<string | undefined> {
-  const found = await findCampaignForBrand(brandSlug)
-  if (!found) return undefined
-  const fm = await loadCampaignFrontmatter(found.filePath)
-  const arr = Array.isArray(fm?.ctas) ? (fm!.ctas as any[]) : []
-  if (!arr.length) return undefined
-  const primary = arr.find((c) => c?.variant === 'primary') || arr[0]
-  return primary?.label || undefined
 }
 
 export type CampaignIndex = Record<string, CampaignIndexEntry>
@@ -150,18 +128,6 @@ export async function loadCampaignFrontmatter(filePath: string): Promise<Campaig
   } catch {
     return null
   }
-}
-
-export async function getCampaignAccentForBrand(brandSlug: string): Promise<string | undefined> {
-  const found = await findCampaignForBrand(brandSlug)
-  if (!found) return undefined
-  const fm = await loadCampaignFrontmatter(found.filePath)
-  return fm?.accent || undefined
-}
-
-export async function hasCampaignForBrand(brandSlug: string): Promise<boolean> {
-  const found = await findCampaignForBrand(brandSlug)
-  return !!found
 }
 
 export async function compileCampaignForBrand(
