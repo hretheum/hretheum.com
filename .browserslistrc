@@ -1,0 +1,13 @@
+# Modern browsers only - no legacy polyfills
+# This reduces bundle size by ~17KB (no ES5 transpilation)
+
+# Chrome, Edge, Firefox, Safari - last 2 versions
+> 0.5%
+last 2 versions
+not dead
+not IE 11
+not op_mini all
+
+# Modern ES2020+ support
+supports es6-module
+supports es6-module-dynamic-import

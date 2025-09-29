@@ -20,6 +20,19 @@ const nextConfig = {
     optimizePackageImports: ['@supabase/supabase-js', 'openai', 'langchain', 'lucide-react', '@vercel/analytics'],
   },
   
+  // Modern browsers only - no legacy polyfills
+  transpilePackages: [],
+  
+  // Modularize imports for better tree shaking
+  modularizeImports: {
+    'react-markdown': {
+      transform: 'react-markdown',
+    },
+    'remark-gfm': {
+      transform: 'remark-gfm',
+    },
+  },
+  
   // Production optimizations
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
