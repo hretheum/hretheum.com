@@ -218,8 +218,6 @@ async function createUnifiedSuggestion(similarSuggestions: string[]): Promise<st
   if (similarSuggestions.length === 1) return similarSuggestions[0]
 
   try {
-    const { generateAnswer } = await import('@/lib/rag')
-
     const prompt = `
 You are given ${similarSuggestions.length} semantically similar question suggestions for a job interview chat:
 
@@ -237,13 +235,12 @@ Return only the unified question, no explanation.
 
     const systemPrompt = 'You are an expert at creating clear, non-duplicate interview questions from similar suggestions.'
 
-    // Use a simple text generation instead of full RAG pipeline
+    // Use API endpoint instead of direct import
     const response = await fetch('/api/rag/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: prompt,
-        // Force non-streaming response
         stream: false
       })
     })
