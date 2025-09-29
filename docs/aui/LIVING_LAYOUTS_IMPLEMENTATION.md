@@ -44,23 +44,24 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
 
 ### LL-1.2 Grid State Detection Engine
 - **Definition of Done**:
-  - ✅ Implement real-time analysis of user behavior patterns (scroll velocity, mouse movement, click patterns)
-  - ✅ Create state machine for grid transitions (compact → expanded → focused → minimal)
-  - ✅ Grid state persistence across page reloads with localStorage/sessionStorage
-  - ✅ Fallback to default grid on unsupported browsers
+  - ⚠️ Implement real-time analysis of user behavior patterns (scroll velocity, mouse movement, click patterns) - kod w `lib/behavior/index.ts` **NIE JEST UŻYWANY**
+  - ⚠️ Create state machine for grid transitions (compact → expanded → focused → minimal) - kod istnieje ale nie jest używany
+  - ⚠️ Grid state persistence across page reloads with localStorage/sessionStorage - kod istnieje ale nie jest używany
+  - ⚠️ Fallback to default grid on unsupported browsers - kod istnieje ale nie jest używany
 - **Success Metrics** (with validation methods):
   - ❌ State detection accuracy ≥ 85% (A/B testing vs manual annotation) - brak testów walidacyjnych
   - ❌ Grid transition smoothness ≥ 90% (frame rate monitoring, Core Web Vitals) - brak monitoringu
   - ❌ State prediction accuracy ≥ 70% (cross-session behavior analysis) - brak analizy
 - **Guardrails**:
-  - ⚠️ Maximum 3 grid transitions per session to avoid disorientation - logika obecna, brak enforcements
+  - ❌ Maximum 3 grid transitions per session to avoid disorientation - kod istnieje ale nie jest używany
   - ❌ Transitions disabled during critical user actions (form filling, checkout)
-  - ⚠️ Graceful degradation to static grid on performance issues - częściowo (fallback obecny)
-  - ⚠️ User opt-out via accessibility preferences - częściowo (isBehaviorAnalysisSupported check)
+  - ❌ Graceful degradation to static grid on performance issues - kod istnieje ale nie jest używany
+  - ❌ User opt-out via accessibility preferences - kod istnieje ale nie jest używany
 - **Quality Gates**:
   - ❌ Lighthouse Performance score ≥ 0.90 during transitions - brak testów
   - ❌ Accessibility audit passes (no new violations) - brak audytu
   - ❌ User testing with eye-tracking validation - brak testów
+- **UWAGA**: Komponenty `GridStateProvider.tsx`, `AdaptiveGrid.tsx` i `lib/behavior/index.ts` (391 linii) zawierają pełną implementację ale **nie są importowane ani używane w żadnej stronie/layoucie**. To martwy kod.
 
 ### LL-1.3 Smooth Animation Framework
 - **Definition of Done**:
