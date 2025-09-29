@@ -9,6 +9,7 @@ import { getEnhancedSuggestedQueries } from '@/lib/suggestions';
 import { getFollowupsForIntent } from '@/lib/suggestions/followups';
 import type { Industry } from '@/lib/industry';
 import { getFeatureFlag } from '@/lib/featureFlags';
+import { useConsent } from '@/app/hooks/useConsent';
 
 type Citation = { quote: string; source_name: string; link?: string };
 
