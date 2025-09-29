@@ -57,7 +57,11 @@ Rules:
       max_tokens: 2000,
     })
 
-    const content_text = response.choices[0]?.message?.content || '{}'
+    let content_text = response.choices[0]?.message?.content || '{}'
+    
+    // Strip markdown code blocks if present
+    content_text = content_text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    
     const parsed = JSON.parse(content_text)
     
     return {
