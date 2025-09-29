@@ -54,7 +54,7 @@ Question: ${question}`;
 async function embedQuery(text: string): Promise<number[]> {
   const openai = new OpenAI({
     apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-    baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? process.env.AI_GATEWAY_URL : undefined,
   });
 
   const response = await openai.embeddings.create({
@@ -114,7 +114,7 @@ async function loadIndex(): Promise<RAGIndex> {
 async function generateAnswer(system: string, user: string): Promise<string> {
   const openai = new OpenAI({
     apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-    baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? process.env.AI_GATEWAY_URL : undefined,
   });
 
   const response = await openai.chat.completions.create({
@@ -864,7 +864,7 @@ function computeBoost(meta: any, intentId: string, userMessage: string) {
 function getOpenAIClientLocal() {
   const gatewayKey = process.env.AI_GATEWAY_API_KEY;
   if (gatewayKey) {
-    return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1' });
+    return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL });
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY');

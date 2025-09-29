@@ -36,7 +36,7 @@ function chunkMarkdown(md: string, opts?: { maxTokens?: number; overlap?: number
 async function embedTexts(texts: string[]): Promise<number[][]> {
   const openai = new OpenAI({
     apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-    baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? process.env.AI_GATEWAY_URL : undefined,
   });
 
   const response = await openai.embeddings.create({

@@ -7,7 +7,7 @@ export function getOpenAIClient() {
   if (!forceDirect) {
     const gatewayKey = process.env.AI_GATEWAY_API_KEY
     if (gatewayKey) {
-      return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1' })
+      return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL })
     }
   }
   const apiKey = process.env.OPENAI_API_KEY
