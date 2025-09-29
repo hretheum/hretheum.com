@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic';
 import CoverPage from './components/CoverPage';
 import ProfilePage from './components/ProfilePage';
-import RagChat from './components/RagChat';
 import SectionObserver from './components/SectionObserver';
 
 // Lazy load components below the fold for better LCP
@@ -12,6 +11,12 @@ const LeadershipPage = dynamic(() => import('./components/LeadershipPage'), { ss
 const AIBuilderPage = dynamic(() => import('./components/AIBuilderPage'), { ssr: true });
 const OtherProjectsPage = dynamic(() => import('./components/OtherProjectsPage'), { ssr: true });
 const ClosingPage = dynamic(() => import('./components/ClosingPage'), { ssr: true });
+
+// Defer RagChat - not needed for initial render, loads after interaction
+const RagChat = dynamic(() => import('./components/RagChat'), { 
+  ssr: false,
+  loading: () => null 
+});
 
 export default function Home() {
   return (

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import dynamicImport from 'next/dynamic'
 
 // Ensure per-request SSR so LLM classification runs at runtime, not at build time
 export const runtime = 'nodejs'
@@ -9,7 +10,11 @@ import { resolveIndustrySSR } from '@/lib/industry_server'
 import { IndustryHero } from '../_components/IndustryHero'
 import Content from '@/app/components/Content'
 import { CampaignRenderer } from './_components/CampaignRenderer'
-import RagChat from '@/app/components/RagChat'
+// Defer RagChat - not critical for initial render
+const RagChat = dynamicImport(() => import('@/app/components/RagChat'), { 
+  ssr: false,
+  loading: () => null 
+})
 // T14 SSR adapter (currently no SSR rules configured; kept for completeness and future use)
 import { evaluateSsrRules } from '@/lib/rules'
 import { ssrRules } from '@/config/rules'
