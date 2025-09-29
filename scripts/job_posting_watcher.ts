@@ -1,5 +1,5 @@
-// Job Posting File Watcher - Steps 1-5
-// Detects, reads, normalizes, extracts metadata, and performs semantic extraction
+// Job Posting File Watcher - Steps 1-6
+// Detects, reads, normalizes, extracts metadata, performs semantic extraction, and generates embeddings
 
 import { watch } from 'fs/promises'
 import path from 'path'
@@ -7,6 +7,7 @@ import { readJobPostingFile } from '../lib/job_postings/file_reader'
 import { normalizeContent } from '../lib/job_postings/normalizer'
 import { extractFileMetadata } from '../lib/job_postings/metadata'
 import { extractSemanticData } from '../lib/job_postings/extractor'
+import { generateEmbeddings } from '../lib/job_postings/embeddings'
 
 const JOB_POSTINGS_DIR = path.join(process.cwd(), 'data/job_postings')
 
@@ -53,7 +54,11 @@ async function startWatcher() {
             const extracted = await extractSemanticData(normalized.normalized, false)
             console.log(`[watcher] Extracted ${extracted.technical_skills.length} technical skills`)
             console.log(`[watcher] Seniority: ${extracted.seniority_level}, Role: ${extracted.role_type}`)
-            // TODO: Step 6 - Generate embeddings
+            
+            // Step 6: Generate embeddings (mock)
+            const embeddings = await generateEmbeddings(normalized.normalized, extracted, true)
+            console.log(`[watcher] Generated embeddings (${embeddings.dimensions}D)`)
+            // TODO: Step 7 - Store in database
           } catch (error: any) {
             console.error(`[watcher] Failed to process file: ${error.message}`)
           }

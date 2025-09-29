@@ -748,7 +748,7 @@ describe('LLM Semantic Extractor - Step 5b (Real)', () => {
 
 ---
 
-### Step 6: Embedding Generation (Placeholder)
+### ✅ Step 6: Embedding Generation (Placeholder) (COMPLETED)
 **Goal**: Generate embeddings for semantic search (mock for now)
 
 #### Implementation
@@ -829,12 +829,18 @@ describe('Embedding Generator - Step 6 (Mock)', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Mock embeddings have correct dimensions (1536)
-- [ ] All three embedding types generated (full_text, requirements, skills)
-- [ ] Values are normalized floats
-- [ ] Logs embedding generation
-- [ ] Unit tests pass
-- [ ] **Note**: Real embedding generation deferred to Step 6b
+- [x] Mock embeddings have correct dimensions (1536)
+- [x] All three embedding types generated (full_text, requirements, skills)
+- [x] Values are normalized floats
+- [x] Logs embedding generation
+- [x] Unit tests pass
+- [x] **Note**: Real embedding generation deferred to Step 6b
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/embeddings.ts`
+- Tests: `tests/unit/embeddings.test.ts`
+- Watcher updated: `scripts/job_posting_watcher.ts`
+- All 11 tests passing ✅
 
 ---
 
@@ -1174,16 +1180,18 @@ role: Senior Designer
 - [x] **Step 4: Metadata Extraction** ✅ (2025-01-29)
 - [x] **Step 5: LLM Semantic Extraction (Mock)** ✅ (2025-01-29)
 - [x] **Step 5b: Real LLM Semantic Extraction** ✅ (2025-01-29)
-- [ ] Step 6: Embedding Generation (Mock)
+- [x] **Step 6: Embedding Generation (Mock)** ✅ (2025-01-29)
 - [ ] Step 7: Database Storage
 - [ ] Step 8: Cache Invalidation
 - [ ] Step 9: End-to-End Verification
 
 ### Current Step
-**Step 6: Embedding Generation (Mock)** ⬅️ Next
+**Step 7: Database Storage** ⬅️ Next
 
-### Note on Step 5b
-Real LLM extraction is now implemented and active by default. Tests require `OPENAI_API_KEY` or `AI_GATEWAY_API_KEY` to run.
+### Notes
+- Real LLM extraction (Step 5b) is implemented and active by default
+- Tests require `OPENAI_API_KEY` or `AI_GATEWAY_API_KEY` to run
+- Mock embeddings generate 1536D vectors (OpenAI text-embedding-3-small size)
 
 ### Next Steps After Workflow 1
 - [ ] Step 5b: Real LLM Extraction (replace mock)
