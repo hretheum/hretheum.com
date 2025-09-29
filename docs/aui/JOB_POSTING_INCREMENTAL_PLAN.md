@@ -107,11 +107,16 @@ describe('File Watcher - Step 1', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Watcher starts without errors
-- [ ] Logs appear when .md/.txt/.json files are added
-- [ ] No logs for other file types (.pdf, .docx, etc.)
-- [ ] Watcher handles subdirectories (e.g., `data/job_postings/tmobile/`)
-- [ ] Integration test passes
+- [x] Watcher starts without errors
+- [x] Logs appear when .md/.txt/.json files are added
+- [x] No logs for other file types (.pdf, .docx, etc.)
+- [x] Watcher handles subdirectories (e.g., `data/job_postings/tmobile/`)
+- [x] Integration test passes
+
+#### ✅ Status: COMPLETED
+- Implementation: `scripts/job_posting_watcher.ts`
+- Tests: `tests/integration/file_watcher.test.ts`
+- All 5 tests passing ✅
 
 #### Deployment
 ```bash
@@ -991,7 +996,7 @@ role: Senior Designer
 ## Progress Tracking
 
 ### Completed Steps
-- [ ] Step 1: File Watcher - Detection Only
+- [x] **Step 1: File Watcher - Detection Only** ✅ (2025-01-29)
 - [ ] Step 2: File Reading
 - [ ] Step 3: Content Normalization
 - [ ] Step 4: Metadata Extraction
@@ -1002,7 +1007,7 @@ role: Senior Designer
 - [ ] Step 9: End-to-End Verification
 
 ### Current Step
-**Step 1: File Watcher - Detection Only**
+**Step 2: File Reading** ⬅️ Next
 
 ### Next Steps After Workflow 1
 - [ ] Step 5b: Real LLM Extraction (replace mock)
