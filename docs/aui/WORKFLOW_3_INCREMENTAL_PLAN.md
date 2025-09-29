@@ -729,7 +729,7 @@ describe('LLM Suggestion Generator - Step 3', () => {
 
 ---
 
-### Step 4: Cache Layer
+### Step 5: Cache Layer
 **Goal**: Cache suggestions to avoid repeated LLM calls
 
 #### Implementation
@@ -935,7 +935,7 @@ describe('Suggestion Cache - Step 4', () => {
 
 ---
 
-### Step 5: API Route Integration
+### Step 6: API Route Integration
 **Goal**: Integrate suggestion generation into existing API
 
 #### Implementation
@@ -1075,7 +1075,7 @@ describe('Suggestions API - Step 5', () => {
 
 ---
 
-### Step 6: Cache Invalidation Hook
+### Step 7: Cache Invalidation Hook
 **Goal**: Invalidate suggestion cache when new job posting added
 
 #### Implementation
@@ -1144,7 +1144,7 @@ describe('Suggestion Cache Invalidation - Step 6', () => {
 
 ---
 
-### Step 7: End-to-End Verification
+### Step 8: End-to-End Verification
 **Goal**: Verify suggestions appear in chat with job posting context
 
 #### Manual Test Plan
