@@ -1,9 +1,10 @@
-// Job Posting File Watcher - Steps 1-2
-// Detects new .md/.txt/.json files in data/job_postings/ and reads their content
+// Job Posting File Watcher - Steps 1-3
+// Detects, reads, and normalizes job posting files
 
 import { watch } from 'fs/promises'
 import path from 'path'
 import { readJobPostingFile } from '../lib/job_postings/file_reader'
+import { normalizeContent } from '../lib/job_postings/normalizer'
 
 const JOB_POSTINGS_DIR = path.join(process.cwd(), 'data/job_postings')
 
@@ -29,7 +30,12 @@ async function startWatcher() {
           try {
             const content = await readJobPostingFile(filePath)
             console.log(`[watcher] Content preview: ${content.slice(0, 100)}...`)
-            // TODO: Step 3 - Normalize content
+            
+            // Step 3: Normalize content
+            const normalized = normalizeContent(content)
+            console.log(`[watcher] Normalized content (${normalized.stats.normalizedLength} chars)`)
+            console.log(`[watcher] Line breaks: ${normalized.lineBreaks}`)
+            // TODO: Step 4 - Extract metadata
           } catch (error: any) {
             console.error(`[watcher] Failed to process file: ${error.message}`)
           }

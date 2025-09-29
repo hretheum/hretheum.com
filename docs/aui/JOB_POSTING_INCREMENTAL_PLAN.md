@@ -212,7 +212,7 @@ describe('File Reader - Step 2', () => {
 
 ---
 
-### Step 3: Content Normalization
+### ✅ Step 3: Content Normalization (COMPLETED)
 **Goal**: Clean and standardize file content
 
 #### Implementation
@@ -346,13 +346,19 @@ describe('Content Normalizer - Step 3', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] HTML entities decoded correctly
-- [ ] Line breaks normalized to \n
-- [ ] Excessive whitespace removed
-- [ ] UTF-8 characters preserved
-- [ ] Non-printable characters removed
-- [ ] Stats logged (original vs normalized length)
-- [ ] Unit tests pass
+- [x] HTML entities decoded correctly
+- [x] Line breaks normalized to \n
+- [x] Excessive whitespace removed
+- [x] UTF-8 characters preserved
+- [x] Non-printable characters removed
+- [x] Stats logged (original vs normalized length)
+- [x] Unit tests pass
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/normalizer.ts`
+- Tests: `tests/unit/normalizer.test.ts`
+- Watcher updated: `scripts/job_posting_watcher.ts`
+- All 20 tests passing ✅
 
 ---
 
@@ -1004,7 +1010,7 @@ role: Senior Designer
 ### Completed Steps
 - [x] **Step 1: File Watcher - Detection Only** ✅ (2025-01-29)
 - [x] **Step 2: File Reading** ✅ (2025-01-29)
-- [ ] Step 3: Content Normalization
+- [x] **Step 3: Content Normalization** ✅ (2025-01-29)
 - [ ] Step 4: Metadata Extraction
 - [ ] Step 5: LLM Semantic Extraction (Mock)
 - [ ] Step 6: Embedding Generation (Mock)
@@ -1013,7 +1019,7 @@ role: Senior Designer
 - [ ] Step 9: End-to-End Verification
 
 ### Current Step
-**Step 3: Content Normalization** ⬅️ Next
+**Step 4: Metadata Extraction** ⬅️ Next
 
 ### Next Steps After Workflow 1
 - [ ] Step 5b: Real LLM Extraction (replace mock)
