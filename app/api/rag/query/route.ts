@@ -1,16 +1,126 @@
+// Force Node.js runtime for OpenAI API calls
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
-import {
-  buildAnswerPrompt,
-  embedQuery,
-  getSimilarityThreshold,
-  getTopK,
-  loadIndex,
-  rankBySimilarity,
-  generateAnswer,
-} from '@/lib/rag';
 import { searchByEmbedding } from '@/lib/rag_store/supabase';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
+import { rerankWithLLM } from '@/lib/intent/rerank';
+import type { IntentId } from '@/lib/intent/intents';
+import { evaluateRagRules } from '@/lib/rules'
+import { ragRules } from '@/config/rules'
+import { promises as fs } from 'fs';
+import path from 'path';
+
+// Types
+type RAGVector = {
+  id: string;
+  text: string;
+  metadata: Record<string, any>;
+  embedding: number[] | null;
+}
+
+type RAGIndex = {
+  vectors: RAGVector[];
+}
+
+// Constants
+const DATA_DIR = path.join(process.cwd(), 'data');
+const INDEX_PATH = path.join(DATA_DIR, 'index.json');
+
+// Helper functions
+export function buildAnswerPrompt(question: string, contexts: { text: string; metadata: Record<string, any> }[]) {
+  const contextStr = contexts.map((c) => `Source: ${c.metadata?.source_name || 'Unknown'}\n${c.text}`).join('\n\n---\n\n');
+  const system = `You are an expert design leader and product strategist. Answer based on the provided context. If the context doesn't contain relevant information, say so clearly.
+
+Context:
+${contextStr}
+
+Question: ${question}`;
+  const user = question;
+  return { system, user };
+}
+
+export async function embedQuery(text: string): Promise<number[]> {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+  });
+
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: text,
+  });
+
+  return response.data[0].embedding;
+}
+
+export function getTopK() {
+  return Math.max(1, Math.min(20, Number(process.env.RAG_TOP_K || '5')));
+}
+
+export function getSimilarityThreshold() {
+  return Math.max(0.1, Math.min(0.95, Number(process.env.RAG_SIMILARITY_THRESHOLD || '0.7')));
+}
+
+export function cosineSimilarity(a: number[], b: number[]): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  if (normA === 0 || normB === 0) return 0;
+
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+export function rankBySimilarity(query: number[], index: RAGVector[]) {
+  const withScores = index
+    .filter((v) => v.embedding)
+    .map((v) => ({
+      v,
+      score: cosineSimilarity(query, v.embedding!),
+    }))
+    .filter((item) => item.score >= getSimilarityThreshold())
+    .sort((a, b) => b.score - a.score);
+
+  return withScores;
+}
+
+export async function loadIndex(): Promise<RAGIndex> {
+  try {
+    const buf = await fs.readFile(INDEX_PATH, 'utf8');
+    return JSON.parse(buf) as RAGIndex;
+  } catch {
+    return { vectors: [] };
+  }
+}
+
+export async function generateAnswer(system: string, user: string): Promise<string> {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+  });
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    max_tokens: 800,
+    temperature: 0.1,
+  });
+
+  return response.choices[0]?.message?.content || 'No response generated.';
+}
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
 import { rerankWithLLM } from '@/lib/intent/rerank';

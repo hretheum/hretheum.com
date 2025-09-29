@@ -1,7 +1,69 @@
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs'
+
 import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { chunkMarkdown, embedTexts, INDEX_PATH, RAG_DIR, saveIndex, type RAGIndex, type RAGVector } from '@/lib/rag';
+import OpenAI from 'openai';
+
+// Types
+export type RAGVector = {
+  id: string;
+  text: string;
+  metadata: Record<string, any>;
+  embedding: number[] | null;
+}
+
+export type RAGIndex = {
+  vectors: RAGVector[];
+}
+
+// Constants
+export const DATA_DIR = path.join(process.cwd(), 'data');
+export const RAG_DIR = path.join(DATA_DIR, 'rag');
+export const INDEX_PATH = path.join(DATA_DIR, 'index.json');
+
+// OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
+  baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+})
+
+// Helper functions
+export function chunkMarkdown(md: string, opts?: { maxTokens?: number; overlap?: number }): string[] {
+  const maxTokens = opts?.maxTokens || 900;
+  const overlap = opts?.overlap || 150;
+
+  // Simple chunking by paragraphs for now
+  const paragraphs = md.split('\n\n').filter(p => p.trim().length > 0);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const para of paragraphs) {
+    if ((currentChunk + para).length > maxTokens) {
+      if (currentChunk) chunks.push(currentChunk.trim());
+      currentChunk = para;
+    } else {
+      currentChunk += (currentChunk ? '\n\n' : '') + para;
+    }
+  }
+  if (currentChunk) chunks.push(currentChunk.trim());
+
+  return chunks;
+}
+
+export async function embedTexts(texts: string[]): Promise<number[][]> {
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: texts,
+  });
+
+  return response.data.map(item => item.embedding);
+}
+
+export async function saveIndex(index: RAGIndex) {
+  await fs.writeFile(INDEX_PATH, JSON.stringify(index, null, 2));
+}
 
 // Ingestion route: parses Markdown files from data/rag, chunks them, embeds, and writes data/index.json
 export async function POST() {
