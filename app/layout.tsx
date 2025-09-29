@@ -1,14 +1,20 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { Analytics } from '@vercel/analytics/react';
 import CtaTelemetry from '@/app/components/CtaTelemetry'
 import { Inter } from 'next/font/google'
 import RumVitals from '@/app/components/RumVitals'
 import ConsentBanner from '@/app/components/ConsentBanner'
 import ClientGlobals from '@/app/components/ClientGlobals'
+import Analytics from '@/app/components/AnalyticsWrapper'
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' })
+const inter = Inter({ 
+  subsets: ['latin'], 
+  display: 'swap',
+  preload: true,
+  adjustFontFallback: true,
+  variable: '--font-inter'
+})
 
 export const metadata: Metadata = {
   title: 'Eryk Orłowski — Product Design Leader & Experience Strategist',
