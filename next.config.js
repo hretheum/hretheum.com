@@ -20,8 +20,15 @@ const nextConfig = {
   
   // Optimize bundle
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js', 'openai', 'langchain'],
+    optimizePackageImports: ['@supabase/supabase-js', 'openai', 'langchain', 'lucide-react', '@vercel/analytics'],
   },
+  
+  // Production optimizations
+  productionBrowserSourceMaps: false,
+  poweredByHeader: false,
+  
+  // Compression
+  compress: true,
 };
 
 module.exports = nextConfig;
