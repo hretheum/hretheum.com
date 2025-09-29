@@ -1,8 +1,9 @@
-// Job Posting File Watcher - Step 1: Detection Only
-// Detects new .md/.txt/.json files in data/job_postings/ and logs them
+// Job Posting File Watcher - Steps 1-2
+// Detects new .md/.txt/.json files in data/job_postings/ and reads their content
 
 import { watch } from 'fs/promises'
 import path from 'path'
+import { readJobPostingFile } from '../lib/job_postings/file_reader'
 
 const JOB_POSTINGS_DIR = path.join(process.cwd(), 'data/job_postings')
 
@@ -23,7 +24,15 @@ async function startWatcher() {
           console.log(`[watcher] Detected new file: ${event.filename}`)
           console.log(`[watcher] Full path: ${filePath}`)
           console.log(`[watcher] Format: ${ext}`)
-          // TODO: Step 2 - Read file content
+          
+          // Step 2: Read file content
+          try {
+            const content = await readJobPostingFile(filePath)
+            console.log(`[watcher] Content preview: ${content.slice(0, 100)}...`)
+            // TODO: Step 3 - Normalize content
+          } catch (error: any) {
+            console.error(`[watcher] Failed to process file: ${error.message}`)
+          }
         }
       }
     }

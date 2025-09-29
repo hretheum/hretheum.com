@@ -19,7 +19,7 @@ Each step is:
 ## Workflow 1: File Upload Processing (9 Steps)
 
 ### ✅ Step 1: File Watcher - Detection Only (COMPLETED)
-**Goal**: Detect new files in `data/job_postings/` and log them
+    **Goal**: Detect new files in `data/job_postings/` and log them
 
 #### Implementation
 ```typescript
@@ -129,8 +129,8 @@ tsx scripts/job_posting_watcher.ts
 
 ---
 
-### Step 2: File Reading
-**Goal**: Read file content when detected
+### ✅ Step 2: File Reading (COMPLETED)
+    **Goal**: Read file content when detected
 
 #### Implementation
 ```typescript
@@ -198,11 +198,17 @@ describe('File Reader - Step 2', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Successfully reads .md, .txt, .json files
-- [ ] Handles UTF-8 encoding correctly (Polish characters)
-- [ ] Logs file size after reading
-- [ ] Throws descriptive error for missing files
-- [ ] Unit tests pass
+- [x] Successfully reads .md, .txt, .json files
+- [x] Handles UTF-8 encoding correctly (Polish characters)
+- [x] Logs file size after reading
+- [x] Throws descriptive error for missing files
+- [x] Unit tests pass
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/file_reader.ts`
+- Tests: `tests/unit/file_reader.test.ts`
+- Watcher updated: `scripts/job_posting_watcher.ts`
+- All 8 tests passing ✅
 
 ---
 
@@ -997,7 +1003,7 @@ role: Senior Designer
 
 ### Completed Steps
 - [x] **Step 1: File Watcher - Detection Only** ✅ (2025-01-29)
-- [ ] Step 2: File Reading
+- [x] **Step 2: File Reading** ✅ (2025-01-29)
 - [ ] Step 3: Content Normalization
 - [ ] Step 4: Metadata Extraction
 - [ ] Step 5: LLM Semantic Extraction (Mock)
@@ -1007,7 +1013,7 @@ role: Senior Designer
 - [ ] Step 9: End-to-End Verification
 
 ### Current Step
-**Step 2: File Reading** ⬅️ Next
+**Step 3: Content Normalization** ⬅️ Next
 
 ### Next Steps After Workflow 1
 - [ ] Step 5b: Real LLM Extraction (replace mock)
