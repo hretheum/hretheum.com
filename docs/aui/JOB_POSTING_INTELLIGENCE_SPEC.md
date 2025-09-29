@@ -907,6 +907,8 @@ const fallbackSuggestions = await getSuggestedQueries(industry, brandSlug)
 
 ## Appendix A: Example Workflows
 
+🚀 **[Incremental Implementation Plan →](./JOB_POSTING_INCREMENTAL_PLAN.md)** - Step-by-step guide with tests
+
 ### Workflow 1: New Job Posting via File Upload
 
 ```
