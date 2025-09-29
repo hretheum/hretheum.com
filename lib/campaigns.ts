@@ -4,6 +4,9 @@
 // - Parses frontmatter via gray-matter
 // - Exposes helper to get accent override from frontmatter
 
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs'
+
 import fs from 'fs/promises'
 import path from 'path'
 import matter from 'gray-matter'
