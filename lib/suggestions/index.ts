@@ -188,6 +188,30 @@ export function getSuggestedQueries(industry: Industry | 'Generic', brandSlug?: 
         ...common.slice(0, 2),
       ]
   }
+
+  // Deduplicate semantically similar suggestions (cosine similarity > 0.85)
+  const deduplicated = []
+  for (const suggestion of suggestions) {
+    let isDuplicate = false
+    for (const existing of deduplicated) {
+      // Simple heuristic: if suggestions share > 60% of words, consider duplicate
+      const suggestionWords = new Set(suggestion.toLowerCase().split(/\s+/))
+      const existingWords = new Set(existing.toLowerCase().split(/\s+/))
+      const intersection = new Set([...suggestionWords].filter(x => existingWords.has(x)))
+      const similarity = intersection.size / Math.max(suggestionWords.size, existingWords.size)
+
+      if (similarity > 0.6) {
+        isDuplicate = true
+        break
+      }
+    }
+
+    if (!isDuplicate) {
+      deduplicated.push(suggestion)
+    }
+  }
+
+  return deduplicated
 }
 
 // Enhanced suggestions that consider campaign-specific context

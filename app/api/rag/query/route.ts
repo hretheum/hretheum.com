@@ -124,9 +124,39 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Load index only in JSON mode (fallback). Supabase mode queries remotely.
-    const useSupabase = process.env.RAG_STORE === 'supabase';
-    const index = useSupabase ? null : await loadIndex();
+    // Fetch job posting context for brand if available
+    let jobPostingContext = '';
+    if (brandSlug && logUseSupabase) {
+      try {
+        const supabase = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { auth: { persistSession: false } }
+        );
+        const { data: jobPosting } = await supabase
+          .from('job_postings')
+          .select('title, company, content, requirements, skills')
+          .eq('brand_slug', brandSlug)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (jobPosting) {
+          jobPostingContext = `
+JOB POSTING CONTEXT:
+Title: ${jobPosting.title}
+Company: ${jobPosting.company}
+Content: ${jobPosting.content?.slice(0, 2000) || ''}
+Requirements: ${jobPosting.requirements || ''}
+Skills: ${jobPosting.skills?.join(', ') || ''}
+---
+`;
+        }
+      } catch (error) {
+        console.warn('[rag.query:job-context]', error);
+      }
+    }
     if (!useSupabase) {
       if (!index!.vectors || index!.vectors.length === 0) {
         return NextResponse.json({
@@ -458,6 +488,19 @@ export async function POST(req: NextRequest) {
 
     // Prepare prompt from selected contexts
     const contexts = selected.map((s) => ({ text: s.v.text, metadata: s.v.metadata }));
+
+    // Add job posting context if available
+    if (jobPostingContext.trim()) {
+      contexts.unshift({
+        text: jobPostingContext.trim(),
+        metadata: {
+          source_name: 'job_posting',
+          source_type: 'job_context',
+          brand_slug: brandSlug
+        }
+      });
+    }
+
     const { system, user } = buildAnswerPrompt(message, contexts);
 
     // Build simple citations from selected chunks (first 200 chars)
