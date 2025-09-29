@@ -18,7 +18,7 @@ export function GridStateProvider({ children }: { children: React.ReactNode }) {
     timestamp: Date.now()
   })
 
-  const [behaviorMetrics, setBehaviorMetrics] = useState(null)
+  const [behaviorMetrics, setBehaviorMetrics] = useState<any>(null)
   const [isSupported, setIsSupported] = useState(false)
   const [engine, setEngine] = useState<BehaviorAnalysisEngine | null>(null)
 

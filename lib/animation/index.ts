@@ -6,6 +6,7 @@ export interface AnimationConfig {
   easing: string
   delay?: number
   fill?: 'forwards' | 'backwards' | 'both' | 'none'
+  onComplete?: () => void
 }
 
 export interface GridAnimationState {

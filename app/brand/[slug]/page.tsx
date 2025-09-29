@@ -21,12 +21,22 @@ import fs from 'fs/promises'
 import path from 'path'
 import matter from 'gray-matter'
 import { z } from 'zod'
-import type { CampaignIndex, CampaignIndexEntry, CampaignFrontmatter } from '@/lib/campaigns'
 
 const ROOT = process.cwd()
 const CAMPAIGNS_DIR = path.join(ROOT, 'data', 'campaigns')
 const INDEX_FILE = path.join(CAMPAIGNS_DIR, 'index.json')
 const DEFAULT_CALENDLY = process.env.NEXT_PUBLIC_CALENDLY_URL || 'https://calendly.com/hretheum/short-intro'
+
+type CampaignIndexEntry = {
+  slug: string
+  file?: string
+  industry?: string
+  role?: string
+  accent?: string
+  primary_cta_label?: string
+}
+
+type CampaignIndex = Record<string, CampaignIndexEntry>
 
 const ZCampaignFrontmatter = z.object({
   slug: z.string().min(1).optional(),

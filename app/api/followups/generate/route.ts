@@ -5,7 +5,7 @@ import OpenAI from 'openai'
 function getOpenAIClient() {
   const gatewayKey = process.env.AI_GATEWAY_API_KEY
   if (gatewayKey) {
-    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' })
+    return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1' })
   }
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY')

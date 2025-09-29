@@ -4,14 +4,22 @@
 // - Parses frontmatter via gray-matter
 // - Exposes helper to get accent override from frontmatter
 
-// NOTE: All file system operations moved to components with Node.js runtime
-// This file now contains only types and schemas for campaign data
-
+import 'server-only'
+import fs from 'fs/promises'
+import path from 'path'
+import matter from 'gray-matter'
 import { z } from 'zod'
+
+// Force Node.js runtime for file system operations
+export const runtime = 'nodejs'
 
 export type CampaignIndexEntry = {
   slug: string
-  file?: string // optional direct file path (relative to data/campaigns)
+  file?: string
+  industry?: string
+  role?: string
+  accent?: string
+  primary_cta_label?: string
 }
 
 export type CampaignIndex = Record<string, CampaignIndexEntry>
@@ -27,7 +35,10 @@ export type CampaignFrontmatter = {
   contract?: string
   period?: string
   hero_headline?: string
-  ctas?: Array<{ label: string; href: string; variant?: 'primary' | 'secondary' }>
+  skills?: string[]
+  requirements?: string
+  primary_cta_label?: string
+  ctas?: Array<{ label: string; href?: string; variant?: 'primary' | 'secondary' }>
   sections?: Array<{ type: string }>
   metrics?: Array<{ label: string; value: string; note?: string }>
   case_grid?: {
@@ -41,6 +52,42 @@ export type CampaignFrontmatter = {
     }>
   }
   [key: string]: any
+}
+
+export const CAMPAIGNS_DIR = path.join(process.cwd(), 'data', 'campaigns')
+
+export async function getCampaignIndex(): Promise<CampaignIndex> {
+  try {
+    const indexPath = path.join(CAMPAIGNS_DIR, 'index.json')
+    const raw = await fs.readFile(indexPath, 'utf8')
+    return JSON.parse(raw)
+  } catch {
+    return {}
+  }
+}
+
+export async function findCampaignForBrand(brandSlug: string): Promise<{ filePath: string; entry: CampaignIndexEntry } | null> {
+  const idx = await getCampaignIndex()
+  const entry = idx[brandSlug]
+  if (!entry) return null
+  const file = entry.file || `${entry.slug}.mdx`
+  const filePath = path.join(CAMPAIGNS_DIR, file)
+  try {
+    await fs.access(filePath)
+    return { filePath, entry }
+  } catch {
+    return null
+  }
+}
+
+export async function loadCampaignFrontmatter(filePath: string): Promise<CampaignFrontmatter | null> {
+  try {
+    const raw = await fs.readFile(filePath, 'utf8')
+    const parsed = matter(raw)
+    return (parsed.data || {}) as CampaignFrontmatter
+  } catch {
+    return null
+  }
 }
 
 // Zod schema for frontmatter (T38)
@@ -82,48 +129,21 @@ export const ZCampaignFrontmatter = z.object({
     .optional(),
 })
 
-// Functions for components with Node.js runtime - throw errors to indicate they moved
-export async function getCampaignIndex(): Promise<CampaignIndex> {
-  throw new Error('getCampaignIndex moved to components - use the component version')
-}
-
-export async function findCampaignForBrand(brandSlug: string): Promise<{ filePath: string; entry: CampaignIndexEntry } | null> {
-  throw new Error('findCampaignForBrand moved to components - use the component version')
-}
-
-export async function loadCampaignFrontmatter(filePath: string): Promise<CampaignFrontmatter | null> {
-  throw new Error('loadCampaignFrontmatter moved to components - use the component version')
-}
-
-export async function validateCampaignFrontmatterForBrand(brandSlug: string): Promise<CampaignFrontmatter> {
-  throw new Error('validateCampaignFrontmatterForBrand moved to components - use the component version')
-}
-
 export async function getCampaignAccentForBrand(brandSlug: string): Promise<string | undefined> {
-  throw new Error('getCampaignAccentForBrand moved to page.tsx - use the component version')
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) return undefined
+  const fm = await loadCampaignFrontmatter(found.filePath)
+  return fm?.accent || undefined
 }
 
 export async function hasCampaignForBrand(brandSlug: string): Promise<boolean> {
-  throw new Error('hasCampaignForBrand moved to page.tsx - use the component version')
+  const found = await findCampaignForBrand(brandSlug)
+  return !!found
 }
 
 export async function getCampaignPrimaryCtaLabelForBrand(brandSlug: string): Promise<string | undefined> {
-  throw new Error('getCampaignPrimaryCtaLabelForBrand moved to page.tsx - use the component version')
-}
-
-export async function getCampaignHeroHeadlineForBrand(brandSlug: string): Promise<string | undefined> {
-  throw new Error('getCampaignHeroHeadlineForBrand moved to page.tsx - use the component version')
-}
-
-export async function compileCampaignForBrand(
-  brandSlug: string,
-  components: Record<string, React.ComponentType<any>>
-): Promise<{ content: React.ReactElement; frontmatter: CampaignFrontmatter } | null> {
-  throw new Error('compileCampaignForBrand moved to CampaignRenderer.tsx - use the component version')
-}
-
-export async function serializeCampaignForBrand(
-  brandSlug: string
-): Promise<{ compiledSource: string; frontmatter: CampaignFrontmatter } | null> {
-  throw new Error('serializeCampaignForBrand moved to CampaignRenderer.tsx - use the component version')
+  const found = await findCampaignForBrand(brandSlug)
+  if (!found) return undefined
+  const fm = await loadCampaignFrontmatter(found.filePath)
+  return fm?.primary_cta_label || undefined
 }

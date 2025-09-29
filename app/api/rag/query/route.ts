@@ -31,7 +31,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const INDEX_PATH = path.join(DATA_DIR, 'index.json');
 
 // Helper functions
-export function buildAnswerPrompt(question: string, contexts: { text: string; metadata: Record<string, any> }[]) {
+function buildAnswerPrompt(question: string, contexts: { text: string; metadata: Record<string, any> }[]) {
   const contextStr = contexts.map((c) => `Source: ${c.metadata?.source_name || 'Unknown'}\n${c.text}`).join('\n\n---\n\n');
   const system = `You are an expert design leader and product strategist. Answer based on the provided context. If the context doesn't contain relevant information, say so clearly.
 
@@ -43,10 +43,10 @@ Question: ${question}`;
   return { system, user };
 }
 
-export async function embedQuery(text: string): Promise<number[]> {
+async function embedQuery(text: string): Promise<number[]> {
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
-    baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
   });
 
   const response = await openai.embeddings.create({
@@ -57,15 +57,15 @@ export async function embedQuery(text: string): Promise<number[]> {
   return response.data[0].embedding;
 }
 
-export function getTopK() {
+function getTopK() {
   return Math.max(1, Math.min(20, Number(process.env.RAG_TOP_K || '5')));
 }
 
-export function getSimilarityThreshold() {
+function getSimilarityThreshold() {
   return Math.max(0.1, Math.min(0.95, Number(process.env.RAG_SIMILARITY_THRESHOLD || '0.7')));
 }
 
-export function cosineSimilarity(a: number[], b: number[]): number {
+function cosineSimilarity(a: number[], b: number[]): number {
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
@@ -81,7 +81,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-export function rankBySimilarity(query: number[], index: RAGVector[]) {
+function rankBySimilarity(query: number[], index: RAGVector[]) {
   const withScores = index
     .filter((v) => v.embedding)
     .map((v) => ({
@@ -94,7 +94,7 @@ export function rankBySimilarity(query: number[], index: RAGVector[]) {
   return withScores;
 }
 
-export async function loadIndex(): Promise<RAGIndex> {
+async function loadIndex(): Promise<RAGIndex> {
   try {
     const buf = await fs.readFile(INDEX_PATH, 'utf8');
     return JSON.parse(buf) as RAGIndex;
@@ -103,10 +103,10 @@ export async function loadIndex(): Promise<RAGIndex> {
   }
 }
 
-export async function generateAnswer(system: string, user: string): Promise<string> {
+async function generateAnswer(system: string, user: string): Promise<string> {
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
-    baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
   });
 
   const response = await openai.chat.completions.create({
@@ -121,12 +121,6 @@ export async function generateAnswer(system: string, user: string): Promise<stri
 
   return response.choices[0]?.message?.content || 'No response generated.';
 }
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { classifyIntent, topIntentCandidates } from '@/lib/intent/classify';
-import { rerankWithLLM } from '@/lib/intent/rerank';
-import type { IntentId } from '@/lib/intent/intents';
-import { evaluateRagRules } from '@/lib/rules'
-import { ragRules } from '@/config/rules'
 
 // Helper: create Supabase client for server-side logging. Prefer Service Role to bypass RLS for write-only logs.
 function getSupabaseLoggingClient() {
@@ -267,8 +261,14 @@ Skills: ${jobPosting.skills?.join(', ') || ''}
         console.warn('[rag.query:job-context]', error);
       }
     }
+
+    // Determine RAG store backend
+    const useSupabase = process.env.RAG_STORE === 'supabase';
+    let index: RAGIndex | null = null;
+
     if (!useSupabase) {
-      if (!index!.vectors || index!.vectors.length === 0) {
+      index = await loadIndex();
+      if (!index.vectors || index.vectors.length === 0) {
         return NextResponse.json({
           answer: 'I do not have any indexed data yet. Please add Markdown sources to data/rag/ and run ingestion.',
           citations: [],
@@ -856,7 +856,7 @@ function computeBoost(meta: any, intentId: string, userMessage: string) {
 function getOpenAIClientLocal() {
   const gatewayKey = process.env.AI_GATEWAY_API_KEY;
   if (gatewayKey) {
-    return new OpenAI({ apiKey: gatewayKey, baseURL: 'https://ai-gateway.vercel.sh/v1' });
+    return new OpenAI({ apiKey: gatewayKey, baseURL: process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1' });
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY or AI_GATEWAY_API_KEY');

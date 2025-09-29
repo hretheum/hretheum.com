@@ -3,16 +3,53 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import {
-  RAG_DIR,
-  INDEX_PATH,
-  chunkMarkdown,
-  embedTexts,
-  saveIndex,
-  type RAGIndex,
-  type RAGVector,
-} from '../lib/rag';
+import { type RAGIndex, type RAGVector } from '../lib/rag';
 import { upsertChunks, type StoreChunk } from '../lib/rag_store/supabase';
+import OpenAI from 'openai';
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const RAG_DIR = path.join(DATA_DIR, 'rag');
+const INDEX_PATH = path.join(DATA_DIR, 'index.json');
+
+// Helper functions
+function chunkMarkdown(md: string, opts?: { maxTokens?: number; overlap?: number }): string[] {
+  const maxTokens = opts?.maxTokens || 900;
+  const overlap = opts?.overlap || 150;
+
+  const paragraphs = md.split('\n\n').filter(p => p.trim().length > 0);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const para of paragraphs) {
+    if ((currentChunk + para).length > maxTokens) {
+      if (currentChunk) chunks.push(currentChunk.trim());
+      currentChunk = para;
+    } else {
+      currentChunk += (currentChunk ? '\n\n' : '') + para;
+    }
+  }
+  if (currentChunk) chunks.push(currentChunk.trim());
+
+  return chunks;
+}
+
+async function embedTexts(texts: string[]): Promise<number[][]> {
+  const openai = new OpenAI({
+    apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+    baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
+  });
+
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: texts,
+  });
+
+  return response.data.map(item => item.embedding);
+}
+
+async function saveIndex(index: RAGIndex) {
+  await fs.writeFile(INDEX_PATH, JSON.stringify(index, null, 2));
+}
 
 // Lightweight .env loader (no external deps). Ensures OPENAI_API_KEY / AI_GATEWAY_API_KEY
 // are available when running the script with `tsx` outside of Next.js runtime.
@@ -135,7 +172,7 @@ async function ingest() {
   const index: RAGIndex = { vectors };
   if (process.env.RAG_STORE === 'supabase') {
     // Map vectors to StoreChunk rows and upsert to Supabase
-    const rows: StoreChunk[] = index.vectors.map((v) => {
+    const rows: StoreChunk[] = index.vectors.map((v: RAGVector) => {
       const file = String(v.metadata?.file || '');
       const chunkIdx = Number(String(v.id).split('#').pop());
       return {

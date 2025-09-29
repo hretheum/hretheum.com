@@ -19,18 +19,18 @@ export type RAGIndex = {
 }
 
 // Constants
-export const DATA_DIR = path.join(process.cwd(), 'data');
-export const RAG_DIR = path.join(DATA_DIR, 'rag');
-export const INDEX_PATH = path.join(DATA_DIR, 'index.json');
+const DATA_DIR = path.join(process.cwd(), 'data');
+const RAG_DIR = path.join(DATA_DIR, 'rag');
+const INDEX_PATH = path.join(DATA_DIR, 'index.json');
 
 // OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
-  baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+  apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
 })
 
 // Helper functions
-export function chunkMarkdown(md: string, opts?: { maxTokens?: number; overlap?: number }): string[] {
+function chunkMarkdown(md: string, opts?: { maxTokens?: number; overlap?: number }): string[] {
   const maxTokens = opts?.maxTokens || 900;
   const overlap = opts?.overlap || 150;
 
@@ -52,7 +52,7 @@ export function chunkMarkdown(md: string, opts?: { maxTokens?: number; overlap?:
   return chunks;
 }
 
-export async function embedTexts(texts: string[]): Promise<number[][]> {
+async function embedTexts(texts: string[]): Promise<number[][]> {
   const response = await openai.embeddings.create({
     model: 'text-embedding-3-small',
     input: texts,
@@ -61,7 +61,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   return response.data.map(item => item.embedding);
 }
 
-export async function saveIndex(index: RAGIndex) {
+async function saveIndex(index: RAGIndex) {
   await fs.writeFile(INDEX_PATH, JSON.stringify(index, null, 2));
 }
 

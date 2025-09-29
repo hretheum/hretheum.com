@@ -5,8 +5,8 @@ import OpenAI from 'openai'
 export const runtime = 'nodejs'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY,
-  baseURL: process.env.AI_GATEWAY_API_KEY ? 'https://ai-gateway.vercel.sh/v1' : undefined,
+  apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: process.env.AI_GATEWAY_API_KEY ? (process.env.AI_GATEWAY_URL || 'https://gateway.ai.vercel.com/api/v1') : undefined,
 })
 
 export async function POST(request: NextRequest) {

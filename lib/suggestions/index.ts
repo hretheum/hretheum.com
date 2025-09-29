@@ -308,67 +308,29 @@ export async function getEnhancedSuggestedQueries(
   }
 
   try {
-    // Import campaign functions directly since we're in Node.js runtime
-    const { findCampaignForBrand, loadCampaignFrontmatter } = await import('@/lib/campaigns')
+    // Query server API for campaign-specific suggestions (keeps client bundle Node-free)
+    const response = await fetch('/api/suggestions/campaign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brandSlug })
+    })
 
-    // Try to get campaign-specific suggestions first
-    const campaignSuggestions = await getCampaignSpecificSuggestions(brandSlug, findCampaignForBrand, loadCampaignFrontmatter)
-    if (campaignSuggestions.length > 0) {
-      return campaignSuggestions
+    if (response.ok) {
+      const { suggestions } = await response.json()
+      if (Array.isArray(suggestions) && suggestions.length > 0) {
+        // Apply the same LLM-based deduplication pipeline as generic suggestions
+        const dedup = await deduplicateWithLLM(suggestions)
+        return dedup
+      }
     }
   } catch {
     // Fall back to generic suggestions if campaign lookup fails
   }
+  // Fall back to industry-based suggestions
+  return getSuggestedQueries(industry, brandSlug)
+}
 
-// Get campaign-specific suggestions based on job posting content
-async function getCampaignSpecificSuggestions(
-  brandSlug: string,
-  findCampaignForBrand: any,
-  loadCampaignFrontmatter: any
-): Promise<string[]> {
-  try {
-    const found = await findCampaignForBrand(brandSlug)
-    if (!found) return []
-
-    const fm = await loadCampaignFrontmatter(found.filePath)
-    if (!fm) return []
-
-    // Extract key information from job posting frontmatter
-    const role = fm.role || ''
-    const industry = fm.industry || ''
-    const skills = Array.isArray(fm.skills) ? fm.skills : []
-    const requirements = fm.requirements || ''
-
-    // Generate contextual suggestions based on job posting
-    const suggestions = []
-
-    if (role) {
-      suggestions.push(
-        `Experience relevant to ${role}`,
-        `Key achievements in similar positions`,
-        `Leadership and team management approach`,
-        `Industry-specific challenges and solutions`,
-        `Process and methodology expertise`,
-      )
-    }
-
-    if (skills.length > 0) {
-      suggestions.push(
-        `How have you applied ${skills.slice(0, 2).join(' and ')} in your work?`,
-        `Tell me about a project where ${skills[0]} was crucial`,
-      )
-    }
-
-    if (requirements) {
-      suggestions.push(
-        `How does your experience align with the requirements?`,
-        `What relevant challenges have you overcome?`,
-      )
-    }
-
-    return suggestions
-
-  } catch {
-    return []
-  }
+// Client-safe stub: server logic moved to /api/suggestions/campaign
+async function getCampaignSpecificSuggestions(..._args: any[]): Promise<string[]> {
+  return []
 }
