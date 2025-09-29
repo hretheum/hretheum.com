@@ -1,14 +1,17 @@
+import dynamic from 'next/dynamic';
 import CoverPage from './components/CoverPage';
 import ProfilePage from './components/ProfilePage';
-import CareerPage from './components/CareerPage';
-import CaseStudiesPage from './components/CaseStudiesPage';
-import AIOriginalsPage from './components/AIOriginalsPage';
-import LeadershipPage from './components/LeadershipPage';
-import AIBuilderPage from './components/AIBuilderPage';
-import OtherProjectsPage from './components/OtherProjectsPage';
-import ClosingPage from './components/ClosingPage';
-import RagChat from './components/RagChat';
 import SectionObserver from './components/SectionObserver';
+
+// Lazy load components below the fold for better LCP
+const CareerPage = dynamic(() => import('./components/CareerPage'), { ssr: true });
+const CaseStudiesPage = dynamic(() => import('./components/CaseStudiesPage'), { ssr: true });
+const AIOriginalsPage = dynamic(() => import('./components/AIOriginalsPage'), { ssr: true });
+const LeadershipPage = dynamic(() => import('./components/LeadershipPage'), { ssr: true });
+const AIBuilderPage = dynamic(() => import('./components/AIBuilderPage'), { ssr: true });
+const OtherProjectsPage = dynamic(() => import('./components/OtherProjectsPage'), { ssr: true });
+const ClosingPage = dynamic(() => import('./components/ClosingPage'), { ssr: true });
+const RagChat = dynamic(() => import('./components/RagChat'), { ssr: false });
 
 export default function Home() {
   return (
