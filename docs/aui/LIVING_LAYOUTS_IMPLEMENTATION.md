@@ -70,6 +70,26 @@ Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania impl
   - Data protection impact assessment
   - Security code review
 
+### LL-1.4 Job Posting Intelligence Integration
+- **Definition of Done**:
+  - Ingest oryginalnych ogłoszeń pracy do bazy danych przy tworzeniu kampanii
+  - Analiza semantyczna treści ogłoszeń (wymagania, umiejętności, kultura firmy)
+  - Dynamiczne generowanie kontekstualnych sugestii pytań w RagChat na podstawie treści ogłoszenia
+  - Deduplikacja semantyczna sugerowanych pytań (eliminacja podobnych zapytań)
+- **Success Metrics** (with validation methods):
+  - Redukcja duplikatów sugestii ≥ 80% (analiza kosinusowej podobieństwa embeddingów)
+  - Zwiększenie trafności sugestii ≥ 60% (A/B testing vs. manualne oceny)
+  - Czas odpowiedzi na sugestie pytań ≤ 2s (monitoring RAG pipeline)
+- **Guardrails**:
+  - Fallback do generycznych sugestii jeśli analiza ogłoszenia nie powiedzie się
+  - Ograniczenie długości kontekstu ogłoszenia do 4000 tokenów dla wydajności
+  - Cache analizy ogłoszenia na poziomie kampanii (TTL: 24h)
+  - Graceful degradation przy problemach z bazą danych
+- **Quality Gates**:
+  - Semantyczna deduplikacja zachowuje ≥ 95% oryginalnego znaczenia
+  - Wszystkie sugestie pytań są bezpieczne i odpowiednie (content filtering)
+  - Wydajność RAG pipeline nie ulega degradacji (p95 < 3s)
+
 ---
 
 ## Workstream LL-2: Real-time Content Rearrangement
