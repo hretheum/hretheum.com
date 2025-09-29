@@ -7,6 +7,7 @@ import type { FileMetadata } from './metadata'
 import type { NormalizedContent } from './normalizer'
 import type { ExtractedData } from './extractor'
 import type { EmbeddingResult } from './embeddings'
+import { invalidateBrandSuggestionCache } from './suggestion_cache'
 
 export interface StorageResult {
   id: string
@@ -94,6 +95,11 @@ export async function storeJobPosting(
     }
     
     console.log(`[storage] ✅ Successfully stored job posting: ${data.id}`)
+    
+    // Invalidate suggestion cache for this brand (Step 7)
+    await invalidateBrandSuggestionCache(metadata.brand_slug)
+    console.log(`[storage] 🔄 Invalidated suggestion cache for ${metadata.brand_slug}`)
+    
     return { id: data.id, success: true }
     
   } catch (error: any) {

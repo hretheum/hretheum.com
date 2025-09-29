@@ -1089,7 +1089,7 @@ describe('Suggestions API - Step 5', () => {
 
 ---
 
-### Step 7: Cache Invalidation Hook
+### ✅ Step 7: Cache Invalidation Hook
 **Goal**: Invalidate suggestion cache when new job posting added
 
 #### Implementation
@@ -1151,10 +1151,16 @@ describe('Suggestion Cache Invalidation - Step 6', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Invalidates suggestion cache on new job posting
-- [ ] Logs cache invalidation
-- [ ] Doesn't break storage on cache error
-- [ ] Integration test passes
+- [x] Invalidates suggestion cache on new job posting
+- [x] Logs cache invalidation
+- [x] Doesn't break storage on cache error
+- [x] Integration test passes
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/storage.ts` (updated)
+- Tests: `tests/integration/cache_invalidation.test.ts`
+- 1 integration test created and passed
+- Cache invalidation integrated into storage pipeline
 
 ---
 
@@ -1274,11 +1280,11 @@ test('falls back to generic for brand without postings', async ({ page }) => {
 - [x] **Step 4: LLM Suggestion Generator** ✅ (2025-01-29)
 - [x] **Step 5: Cache Layer** ✅ (2025-01-29)
 - [x] **Step 6: API Route Integration** ✅ (2025-01-30)
-- [ ] Step 7: Cache Invalidation Hook
+- [x] **Step 7: Cache Invalidation Hook** ✅ (2025-01-30)
 - [ ] Step 8: End-to-End Verification
 
 ### Current Step
-**Step 7: Cache Invalidation Hook** ⬅️ Next
+**Step 8: End-to-End Verification** ⬅️ Next (Final Step!)
 
 ### Key Features
 - ✨ **Personalization**: Matches job requirements with user's portfolio
