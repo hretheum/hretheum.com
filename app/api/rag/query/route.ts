@@ -759,11 +759,19 @@ Skills: ${allSkills.join(', ')}
       );
     }
   } catch (err: any) {
-    console.error('[rag.query:error]', err?.message || err);
+    console.error('[rag.query:error]', {
+      message: err?.message || String(err),
+      stack: err?.stack,
+      name: err?.name,
+      cause: err?.cause,
+    });
     // Best-effort: include CORS headers so clients can read error details
     const origin = (err as any)?.origin || '';
     const corsHeaders = buildCorsHeaders(pickAllowedOrigin(origin));
-    return NextResponse.json({ error: 'Unexpected error' }, { status: 500, headers: corsHeaders });
+    return NextResponse.json({ 
+      error: 'Unexpected error',
+      details: process.env.NODE_ENV !== 'production' ? err?.message : undefined 
+    }, { status: 500, headers: corsHeaders });
   }
 
 }
