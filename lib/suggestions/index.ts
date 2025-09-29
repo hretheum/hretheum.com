@@ -91,7 +91,7 @@ async function getCampaignSpecificSuggestions(brandSlug: string): Promise<string
 }
 
 // Basic, safe, template-based suggestions per industry. No trademarks/logos.
-export function getSuggestedQueries(industry: Industry | 'Generic', brandSlug?: string): string[] {
+export async function getSuggestedQueries(industry: Industry | 'Generic', brandSlug?: string): Promise<string[]> {
   const b = (brandSlug || '').toLowerCase()
   const brandHint = b ? ` for ${b}` : ''
   const common = [
