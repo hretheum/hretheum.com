@@ -507,7 +507,7 @@ describe('Metadata Extraction - Step 4', () => {
 
 ---
 
-### Step 5: LLM Semantic Extraction (Placeholder)
+### ✅ Step 5: LLM Semantic Extraction (Placeholder) (COMPLETED)
 **Goal**: Extract structured data using LLM (mock for now)
 
 #### Implementation
@@ -585,12 +585,19 @@ describe('Semantic Extractor - Step 5 (Mock)', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Mock extraction returns valid data structure
-- [ ] All required fields present
-- [ ] Arrays are properly typed
-- [ ] Logs extraction summary
-- [ ] Unit tests pass
-- [ ] **Note**: Real LLM extraction deferred to Step 5b
+- [x] Mock extraction returns valid data structure
+- [x] All required fields present
+- [x] Arrays are properly typed
+- [x] Logs extraction summary
+- [x] Unit tests pass
+- [x] **Note**: Real LLM extraction deferred to Step 5b
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/extractor.ts`
+- Tests: `tests/unit/extractor.test.ts`
+- Watcher updated: `scripts/job_posting_watcher.ts`
+- All 12 tests passing ✅
+- Mock implementation ready for Step 5b (real LLM)
 
 ---
 
@@ -1018,14 +1025,14 @@ role: Senior Designer
 - [x] **Step 2: File Reading** ✅ (2025-01-29)
 - [x] **Step 3: Content Normalization** ✅ (2025-01-29)
 - [x] **Step 4: Metadata Extraction** ✅ (2025-01-29)
-- [ ] Step 5: LLM Semantic Extraction (Mock)
+- [x] **Step 5: LLM Semantic Extraction (Mock)** ✅ (2025-01-29)
 - [ ] Step 6: Embedding Generation (Mock)
 - [ ] Step 7: Database Storage
 - [ ] Step 8: Cache Invalidation
 - [ ] Step 9: End-to-End Verification
 
 ### Current Step
-**Step 5: LLM Semantic Extraction (Mock)** ⬅️ Next
+**Step 6: Embedding Generation (Mock)** ⬅️ Next
 
 ### Next Steps After Workflow 1
 - [ ] Step 5b: Real LLM Extraction (replace mock)
