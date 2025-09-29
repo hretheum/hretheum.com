@@ -49,8 +49,8 @@ async function startWatcher() {
             console.log(`[watcher] Normalized content (${normalized.stats.normalizedLength} chars)`)
             console.log(`[watcher] Line breaks: ${normalized.lineBreaks}`)
             
-            // Step 5: Extract semantic data (mock)
-            const extracted = await extractSemanticData(normalized.normalized, true)
+            // Step 5b: Extract semantic data (real LLM)
+            const extracted = await extractSemanticData(normalized.normalized, false)
             console.log(`[watcher] Extracted ${extracted.technical_skills.length} technical skills`)
             console.log(`[watcher] Seniority: ${extracted.seniority_level}, Role: ${extracted.role_type}`)
             // TODO: Step 6 - Generate embeddings
