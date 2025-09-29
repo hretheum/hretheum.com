@@ -116,16 +116,22 @@ export async function getSuggestedQueries(industry: Industry | 'Generic', brandS
   return deduplicated
 }
 
-// LLM-powered semantic deduplication using OpenAI embeddings + clustering
 async function deduplicateWithLLM(suggestions: string[]): Promise<string[]> {
   if (suggestions.length <= 1) return suggestions
 
   try {
-    // Step 1: Generate embeddings for all suggestions
-    const { embedQuery } = await import('@/lib/rag')
-    const embeddings = await Promise.all(
-      suggestions.map(suggestion => embedQuery(suggestion))
-    )
+    // Step 1: Generate embeddings using API endpoint
+    const response = await fetch('/api/embeddings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texts: suggestions })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Embedding API failed: ${response.status}`)
+    }
+
+    const { embeddings } = await response.json()
 
     // Step 2: Calculate cosine similarities between all pairs
     const similarities: number[][] = []
