@@ -21,6 +21,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import matter from 'gray-matter'
 import { z } from 'zod'
+import type { CampaignIndex, CampaignIndexEntry, CampaignFrontmatter } from '@/lib/campaigns'
 
 const ROOT = process.cwd()
 const CAMPAIGNS_DIR = path.join(ROOT, 'data', 'campaigns')
