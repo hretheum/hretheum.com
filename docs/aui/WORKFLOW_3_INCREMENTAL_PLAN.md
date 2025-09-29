@@ -595,7 +595,7 @@ describe('User Profile Matcher - Step 3', () => {
 
 ---
 
-### Step 4: LLM Suggestion Generator (Personalized)
+### ✅ Step 4: LLM Suggestion Generator (Personalized)
 **Goal**: Call LLM to generate contextual AND personalized suggestions
 
 #### Implementation
@@ -712,12 +712,20 @@ describe('LLM Suggestion Generator - Step 3', () => {
 ```
 
 #### Acceptance Criteria
-- [ ] Calls OpenAI API with structured prompt
-- [ ] Returns max 5 suggestions
-- [ ] Includes context hash and metadata
-- [ ] Falls back to generic suggestions on error
-- [ ] Logs generation status
-- [ ] Integration test passes
+- [x] Calls OpenAI API with structured prompt
+- [x] Returns max 5 suggestions
+- [x] Includes context hash and metadata
+- [x] Falls back to generic suggestions on error
+- [x] Logs generation status
+- [x] Integration test passes
+
+#### ✅ Status: COMPLETED
+- Implementation: `lib/job_postings/suggestion_generator.ts`
+- Tests: `tests/integration/suggestion_generator.test.ts`
+- 4 integration tests created
+- Uses OpenAI API (gpt-4o-mini)
+- Graceful fallback to generic suggestions
+- All tests passed (9.9s)
 
 ---
 
@@ -1249,14 +1257,14 @@ test('falls back to generic for brand without postings', async ({ page }) => {
 - [x] **Step 1: Database Query Function** ✅ (2025-01-29)
 - [x] **Step 2: Suggestion Prompt Builder** ✅ (2025-01-29)
 - [x] **Step 3: User Profile Matcher** ✅ (2025-01-29)
-- [ ] Step 4: LLM Suggestion Generator (personalized)
+- [x] **Step 4: LLM Suggestion Generator** ✅ (2025-01-29)
 - [ ] Step 5: Cache Layer
 - [ ] Step 6: API Route Integration (with personalization)
 - [ ] Step 7: Cache Invalidation Hook
 - [ ] Step 8: End-to-End Verification
 
 ### Current Step
-**Step 4: LLM Suggestion Generator** ⬅️ Next
+**Step 5: Cache Layer** ⬅️ Next
 
 ### Key Features
 - ✨ **Personalization**: Matches job requirements with user's portfolio
