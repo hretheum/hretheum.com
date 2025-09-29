@@ -194,13 +194,29 @@ export function getSuggestedQueries(industry: Industry | 'Generic', brandSlug?: 
   for (const suggestion of suggestions) {
     let isDuplicate = false
     for (const existing of deduplicated) {
-      // Simple heuristic: if suggestions share > 60% of words, consider duplicate
-      const suggestionWords = new Set(suggestion.toLowerCase().split(/\s+/))
-      const existingWords = new Set(existing.toLowerCase().split(/\s+/))
-      const intersection = new Set([...suggestionWords].filter(x => existingWords.has(x)))
-      const similarity = intersection.size / Math.max(suggestionWords.size, existingWords.size)
+      // Enhanced semantic deduplication with multiple heuristics
 
-      if (similarity > 0.6) {
+      // 1. Word overlap similarity (>80% threshold)
+      const suggestionWords = new Set(suggestion.toLowerCase().split(/\s+/).filter(w => w.length > 2))
+      const existingWords = new Set(existing.toLowerCase().split(/\s+/).filter(w => w.length > 2))
+      const intersection = new Set([...suggestionWords].filter(x => existingWords.has(x)))
+      const wordSimilarity = intersection.size / Math.max(suggestionWords.size, existingWords.size)
+
+      // 2. Semantic similarity (check for common key phrases)
+      const keyPhrases = ['competencies', 'leadership', 'experience', 'case study', 'approach', 'overview', 'skills']
+      const suggestionKeyPhrases = keyPhrases.filter(phrase => suggestion.toLowerCase().includes(phrase))
+      const existingKeyPhrases = keyPhrases.filter(phrase => existing.toLowerCase().includes(phrase))
+      const phraseSimilarity = suggestionKeyPhrases.filter(p => existingKeyPhrases.includes(p)).length /
+                              Math.max(suggestionKeyPhrases.length, existingKeyPhrases.length)
+
+      // 3. Normalized similarity (remove brand context)
+      const normalizedSuggestion = suggestion.replace(/\s+(for|at)\s+\w+/gi, '').toLowerCase()
+      const normalizedExisting = existing.replace(/\s+(for|at)\s+\w+/gi, '').toLowerCase()
+      const normalizedSimilarity = normalizedSuggestion === normalizedExisting ? 1 :
+        normalizedSuggestion.includes(normalizedExisting) || normalizedExisting.includes(normalizedSuggestion) ? 0.9 : 0
+
+      // Consider duplicate if any similarity metric exceeds threshold
+      if (wordSimilarity > 0.8 || phraseSimilarity > 0.7 || normalizedSimilarity > 0.8) {
         isDuplicate = true
         break
       }
