@@ -10,6 +10,7 @@ import { getFollowupsForIntent } from '@/lib/suggestions/followups';
 import type { Industry } from '@/lib/industry';
 import { getFeatureFlag } from '@/lib/featureFlags';
 import { useConsent } from '@/app/hooks/useConsent';
+import { getSuggestedQueries } from '@/lib/suggestions';
 
 type Citation = { quote: string; source_name: string; link?: string };
 
