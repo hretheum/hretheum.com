@@ -247,7 +247,7 @@ export async function POST(req: NextRequest) {
         );
         const { data: jobPosting } = await supabase
           .from('job_postings')
-          .select('title, company, content, requirements, skills')
+          .select('title, company, content, core_requirements, technical_skills, soft_skills')
           .eq('brand_slug', brandSlug)
           .eq('is_active', true)
           .order('created_at', { ascending: false })
@@ -255,13 +255,17 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         if (jobPosting) {
+          const allSkills = [
+            ...(jobPosting.technical_skills || []),
+            ...(jobPosting.soft_skills || [])
+          ];
           jobPostingContext = `
 JOB POSTING CONTEXT:
 Title: ${jobPosting.title}
 Company: ${jobPosting.company}
 Content: ${jobPosting.content?.slice(0, 2000) || ''}
-Requirements: ${jobPosting.requirements || ''}
-Skills: ${jobPosting.skills?.join(', ') || ''}
+Requirements: ${(jobPosting.core_requirements || []).join(', ')}
+Skills: ${allSkills.join(', ')}
 ---
 `;
         }
