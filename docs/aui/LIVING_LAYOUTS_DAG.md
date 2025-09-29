@@ -2,6 +2,18 @@
 
 ## 🌀 Living Layouts Dependency Graph
 
+> **⚠️ IMPLEMENTATION SAFETY NOTICE**
+>
+> **Ten dokument definiuje ARCHITEKTURĘ i PLAN - nie execution:**
+> - ✅ Planning: dependency analysis i sequencing
+> - ✅ Risk Assessment: identification potencjalnych problemów
+> - ✅ Resource Planning: estimation effort i timeline
+> - ✅ Quality Gates: definition success criteria
+> - ❌ **NIE zawiera** actual implementation code
+> - ❌ **NIE modyfikuje** production codebase bezpośrednio
+>
+> **Implementation = Feature Branch → Testing → PR → Code Review → Staging → Production**
+
 ```mermaid
 graph TD
     %% Phase 1: Foundation Layer

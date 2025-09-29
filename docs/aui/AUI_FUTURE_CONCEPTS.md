@@ -2,6 +2,20 @@
 
 ## 🚀 Vision: Beyond Adaptive to Predictive UI
 
+> **⚠️ CRITICAL DEVELOPMENT DISCLAIMER**
+>
+> **Wszystkie zaawansowane koncepcje AUI opisane w tym dokumencie to PLANOWANIE PRZYSZŁOŚCI:**
+> - ✅ Research & Analysis: badanie możliwości i ryzyk
+> - ✅ Architecture Planning: projektowanie struktur danych i API
+> - ✅ Prototyping: małe eksperymenty w isolated branchach
+> - ✅ User Testing: validation z użytkownikami przed implementacją
+> - ❌ **NIE implementujemy** bezpośrednio w production bez:
+>   - Feature branch + PR process
+>   - Comprehensive testing (unit + E2E)
+>   - Performance benchmarking
+>   - Security audit
+>   - Accessibility compliance
+
 AUI today focuses on reactive adaptations. Tomorrow: **predictive interfaces** that anticipate user needs before they're expressed.
 
 ---

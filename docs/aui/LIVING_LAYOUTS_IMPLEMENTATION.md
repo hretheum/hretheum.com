@@ -2,6 +2,17 @@
 
 ## 🌀 Phase 1A: Living Layouts Implementation
 
+> **⚠️ CRITICAL DEVELOPMENT DISCLAIMER**
+>
+> **Wszystkie zadania opisane w tym dokumencie realizujemy WYŁĄCZNIE poza gałęzią `main`:**
+> - ✅ Feature branche: `feature/aui-living-layouts-[task-name]`
+> - ✅ Lokalne testowanie: pełne testy E2E przed PR
+> - ✅ Code review: wymagany dla wszystkich zmian
+> - ✅ Staging deployment: testy na staging environment
+> - ✅ Gradual rollout: feature flags + A/B testing
+>
+> **NIE implementujemy bezpośrednio na `main` - to dokument planowania, nie execution!**
+
 Rozbicie sekcji **Living Layouts** z AUI Future Concepts na atomowe zadania implementacyjne.
 
 *📊 [Dependency Graph & Execution Order](./LIVING_LAYOUTS_DAG.md)*
