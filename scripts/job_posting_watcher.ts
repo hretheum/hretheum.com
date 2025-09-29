@@ -1,5 +1,5 @@
-// Job Posting File Watcher - Steps 1-6
-// Detects, reads, normalizes, extracts metadata, performs semantic extraction, and generates embeddings
+// Job Posting File Watcher - Steps 1-7
+// Detects, reads, normalizes, extracts metadata, performs semantic extraction, generates embeddings, and stores in database
 
 import { watch } from 'fs/promises'
 import path from 'path'
@@ -8,6 +8,7 @@ import { normalizeContent } from '../lib/job_postings/normalizer'
 import { extractFileMetadata } from '../lib/job_postings/metadata'
 import { extractSemanticData } from '../lib/job_postings/extractor'
 import { generateEmbeddings } from '../lib/job_postings/embeddings'
+import { storeJobPosting } from '../lib/job_postings/storage'
 
 const JOB_POSTINGS_DIR = path.join(process.cwd(), 'data/job_postings')
 
@@ -58,7 +59,16 @@ async function startWatcher() {
             // Step 6b: Generate embeddings (real OpenAI)
             const embeddings = await generateEmbeddings(normalized.normalized, extracted, false)
             console.log(`[watcher] Generated embeddings (${embeddings.dimensions}D, model: ${embeddings.model})`)
-            // TODO: Step 7 - Store in database
+            
+            // Step 7: Store in database
+            const result = await storeJobPosting(metadata, normalized, extracted, embeddings)
+            
+            if (result.success) {
+              console.log(`[watcher] ✅ Successfully processed: ${metadata.filename} (ID: ${result.id})`)
+            } else {
+              console.error(`[watcher] ❌ Failed to store: ${metadata.filename} - ${result.error}`)
+            }
+            // TODO: Step 8 - Cache invalidation
           } catch (error: any) {
             console.error(`[watcher] Failed to process file: ${error.message}`)
           }
