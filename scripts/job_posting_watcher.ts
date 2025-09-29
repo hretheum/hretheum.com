@@ -1,6 +1,7 @@
-// Job Posting File Watcher - Steps 1-7
-// Detects, reads, normalizes, extracts metadata, performs semantic extraction, generates embeddings, and stores in database
+// Job Posting File Watcher - Steps 1-8
+// Complete pipeline: detect, read, normalize, extract, embed, store, and invalidate cache
 
+import { config } from 'dotenv'
 import { watch } from 'fs/promises'
 import path from 'path'
 import { readJobPostingFile } from '../lib/job_postings/file_reader'
@@ -9,6 +10,11 @@ import { extractFileMetadata } from '../lib/job_postings/metadata'
 import { extractSemanticData } from '../lib/job_postings/extractor'
 import { generateEmbeddings } from '../lib/job_postings/embeddings'
 import { storeJobPosting } from '../lib/job_postings/storage'
+import { invalidateBrandCache } from '../lib/job_postings/cache'
+
+// Load environment variables
+config({ path: path.join(process.cwd(), '.env.local') })
+config({ path: path.join(process.cwd(), '.env') })
 
 const JOB_POSTINGS_DIR = path.join(process.cwd(), 'data/job_postings')
 
@@ -64,11 +70,15 @@ async function startWatcher() {
             const result = await storeJobPosting(metadata, normalized, extracted, embeddings)
             
             if (result.success) {
-              console.log(`[watcher] ✅ Successfully processed: ${metadata.filename} (ID: ${result.id})`)
+              console.log(`[watcher] ✅ Successfully stored: ${metadata.filename} (ID: ${result.id})`)
+              
+              // Step 8: Invalidate cache
+              await invalidateBrandCache(metadata.brand_slug)
+              console.log(`[watcher] 🔄 Cache invalidated for brand: ${metadata.brand_slug}`)
+              console.log(`[watcher] ✨ Processing complete!`)
             } else {
               console.error(`[watcher] ❌ Failed to store: ${metadata.filename} - ${result.error}`)
             }
-            // TODO: Step 8 - Cache invalidation
           } catch (error: any) {
             console.error(`[watcher] Failed to process file: ${error.message}`)
           }
