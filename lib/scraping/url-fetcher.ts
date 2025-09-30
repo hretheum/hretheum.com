@@ -5,6 +5,7 @@
  */
 
 import * as cheerio from 'cheerio'
+import { fetchWithPlaywright, shouldUsePlaywright } from './playwright-fetcher'
 
 // Domain whitelist for security (SSRF prevention)
 const ALLOWED_DOMAINS = new Set([
@@ -94,6 +95,12 @@ export async function fetchJobPostingFromUrl(url: string): Promise<string> {
       `Domain "${urlObj.hostname}" is not whitelisted. ` +
       `Allowed domains: ${Array.from(ALLOWED_DOMAINS).join(', ')}`
     )
+  }
+  
+  // Step 2.5: Use Playwright for JavaScript-heavy sites (LinkedIn, etc.)
+  if (shouldUsePlaywright(url)) {
+    console.log('[scraping] Using Playwright for', url)
+    return await fetchWithPlaywright(url)
   }
   
   // Step 3: Fetch with timeout and retry logic
