@@ -6,7 +6,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import { getJobPostingsForBrand, hasJobPostings } from '@/lib/job_postings/queries'
-import { matchUserProfile } from '@/lib/job_postings/profile_matcher'
+import { matchUserProfile, matchUserProfileSemantic } from '@/lib/job_postings/profile_matcher'
 import { generateSuggestions } from '@/lib/job_postings/suggestion_generator'
 import { getCachedSuggestions, setCachedSuggestions } from '@/lib/job_postings/suggestion_cache'
 import { hashContext } from '@/lib/job_postings/prompt_builder'
@@ -121,7 +121,11 @@ export async function POST(request: NextRequest) {
       
       if (jobPostings.length > 0) {
         // Match user profile with job posting (Step 3)
-        const profileMatch = await matchUserProfile(jobPostings[0])
+        // Phase 5: Use semantic matching if enabled, fallback to string matching
+        const useSemanticMatching = process.env.ENABLE_SEMANTIC_MATCHING === 'true'
+        const profileMatch = useSemanticMatching 
+          ? await matchUserProfileSemantic(jobPostings[0])
+          : await matchUserProfile(jobPostings[0])
         
         // Build context with personalization
         const context = {
