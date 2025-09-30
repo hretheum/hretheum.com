@@ -119,6 +119,18 @@ export const AVAILABLE_COMPONENTS = [
     description: 'Leadership philosophy/approach section',
     template: `<LeadershipSection />`,
   },
+  {
+    name: 'PortfolioShowcase',
+    description: 'Gallery-style portfolio showcase with projects',
+    template: `<PortfolioShowcase />`,
+  },
+  {
+    name: 'GalleryMedia',
+    description: 'Media gallery with images/videos',
+    template: `<GalleryMedia items={[
+  { type: "image", src: "/path/to/image.jpg", alt: "Description" }
+]} />`,
+  },
 ]
 
 export function ComponentHelp({ onInsert }: { onInsert: (template: string) => void }) {
