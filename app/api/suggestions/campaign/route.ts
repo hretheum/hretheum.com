@@ -70,32 +70,38 @@ async function loadCampaignFrontmatter(filePath: string): Promise<CampaignFrontm
 }
 
 function getGenericSuggestions(brandSlug: string, industry?: string, role?: string): string[] {
+  // Portfolio-focused questions (not interview questions)
+  // These should showcase relevant work, not ask generic interview questions
   const suggestions = []
   
-  if (role) {
+  if (industry && role) {
+    // Industry + role specific
     suggestions.push(
-      `Experience relevant to ${role}`,
-      `Key achievements in similar positions`,
-      `Leadership and team management approach`,
+      `Show me ${industry} projects similar to ${brandSlug}'s work`,
+      `How does your ${role} experience apply to ${industry}?`,
+      `What's your most relevant case study for ${brandSlug}?`,
+    )
+  } else if (industry) {
+    // Industry-specific
+    suggestions.push(
+      `Show me your ${industry} portfolio and case studies`,
+      `What's your experience in the ${industry} industry?`,
+      `How do you approach challenges in ${industry}?`,
+    )
+  } else if (role) {
+    // Role-specific
+    suggestions.push(
+      `Show me your work as a ${role}`,
+      `What's your approach to ${role} challenges?`,
+      `Tell me about your ${role} leadership experience`,
     )
   }
   
-  if (industry) {
-    suggestions.push(
-      `Industry-specific challenges and solutions in ${industry}`,
-      `Process and methodology expertise`,
-    )
-  }
-  
-  if (suggestions.length === 0) {
-    suggestions.push(
-      `Tell me about your experience relevant to ${brandSlug}`,
-      `What interests you about working at ${brandSlug}?`,
-      `Describe your key strengths for this role`,
-      `How do you handle challenging projects?`,
-      `What are your career goals?`,
-    )
-  }
+  // Always add brand-agnostic portfolio questions
+  suggestions.push(
+    `What's your most impactful product leadership project?`,
+    `Show me case studies relevant to ${brandSlug}`,
+  )
   
   return suggestions.slice(0, 5)
 }
