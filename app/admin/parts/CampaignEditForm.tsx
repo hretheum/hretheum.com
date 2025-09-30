@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { ComponentHelp } from './ComponentHelp'
+import { DataBrowser } from './DataBrowser'
 
 function Loader2Icon({ className }: { className?: string }) {
   return (
@@ -31,6 +32,7 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
   const [success, setSuccess] = useState(false)
   const [previewKey, setPreviewKey] = useState(0)
   const [showHelp, setShowHelp] = useState(false)
+  const [helpTab, setHelpTab] = useState<'components' | 'data'>('components')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -308,7 +310,33 @@ sections:
         {/* Component Help (collapsible) */}
         {showHelp && (
           <div className="col-span-2 overflow-y-auto border-l pl-4">
-            <ComponentHelp onInsert={handleInsertComponent} />
+            <div className="flex gap-2 mb-4 border-b">
+              <button
+                onClick={() => setHelpTab('components')}
+                className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px ${
+                  helpTab === 'components'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Components
+              </button>
+              <button
+                onClick={() => setHelpTab('data')}
+                className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px ${
+                  helpTab === 'data'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Case Studies
+              </button>
+            </div>
+            {helpTab === 'components' ? (
+              <ComponentHelp onInsert={handleInsertComponent} />
+            ) : (
+              <DataBrowser onInsert={handleInsertComponent} />
+            )}
           </div>
         )}
 
