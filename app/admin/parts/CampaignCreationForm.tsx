@@ -145,8 +145,14 @@ export default function CampaignCreationForm() {
         throw new Error(errorMessage)
       }
       
+      // Check if AI generation had warnings
+      const aiStep = result.steps?.find((s: any) => s.name === 'ai_generation')
+      const hasWarning = aiStep?.error
+      
       setSuccessMessage(
-        `Campaign created successfully! Slug: ${result.campaignSlug || result.brandSlug}`
+        `Campaign created! Slug: ${result.campaignSlug || result.brandSlug}${
+          hasWarning ? ' ⚠️ Warning: AI may have used fallback content' : ''
+        }`
       )
       
       // Reset form after 2 seconds

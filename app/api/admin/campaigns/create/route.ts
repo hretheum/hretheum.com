@@ -186,6 +186,7 @@ export async function POST(request: NextRequest) {
     const aiStart = Date.now()
     
     let aiContent
+    let usedFallback = false
     try {
       aiContent = await generateCampaignContent({
         jobPosting: {
@@ -199,8 +200,17 @@ export async function POST(request: NextRequest) {
         industry: sanitizedIndustry,
       })
       
-      steps[5].status = 'completed'
+      // Check if we got fallback content (low confidence)
+      if (aiContent.narrative.confidence < 0.3 && aiContent.copy.confidence < 0.3) {
+        usedFallback = true
+        console.warn('[campaigns] AI generation used fallback content')
+      }
+      
+      steps[5].status = usedFallback ? 'completed' : 'completed'
       steps[5].duration = Date.now() - aiStart
+      if (usedFallback) {
+        steps[5].error = 'Used fallback content (AI generation may have failed)'
+      }
     } catch (error: any) {
       steps[5].status = 'failed'
       steps[5].error = error.message
