@@ -104,7 +104,8 @@ export async function getSuggestedQueries(industry: Industry | 'Generic', brandS
         `Show a relevant case study${brandHint}`,
         `What are the key competencies${brandHint}?`,
         `Leadership approach overview${brandHint}`,
-        ...common.slice(0, 2),
+        `Share a project from your portfolio${brandHint}`,
+        `What makes your work unique${brandHint}?`,
       ]
       break
   }
