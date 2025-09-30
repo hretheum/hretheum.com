@@ -44,6 +44,16 @@ export const AVAILABLE_COMPONENTS = [
     description: 'Large section heading with optional subtitle',
     template: `<SectionTitle title="Section Heading" subtitle="Optional subtitle" />`,
   },
+  {
+    name: 'AIOriginalsSection',
+    description: 'Showcase of AI-generated original work/content',
+    template: `<AIOriginalsSection />`,
+  },
+  {
+    name: 'AIOriginalsShowcase',
+    description: 'Full-width showcase with multiple AI originals',
+    template: `<AIOriginalsShowcase />`,
+  },
 ]
 
 export function ComponentHelp({ onInsert }: { onInsert: (template: string) => void }) {
