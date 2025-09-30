@@ -277,6 +277,14 @@ export async function POST(request: NextRequest) {
       
       console.log('[campaigns] Saved to database:', upsertData)
       
+      // Also save to brand_industries for industry resolution
+      await supabase
+        .from('brand_industries')
+        .upsert({
+          slug: sanitizedBrandSlug,
+          industry: sanitizedIndustry,
+        })
+      
       steps[6].status = 'completed'
       steps[6].duration = Date.now() - fileGenStart
     } catch (error: any) {
