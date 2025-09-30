@@ -1819,10 +1819,10 @@ SELECT proname, prosrc FROM pg_proc WHERE proname = 'match_chunks';
 - Keep old RPC as `match_chunks_legacy()` for 1 sprint
 
 **Quality Gates:**
-- ✅ Manual test: RPC returns valid array format
-- ✅ Performance: Query time < 500ms for 10k chunks
-- ✅ Correctness: Top result matches expected (manual validation on 3 sample queries)
-- ✅ No breaking changes: Existing queries still work
+- Manual test: RPC returns valid array format
+- Performance: Query time < 500ms for 10k chunks
+- Correctness: Top result matches expected (manual validation on 3 sample queries)
+- No breaking changes: Existing queries still work
 
 **Success Metrics:**
 - RPC execution time: < 500ms (p95)
@@ -1881,10 +1881,10 @@ function parseEmbedding(emb: any): number[] | null {
 - Timeout on parse operations (max 100ms)
 
 **Quality Gates:**
-- ✅ Unit tests: 100% coverage on parseEmbedding()
-- ✅ Integration test: searchByEmbedding() with mock string data
-- ✅ Integration test: searchByEmbedding() with mock array data
-- ✅ No regressions: Existing RAG chat still works
+- Unit tests: 100% coverage on parseEmbedding()
+- Integration test: searchByEmbedding() with mock string data
+- Integration test: searchByEmbedding() with mock array data
+- No regressions: Existing RAG chat still works
 
 **Success Metrics:**
 - Parse success rate: > 99.5%
@@ -1940,11 +1940,11 @@ describe('parseEmbedding', () => {
 - Monitor latency: Alert if p95 > 800ms
 
 **Quality Gates:**
-- ✅ Load test: 100 concurrent users, RAG chat < 1s response
-- ✅ Smoke test: 10 sample queries return expected results
-- ✅ A/B test: Supabase vs index.json quality (same results ±5%)
-- ✅ Zero data loss: All vectors in Supabase match index.json count
-- ✅ Performance baseline: Supabase < 2x index.json latency
+- Load test: 100 concurrent users, RAG chat < 1s response
+- Smoke test: 10 sample queries return expected results
+- A/B test: Supabase vs index.json quality (same results ±5%)
+- Zero data loss: All vectors in Supabase match index.json count
+- Performance baseline: Supabase < 2x index.json latency
 
 **Success Metrics:**
 - Migration completion: 100% systems on Supabase
@@ -2012,10 +2012,10 @@ assert(supabaseLatency < baseline * 2, 'Latency within 2x baseline')
 - Data integrity checks at each step
 
 **Quality Gates:**
-- ✅ Decision review: Tech lead + 2 engineers sign-off
-- ✅ Performance: No degradation vs baseline
-- ✅ Storage cost: < 20% increase
-- ✅ Query complexity: No significant increase
+- Decision review: Tech lead + 2 engineers sign-off
+- Performance: No degradation vs baseline
+- Storage cost: < 20% increase
+- Query complexity: No significant increase
 
 **Success Metrics:**
 - Schema consistency: 100% if Option B
@@ -2116,11 +2116,11 @@ async function matchUserProfileSemantic(jobPosting: JobPostingData) {
 - Gradual rollout: 10% → 30% → 60% → 100% users
 
 **Quality Gates:**
-- ✅ A/B test: Semantic matching shows ≥ 20% improvement in relevance
-- ✅ User acceptance: ≥ 70% positive feedback on suggestions
-- ✅ Performance: Latency increase < 200ms vs string matching
-- ✅ Coverage: Semantic finds ≥ 80% of string-matched projects + new ones
-- ✅ No regressions: Critical skills still matched (e.g., "React" finds React projects)
+- A/B test: Semantic matching shows ≥ 20% improvement in relevance
+- User acceptance: ≥ 70% positive feedback on suggestions
+- Performance: Latency increase < 200ms vs string matching
+- Coverage: Semantic finds ≥ 80% of string-matched projects + new ones
+- No regressions: Critical skills still matched (e.g., "React" finds React projects)
 
 **Success Metrics:**
 - Match quality improvement: +20-30% relevant suggestions
