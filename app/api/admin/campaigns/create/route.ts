@@ -278,16 +278,15 @@ export async function POST(request: NextRequest) {
       console.log('[campaigns] Saved to database:', upsertData)
       
       // Also save to brand_industries for industry resolution
-      // Note: brand_industries uses 'slug' column, not 'brand_slug'
       console.log('[campaigns] Saving to brand_industries:', {
-        slug: sanitizedBrandSlug,
+        brand_slug: sanitizedBrandSlug,
         industry: sanitizedIndustry,
       })
       
       const { data: brandIndData, error: brandIndError } = await supabase
         .from('brand_industries')
         .upsert({
-          slug: sanitizedBrandSlug,
+          brand_slug: sanitizedBrandSlug,
           industry: sanitizedIndustry,
           status: 'manual',
           updated_by: 'admin',

@@ -124,8 +124,19 @@ async function fetchIndustryFromDB(slug: string): Promise<Industry | null> {
   try {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null
     const anon = getAnon()
-    // Note: brand_industries table uses 'slug' column, not 'brand_slug'
-    const { data, error } = await anon.from('brand_industries').select('*').eq('slug', slug).maybeSingle()
+    // Try 'brand_slug' first (actual column name), fallback to 'slug'
+    let data, error
+    const result1 = await anon.from('brand_industries').select('*').eq('brand_slug', slug).maybeSingle()
+    if (result1.error?.code === '42703') {
+      // Column doesn't exist, try 'slug'
+      const result2 = await anon.from('brand_industries').select('*').eq('slug', slug).maybeSingle()
+      data = result2.data
+      error = result2.error
+    } else {
+      data = result1.data
+      error = result1.error
+    }
+    
     console.log('[industry] fetchIndustryFromDB:', { slug, data, error })
     if (error) {
       console.error('[industry] DB fetch error:', error)
@@ -145,8 +156,8 @@ async function autopromote(slug: string, industry: Industry, confidence: number)
   try {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return
     const svc = getSvc()
-    // Note: brand_industries table uses 'slug' column
-    await svc.from('brand_industries').upsert({ slug, industry, status: 'auto', updated_by: 'llm', note: JSON.stringify({ confidence }) })
+    // Use 'brand_slug' as column name
+    await svc.from('brand_industries').upsert({ brand_slug: slug, industry, status: 'auto', updated_by: 'llm', note: JSON.stringify({ confidence }) })
     // optional: store suggestion
     try {
       await svc.from('brand_industry_suggestions').insert({ brand_slug: slug, industry, confidence, source: 'llm', expires_at: new Date(Date.now() + 72 * 3600 * 1000).toISOString() })
@@ -158,8 +169,8 @@ async function ensureDeterministicMapping(slug: string, industry: Industry) {
   try {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return // require service key to write
     const svc = getSvc()
-    // Note: brand_industries table uses 'slug' column
-    await svc.from('brand_industries').upsert({ slug, industry, status: 'manual', updated_by: 'deterministic', note: { source: 'deterministic' } as any })
+    // Use 'brand_slug' as column name
+    await svc.from('brand_industries').upsert({ brand_slug: slug, industry, status: 'manual', updated_by: 'deterministic', note: { source: 'deterministic' } as any })
   } catch (err) {
     console.error('[industry] ensureDeterministicMapping error', err)
   }
