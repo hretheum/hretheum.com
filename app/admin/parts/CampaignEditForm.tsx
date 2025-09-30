@@ -111,37 +111,71 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
       
       const [, frontmatterStr, ] = match
       
-      // Simple YAML parser for our use case
+      // Better YAML parser for nested structures
       const frontmatter: any = {}
       const lines = frontmatterStr.split('\n')
       let currentKey = ''
       let currentArray: any[] = []
-      let inArray = false
+      let currentObject: any = null
+      let currentNestedArray: any[] = []
+      let indent = 0
+      let inNestedArray = false
       
-      for (const line of lines) {
-        if (line.trim().startsWith('- ') && inArray) {
-          // Array item
-          const value = line.trim().substring(2).trim()
-          if (value.includes(':')) {
-            // Object in array
-            const [k, v] = value.split(':').map(s => s.trim())
-            if (!currentArray[currentArray.length - 1]) currentArray.push({})
-            currentArray[currentArray.length - 1][k] = v
-          } else {
-            currentArray.push(value)
-          }
-        } else if (line.includes(':') && !line.trim().startsWith('-')) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        const trimmed = line.trim()
+        const lineIndent = line.search(/\S/)
+        
+        if (!trimmed) continue
+        
+        // Top-level key
+        if (lineIndent === 0 && line.includes(':') && !trimmed.startsWith('-')) {
           const [key, ...valueParts] = line.split(':')
           const value = valueParts.join(':').trim()
           currentKey = key.trim()
+          
           if (value === '' || value === '[]') {
-            inArray = true
             currentArray = []
             frontmatter[currentKey] = currentArray
+            indent = 0
           } else {
-            inArray = false
             frontmatter[currentKey] = value.replace(/^['"]|['"]$/g, '')
           }
+          inNestedArray = false
+          currentObject = null
+        }
+        // Array item start
+        else if (trimmed.startsWith('- ') && lineIndent === 2) {
+          const value = trimmed.substring(2).trim()
+          if (value.includes(':')) {
+            // New object in array
+            const [k, v] = value.split(':').map(s => s.trim())
+            currentObject = { [k]: v }
+            currentArray.push(currentObject)
+            inNestedArray = false
+          } else {
+            currentArray.push(value)
+          }
+        }
+        // Nested property
+        else if (lineIndent === 4 && currentObject && line.includes(':')) {
+          const [key, ...valueParts] = trimmed.split(':')
+          const value = valueParts.join(':').trim()
+          const propKey = key.trim()
+          
+          if (value === '' || value === '[]') {
+            currentNestedArray = []
+            currentObject[propKey] = currentNestedArray
+            inNestedArray = true
+          } else {
+            currentObject[propKey] = value.replace(/^['"]|['"]$/g, '')
+            inNestedArray = false
+          }
+        }
+        // Nested array item
+        else if (trimmed.startsWith('- ') && lineIndent === 6 && inNestedArray) {
+          const value = trimmed.substring(2).trim()
+          currentNestedArray.push(value)
         }
       }
       
