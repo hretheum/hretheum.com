@@ -50,6 +50,7 @@ export default function ConsentHelper() {
     const v = getCookie(CONSENT_COOKIE);
     return v === '1' || v === 'true';
   });
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     // expose helper in admin only
@@ -75,6 +76,26 @@ export default function ConsentHelper() {
     return `Cookie ${CONSENT_COOKIE} on ${d || '(host)'} = ${hasConsent ? '1' : '0'}`;
   }, [hasConsent]);
 
+  if (!isExpanded) {
+    // Collapsed: just icon badge
+    return (
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="mt-2 inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors"
+        title="Click to expand consent controls"
+      >
+        <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span className="font-medium text-gray-700">Consent</span>
+        <div className={`inline-flex items-center rounded px-2 py-0.5 ${hasConsent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+          {hasConsent ? 'granted' : 'denied'}
+        </div>
+      </button>
+    );
+  }
+
+  // Expanded: full controls
   return (
     <div className="mt-2 rounded-md border p-2 text-xs text-gray-700 bg-white">
       <div className="flex items-center gap-2">
@@ -91,6 +112,11 @@ export default function ConsentHelper() {
           className="rounded border px-2 py-0.5 hover:bg-gray-50"
           onClick={() => window.hreSetConsent?.(false)}
         >Revoke</button>
+        <button
+          className="rounded border px-2 py-0.5 hover:bg-gray-50 ml-2"
+          onClick={() => setIsExpanded(false)}
+          title="Minimize"
+        >✕</button>
       </div>
       <div className="mt-1 text-gray-500">{desc}</div>
       <div className="mt-1 text-gray-500">Helper: <span className="font-mono">window.hreSetConsent(true|false)</span></div>
