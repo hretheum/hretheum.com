@@ -5,10 +5,12 @@
 -- Solution: Return embedding column explicitly in RPC results
 
 -- Drop existing function first (cannot change return type with CREATE OR REPLACE)
-drop function if exists public.match_chunks(vector, int, float);
+drop function if exists public.match_chunks(vector(1536), int, float);
 
 -- Backup old function as _legacy (keep for 1 sprint)
-create or replace function public.match_chunks_legacy(
+-- Note: Create as new function, not REPLACE
+drop function if exists public.match_chunks_legacy(vector(1536), int, float);
+create function public.match_chunks_legacy(
   query_embedding vector(1536),
   match_count int default 20,
   similarity_threshold float default 0.0
@@ -58,7 +60,7 @@ $$;
 -- Updated function WITH embedding in results
 -- CRITICAL: Cast embedding::text to ensure PostgREST returns it as JSON string
 -- Client-side parseEmbedding() will handle conversion to array
-create or replace function public.match_chunks(
+create function public.match_chunks(
   query_embedding vector(1536),
   match_count int default 20,
   similarity_threshold float default 0.0
