@@ -278,11 +278,14 @@ export async function POST(request: NextRequest) {
       console.log('[campaigns] Saved to database:', upsertData)
       
       // Also save to brand_industries for industry resolution
+      // Note: brand_industries uses 'slug' column, not 'brand_slug'
       await supabase
         .from('brand_industries')
         .upsert({
           slug: sanitizedBrandSlug,
           industry: sanitizedIndustry,
+          status: 'manual',
+          updated_by: 'admin',
         })
       
       // Remove any LLM suggestions for this brand (we have explicit mapping now)
