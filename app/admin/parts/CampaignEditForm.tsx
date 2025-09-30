@@ -28,6 +28,7 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [previewKey, setPreviewKey] = useState(0)
 
   useEffect(() => {
     fetchCampaign()
@@ -67,6 +68,7 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
       }
 
       setSuccess(true)
+      setPreviewKey(prev => prev + 1) // Force iframe reload
       setTimeout(() => setSuccess(false), 3000)
     } catch (err: any) {
       setError(err.message)
@@ -148,16 +150,20 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
           </div>
         </div>
 
-        {/* Preview */}
+        {/* Live Preview */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
-            Preview
+            Live Preview
           </label>
-          <div className="h-[600px] p-4 border border-gray-300 rounded-lg overflow-auto bg-gray-50">
-            <pre className="text-xs whitespace-pre-wrap font-mono">
-              {content}
-            </pre>
-          </div>
+          <iframe
+            key={previewKey}
+            src={`/brand/${campaign.brand_slug}?preview=true`}
+            className="w-full h-[600px] border border-gray-300 rounded-lg bg-white"
+            title="Campaign Preview"
+          />
+          <p className="text-xs text-gray-500">
+            Preview updates after saving changes
+          </p>
         </div>
       </div>
 

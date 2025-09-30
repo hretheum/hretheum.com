@@ -1222,7 +1222,7 @@ export function IndustrySelector({
 
 ---
 
-#### Task 2.5: Add preview functionality ✅
+#### ✅ Task 2.5: Add preview functionality 
 
 **Definition of Done:**
 - Preview button in campaign list
