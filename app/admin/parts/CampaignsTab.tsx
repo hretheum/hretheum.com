@@ -37,21 +37,23 @@ export default function CampaignsTab() {
     window.history.replaceState({}, '', params.toString() ? `?${params.toString()}` : window.location.pathname)
   }
 
-  // Show edit form if editSlug is set
+  // Show edit form if editSlug is set (full width for split view)
   if (editSlug) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-lg font-semibold">Edit Campaign</h2>
-          <button
-            type="button"
-            onClick={handleCloseEdit}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            ← Back to campaigns
-          </button>
+      <div className="fixed inset-0 bg-white z-40 overflow-auto">
+        <div className="max-w-[1920px] mx-auto p-6">
+          <div className="flex items-center justify-between border-b pb-4 mb-6">
+            <h2 className="text-lg font-semibold">Edit Campaign: {editSlug}</h2>
+            <button
+              type="button"
+              onClick={handleCloseEdit}
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md font-medium"
+            >
+              ← Back to campaigns
+            </button>
+          </div>
+          <CampaignEditForm brandSlug={editSlug} />
         </div>
-        <CampaignEditForm brandSlug={editSlug} />
       </div>
     )
   }
