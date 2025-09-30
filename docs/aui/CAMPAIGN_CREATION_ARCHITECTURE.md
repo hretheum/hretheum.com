@@ -1,6 +1,6 @@
 # Campaign Creation Architecture & Admin UI Specification
 
-**Status**: Design Phase  
+**Status**: Implementation Phase (Phase 1: Backend Foundation - 3/8 tasks complete)  
 **Related**: [Job Posting Intelligence Spec](./JOB_POSTING_INTELLIGENCE_SPEC.md), [Living Layouts Implementation](./LIVING_LAYOUTS_IMPLEMENTATION.md)  
 **Target**: Workflow 2 (Manual Upload via Admin API) + Full Campaign Scaffolding
 
@@ -753,7 +753,129 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ---
 
-#### Task 1.4: Implement index manager (`lib/campaigns/index-manager.ts`)
+#### Task 1.4: AI-Powered Campaign Content Generation
+
+**Definition of Done:**
+- LLM analyzes job posting content + requirements
+- RAG retrieval of relevant competencies from vector DB
+- RAG retrieval of relevant portfolio items (case studies)
+- AI generates campaign narrative recommendations
+- AI generates copy for campaign modules (hero, sections, metrics)
+- Case study prioritization based on job posting match (vector similarity)
+- Output structured for campaign generator (Task 1.3)
+- Confidence scores for each recommendation
+
+**Guardrails:**
+- LLM timeout: 30s max per generation request
+- Max job posting length: 10,000 tokens
+- RAG context window: 8,000 tokens max
+- Case study limit: top 10 most relevant
+- Fallback to generic templates on LLM failure
+- Content safety check (no hallucinated claims)
+- Human review flag for low confidence (< 0.7)
+
+**Quality Gates:**
+- Generated copy passes MDX validation
+- All recommendations have confidence scores
+- Case study matches are semantically relevant (cosine similarity > 0.6)
+- Generated metrics are factual (pulled from actual portfolio)
+- No fabricated project names or outcomes
+- Copy length within limits (hero < 200 chars, sections < 1000 chars)
+
+**Success Metrics:**
+- Content generation success rate > 95%
+- Average generation time < 15s
+- Case study relevance score (manual review) > 0.8
+- Copy quality score (manual review) > 4/5
+- LLM API cost per campaign < $0.50
+
+**Tests:**
+- Unit: Job posting analysis (5 samples)
+- Unit: RAG retrieval accuracy (competencies + portfolio)
+- Unit: Case study ranking algorithm
+- Integration: Full flow (job posting → AI generation → MDX output)
+- E2E: Generate campaign from real job posting, verify quality
+
+**Implementation Details:**
+
+```typescript
+interface AIGenerationInput {
+  jobPosting: {
+    content: string
+    requirements: string[]
+    skills: string[]
+    role: string
+    seniority: string
+  }
+  brand: string
+  industry: string
+}
+
+interface AIGenerationOutput {
+  narrative: {
+    positioning: string // How to position for this role
+    keyMessages: string[] // 3-5 key messages to emphasize
+    tone: 'technical' | 'leadership' | 'strategic'
+    confidence: number
+  }
+  copy: {
+    heroHeadline: string
+    heroSubtitle?: string
+    sections: Array<{
+      type: string
+      title: string
+      content: string
+    }>
+    confidence: number
+  }
+  caseStudies: Array<{
+    id: string
+    title: string
+    relevanceScore: number // 0-1
+    matchedSkills: string[]
+    matchedContext: string
+  }>
+  metrics: Array<{
+    label: string
+    value: string
+    source: string // Where this metric comes from
+  }>
+}
+```
+
+**RAG Integration:**
+- Query vector DB with job requirements
+- Retrieve top-k competencies (k=10)
+- Retrieve top-k portfolio items (k=15)
+- Use MMR (Maximal Marginal Relevance) for diversity
+- Include metadata: project outcomes, technologies, impact
+
+**LLM Prompt Strategy:**
+```
+System: You are an expert career strategist helping create a personalized campaign.
+Context: [Job posting requirements + RAG-retrieved competencies + case studies]
+Task: Generate campaign narrative and copy that:
+1. Highlights relevant experience from actual portfolio
+2. Positions candidate strengths for this specific role
+3. Suggests most relevant case studies to showcase
+4. Creates compelling but factual copy
+
+Constraints:
+- Only reference actual projects from provided portfolio
+- No fabricated metrics or outcomes
+- Maintain professional tone
+- Focus on measurable impact
+```
+
+**Performance Optimization:**
+- Cache LLM responses for identical job postings (24h TTL)
+- Parallel RAG queries (competencies + portfolio)
+- Stream LLM output for faster UX
+- Precompute case study embeddings
+
+---
+
+#### Task 1.5: Implement index manager (`lib/campaigns/index-manager.ts`)
 
 **Definition of Done:**
 - `updateCampaignIndex()` adds/updates brand → campaign mapping
@@ -790,7 +912,7 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ---
 
-#### Task 1.5: Add new industry creation flow
+#### Task 1.6: Add new industry creation flow
 
 **Definition of Done:**
 - `createNewIndustry()` creates DB entry + templates
@@ -828,7 +950,7 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ---
 
-#### Task 1.6: Database migrations for `industries` table
+#### Task 1.7: Database migrations for `industries` table
 
 **Definition of Done:**
 - Migration script creates `industries` table
@@ -865,7 +987,7 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ---
 
-#### Task 1.7: Unit tests for all modules
+#### Task 1.8: Unit tests consolidation for all modules
 
 **Definition of Done:**
 - Test coverage ≥ 80% for all new modules
