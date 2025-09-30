@@ -29,7 +29,7 @@ export interface AIGenerationInput {
 }
 
 /**
- * Output from AI generation
+ * Output from AI generation (EXPANDED for rich campaigns)
  */
 export interface AIGenerationOutput {
   narrative: {
@@ -41,10 +41,13 @@ export interface AIGenerationOutput {
   copy: {
     heroHeadline: string
     heroSubtitle?: string
+    outcomeBanner?: string
     sections: Array<{
       type: string
       title: string
-      content: string
+      subtitle?: string
+      bullets?: string[]
+      content?: string
     }>
     confidence: number
   }
@@ -54,11 +57,22 @@ export interface AIGenerationOutput {
     relevanceScore: number
     matchedSkills: string[]
     matchedContext: string
+    context?: string
+    role?: string
+    challenge?: string
+    approach?: string[]
+    outcome?: string
   }>
   metrics: Array<{
     label: string
     value: string
     source: string
+  }>
+  experience?: Array<{
+    company: string
+    period: string
+    role: string
+    bullets: string[]
   }>
 }
 
@@ -140,38 +154,81 @@ async function generateWithLLM(
     .map(p => `- ${p.text} (relevance: ${(p.score * 100).toFixed(0)}%)`)
     .join('\n')
   
-  const systemPrompt = `You are an expert career strategist helping create a personalized campaign for a job application.
+  const systemPrompt = `You are an expert career strategist creating a rich, detailed campaign page for a job application.
 
-Your task: Generate campaign narrative and copy that positions the candidate's strengths for this specific role.
+CAMPAIGN STRUCTURE (based on actual successful campaigns):
+1. Hero + MetricsStrip (3-4 metrics showing scale/impact)
+2. OutcomeBanner (compelling outcome statement)
+3. 6-10 Playbook sections (role-specific strategies, organized by themes)
+4. Experience timeline (2-4 recent positions)
+5. Case studies (2-4 projects matched to job requirements)
+6. Standard footer (Leadership, Playbook, AI Builder, Other Projects, Keywords, Closing CTA)
 
 CRITICAL CONSTRAINTS:
-- Only reference actual projects from the provided portfolio
+- Only reference actual projects from provided portfolio
 - No fabricated metrics or outcomes
-- Maintain professional tone
-- Focus on measurable impact
+- Maintain professional, confident tone
+- Focus on measurable impact and outcomes
+- Generate rich, detailed content for each section (not generic placeholders)
 - Return valid JSON only
 
-Context provided:
-1. Job posting requirements
-2. Candidate's actual competencies (from portfolio)
-3. Candidate's actual case studies/projects
+TONE GUIDELINES:
+- Leadership roles: Strategic vision, team outcomes, scalability
+- IC/Senior roles: Technical depth, craft excellence, velocity
+- Always: Outcome-focused, metrics-driven, confident
 
-Output must be JSON matching this structure:
+Context provided:
+1. Job posting requirements (analyze for key themes)
+2. Candidate's competencies (from portfolio)
+3. Candidate's case studies/projects
+
+Output must be JSON with this EXPANDED structure:
 {
   "narrative": {
-    "positioning": "string",
-    "keyMessages": ["string"],
+    "positioning": "One-sentence positioning statement",
+    "keyMessages": ["5 key messages emphasizing relevant experience"],
     "tone": "technical|leadership|strategic",
-    "confidence": number
+    "confidence": 0.0-1.0
   },
   "copy": {
-    "heroHeadline": "string",
-    "heroSubtitle": "string",
-    "sections": [{"type": "string", "title": "string", "content": "string"}],
-    "confidence": number
+    "heroHeadline": "Compelling headline (under 100 chars)",
+    "heroSubtitle": "Subtitle expanding on headline",
+    "outcomeBanner": "Outcome-focused banner message",
+    "sections": [
+      {
+        "type": "playbook",
+        "title": "Section title",
+        "subtitle": "Section subtitle",
+        "bullets": ["4-6 detailed bullet points with specifics"]
+      }
+    ],
+    "confidence": 0.0-1.0
   },
-  "caseStudies": [{"id": "string", "title": "string", "relevanceScore": number, "matchedSkills": ["string"], "matchedContext": "string"}],
-  "metrics": [{"label": "string", "value": "string", "source": "string"}]
+  "metrics": [
+    {"label": "Markets/Teams/Projects", "value": "15+", "source": "Which project"}
+  ],
+  "caseStudies": [
+    {
+      "id": "project-slug",
+      "title": "Project title",
+      "relevanceScore": 0.0-1.0,
+      "matchedSkills": ["skills from job posting"],
+      "matchedContext": "Why this project is relevant",
+      "context": "Project background (1-2 sentences)",
+      "role": "Your role in the project",
+      "challenge": "What problem was solved",
+      "approach": ["2-3 approaches taken"],
+      "outcome": "Measurable outcome achieved"
+    }
+  ],
+  "experience": [
+    {
+      "company": "Company name",
+      "period": "2020-2023",
+      "role": "Job title",
+      "bullets": ["3-4 key achievements"]
+    }
+  ]
 }`
 
   const userPrompt = `JOB POSTING DETAILS:
@@ -192,12 +249,32 @@ ${competenciesContext || 'None available'}
 CANDIDATE'S PROJECTS (actual case studies):
 ${portfolioContext || 'None available'}
 
-Generate campaign content that:
-1. Creates a compelling hero headline for ${input.industry} ${input.jobPosting.role}
-2. Suggests 3-5 key messages emphasizing relevant experience
-3. Recommends which case studies to showcase (only from provided projects)
-4. Generates copy for campaign sections
-5. Extracts factual metrics from actual projects`
+Generate RICH campaign content that:
+
+1. HERO: Compelling headline + subtitle for ${input.industry} ${input.jobPosting.role}
+2. METRICS: 3-4 impactful metrics (teams/markets/projects/outcomes) from actual portfolio
+3. OUTCOME BANNER: One powerful outcome-focused statement
+4. PLAYBOOK SECTIONS (6-10): Role-specific strategies covering:
+   - Vision & strategy for the role
+   - Team collaboration model (if leadership)
+   - Delivery & outcomes framework
+   - 30-60-90 day plan
+   - Tools & methodologies
+   - Success metrics
+   - Risk mitigation
+   - Stakeholder management
+   Each section: title + subtitle + 4-6 detailed, specific bullets
+5. EXPERIENCE TIMELINE: 2-4 recent positions with company, period, role, 3-4 key achievements each
+6. CASE STUDIES: 2-4 projects from portfolio, ranked by relevance to job requirements
+   Each with: title, context, role, challenge, approach (array), measurable outcome
+7. KEY MESSAGES: 5 messages emphasizing fit for this specific role
+
+IMPORTANT: 
+- Sections should be DETAILED and SPECIFIC, not generic
+- Reference actual methodologies, frameworks, tools from job posting
+- Metrics must come from actual portfolio (with source)
+- Case studies must match job requirements (explain relevance)
+- Tone should match seniority level (${input.jobPosting.seniority})`
 
   try {
     // Create with timeout using AbortController

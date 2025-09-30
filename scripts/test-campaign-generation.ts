@@ -9,6 +9,13 @@
  * Usage: tsx scripts/test-campaign-generation.ts <job-posting-url>
  */
 
+import { config } from 'dotenv'
+import { resolve } from 'path'
+
+// Load environment variables from .env.local and .env
+config({ path: resolve(process.cwd(), '.env.local') })
+config({ path: resolve(process.cwd(), '.env') })
+
 import { fetchJobPostingFromUrl, validateJobPostingUrl } from '../lib/scraping/url-fetcher'
 import { generateCampaignContent, validateGeneratedContent } from '../lib/campaigns/ai-generator'
 import { generateCampaignMDX, type CampaignTemplate } from '../lib/campaigns/generator'
