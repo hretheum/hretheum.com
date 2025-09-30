@@ -54,23 +54,28 @@ async function saveIndex(index: RAGIndex) {
 // Lightweight .env loader (no external deps). Ensures OPENAI_API_KEY / AI_GATEWAY_API_KEY
 // are available when running the script with `tsx` outside of Next.js runtime.
 async function loadEnvFile() {
-  try {
-    const envPath = path.join(process.cwd(), '.env');
-    const raw = await fs.readFile(envPath, 'utf-8');
-    for (const line of raw.split('\n')) {
-      const s = line.trim();
-      if (!s || s.startsWith('#')) continue;
-      const eq = s.indexOf('=');
-      if (eq === -1) continue;
-      const key = s.slice(0, eq).trim();
-      let val = s.slice(eq + 1).trim();
-      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-        val = val.slice(1, -1);
+  // Load both .env.local (priority) and .env
+  const envFiles = ['.env.local', '.env'];
+  
+  for (const envFile of envFiles) {
+    try {
+      const envPath = path.join(process.cwd(), envFile);
+      const raw = await fs.readFile(envPath, 'utf-8');
+      for (const line of raw.split('\n')) {
+        const s = line.trim();
+        if (!s || s.startsWith('#')) continue;
+        const eq = s.indexOf('=');
+        if (eq === -1) continue;
+        const key = s.slice(0, eq).trim();
+        let val = s.slice(eq + 1).trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (!process.env[key]) process.env[key] = val;
       }
-      if (!process.env[key]) process.env[key] = val;
+    } catch (_) {
+      // .env file missing is fine; rely on shell env or next file
     }
-  } catch (_) {
-    // .env missing is fine; rely on shell env
   }
 }
 
