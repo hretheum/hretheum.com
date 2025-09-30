@@ -239,7 +239,14 @@ export async function POST(request: NextRequest) {
       })
       
       // Save to Supabase (works on serverless)
-      const { error: dbError } = await supabase
+      console.log('[campaigns] Saving to Supabase:', {
+        brand_slug: sanitizedBrandSlug,
+        mdx_slug: campaignSlug,
+        contentLength: mdxContent.length,
+        industry: sanitizedIndustry,
+      })
+      
+      const { data: upsertData, error: dbError } = await supabase
         .from('campaigns')
         .upsert({
           brand_slug: sanitizedBrandSlug,
@@ -251,10 +258,14 @@ export async function POST(request: NextRequest) {
           active: true,
           updated_at: new Date().toISOString(),
         })
+        .select()
       
       if (dbError) {
+        console.error('[campaigns] Database save failed:', dbError)
         throw new Error(`Database save failed: ${dbError.message}`)
       }
+      
+      console.log('[campaigns] Saved to database:', upsertData)
       
       steps[6].status = 'completed'
       steps[6].duration = Date.now() - fileGenStart
