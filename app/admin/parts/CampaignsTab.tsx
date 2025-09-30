@@ -14,12 +14,23 @@ import { CampaignListView } from './CampaignListView'
 export default function CampaignsTab() {
   const [showForm, setShowForm] = useState(false)
   const [editSlug, setEditSlug] = useState<string | null>(null)
+  const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
+    // Create modal root on mount
+    const root = document.createElement('div')
+    root.id = 'campaign-edit-modal-root'
+    document.body.appendChild(root)
+    setModalRoot(root)
+    
     // Check URL for edit param
     const params = new URLSearchParams(window.location.search)
     const edit = params.get('edit')
     if (edit) setEditSlug(edit)
+    
+    return () => {
+      document.body.removeChild(root)
+    }
   }, [])
 
   function handleEdit(slug: string) {
@@ -37,24 +48,39 @@ export default function CampaignsTab() {
     window.history.replaceState({}, '', params.toString() ? `?${params.toString()}` : window.location.pathname)
   }
 
-  // Show edit modal if editSlug is set
-  const editModal = editSlug ? (
-    <div className="fixed inset-0 bg-white z-[9999] overflow-auto" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-      <div className="max-w-[1920px] mx-auto p-6">
-        <div className="flex items-center justify-between border-b pb-4 mb-6">
-          <h2 className="text-lg font-semibold">Edit Campaign: {editSlug}</h2>
-          <button
-            type="button"
-            onClick={handleCloseEdit}
-            className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md font-medium"
-          >
-            ← Back to campaigns
-          </button>
+  // Render edit modal via ReactDOM
+  useEffect(() => {
+    if (!modalRoot || !editSlug) {
+      if (modalRoot) modalRoot.innerHTML = ''
+      return
+    }
+
+    // Import dynamically to avoid SSR issues
+    import('react-dom/client').then(({ createRoot }) => {
+      const root = createRoot(modalRoot)
+      root.render(
+        <div className="fixed inset-0 bg-white z-[9999] overflow-auto" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div className="max-w-[1920px] mx-auto p-6">
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <h2 className="text-lg font-semibold">Edit Campaign: {editSlug}</h2>
+              <button
+                type="button"
+                onClick={handleCloseEdit}
+                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md font-medium"
+              >
+                ← Back to campaigns
+              </button>
+            </div>
+            <CampaignEditForm brandSlug={editSlug} />
+          </div>
         </div>
-        <CampaignEditForm brandSlug={editSlug} />
-      </div>
-    </div>
-  ) : null
+      )
+      
+      return () => {
+        setTimeout(() => root.unmount(), 0)
+      }
+    })
+  }, [modalRoot, editSlug])
 
   return (
     <div className="space-y-6">
@@ -158,9 +184,6 @@ export default function CampaignsTab() {
           </div>
         </div>
       </div>
-      
-      {/* Edit Modal */}
-      {editModal}
     </div>
   )
 }
