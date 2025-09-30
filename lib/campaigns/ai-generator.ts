@@ -94,6 +94,9 @@ interface RAGContext {
 
 /**
  * Retrieve relevant competencies and portfolio items from RAG
+ * 
+ * TEMPORARY: Uses data/index.json instead of Supabase due to pgvector parsing issues
+ * TODO: Fix Supabase RPC to properly handle vector similarity search
  */
 async function retrieveRAGContext(
   jobRequirements: string[],
@@ -108,27 +111,50 @@ async function retrieveRAGContext(
   const queryEmbedding = await embeddings.embedQuery(query)
   
   try {
-    // Search for competencies
-    const competenciesResults = await searchByEmbedding(queryEmbedding, 10, 0.6)
+    // TEMPORARY: Use data/index.json instead of Supabase
+    // Supabase returns embeddings as strings, not arrays, causing search to fail
+    const fs = await import('fs/promises')
+    const path = await import('path')
+    const indexPath = path.join(process.cwd(), 'data', 'index.json')
+    const indexContent = await fs.readFile(indexPath, 'utf-8')
+    const index = JSON.parse(indexContent)
     
-    // Search for portfolio items (case studies)
-    // Note: This assumes portfolio items are also in the chunks table
-    // In production, might want separate table or metadata filtering
-    const portfolioResults = await searchByEmbedding(queryEmbedding, 15, 0.5)
+    // Compute cosine similarity
+    const cosineSimilarity = (a: number[], b: number[]): number => {
+      let dotProduct = 0
+      let normA = 0
+      let normB = 0
+      for (let i = 0; i < a.length; i++) {
+        dotProduct += a[i] * b[i]
+        normA += a[i] * a[i]
+        normB += b[i] * b[i]
+      }
+      if (normA === 0 || normB === 0) return 0
+      return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
+    }
+    
+    // Score and rank all vectors
+    const scored = index.vectors
+      .filter((v: any) => v.embedding && Array.isArray(v.embedding))
+      .map((v: any) => ({
+        text: v.text,
+        metadata: v.metadata,
+        score: cosineSimilarity(queryEmbedding, v.embedding),
+      }))
+      .sort((a: any, b: any) => b.score - a.score)
+    
+    // Filter for competencies (high threshold)
+    const competenciesResults = scored.filter((r: any) => r.score >= 0.6).slice(0, 10)
+    
+    // Filter for portfolio/case studies (lower threshold)
+    const portfolioResults = scored
+      .filter((r: any) => r.score >= 0.5)
+      .filter((r: any) => r.metadata?.source_type === 'case_study' || r.metadata?.source_type === 'experience')
+      .slice(0, 15)
     
     return {
-      competencies: competenciesResults.map(r => ({
-        text: r.text,
-        metadata: r.metadata,
-        score: r.score,
-      })),
-      portfolio: portfolioResults
-        .filter(r => r.metadata?.type === 'case_study' || r.metadata?.type === 'project')
-        .map(r => ({
-          text: r.text,
-          metadata: r.metadata,
-          score: r.score,
-        })),
+      competencies: competenciesResults,
+      portfolio: portfolioResults,
     }
   } catch (error) {
     console.error('[ai-generator] RAG retrieval failed:', error)
