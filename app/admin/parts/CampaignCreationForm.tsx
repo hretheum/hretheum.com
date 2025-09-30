@@ -235,6 +235,9 @@ export default function CampaignCreationForm() {
             {errors.url && (
               <p className="mt-1 text-sm text-red-600">{errors.url}</p>
             )}
+            <p className="mt-1 text-xs text-amber-600">
+              ⚠️ LinkedIn URLs may require authentication and could fail. Consider using Text/File input instead.
+            </p>
           </div>
         )}
 
