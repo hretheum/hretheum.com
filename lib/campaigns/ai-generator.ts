@@ -165,10 +165,11 @@ async function generateWithLLM(
 CAMPAIGN STRUCTURE (based on actual successful campaigns):
 1. Hero + MetricsStrip (3-4 metrics showing scale/impact)
 2. OutcomeBanner (compelling outcome statement)
-3. 6-10 Playbook sections (role-specific strategies, organized by themes)
-4. Experience timeline (2-4 recent positions)
-5. Case studies (2-4 projects matched to job requirements)
-6. Standard footer (Leadership, Playbook, AI Builder, Other Projects, Keywords, Closing CTA)
+3. 8-10 Playbook sections (role-specific strategies, organized by themes)
+   - Each section should have a strategic title and actionable subtitle
+   - 4-6 detailed, specific bullet points per section
+   - Group by themes: Vision/Strategy, Team Collaboration, Delivery, Tools, Metrics, Risk Mitigation, etc.
+4. Case studies (2-3 projects matched to job requirements)
 
 CRITICAL CONSTRAINTS:
 - Only reference actual projects from provided portfolio
@@ -176,12 +177,19 @@ CRITICAL CONSTRAINTS:
 - Maintain professional, confident tone
 - Focus on measurable impact and outcomes
 - Generate rich, detailed content for each section (not generic placeholders)
+- Each bullet point should be specific and actionable (not vague statements)
 - Return valid JSON only
 
 TONE GUIDELINES:
 - Leadership roles: Strategic vision, team outcomes, scalability
 - IC/Senior roles: Technical depth, craft excellence, velocity
 - Always: Outcome-focused, metrics-driven, confident
+
+PLAYBOOK SECTIONS REQUIREMENTS:
+- Generate 8-10 comprehensive playbook sections
+- Each section MUST have: type="playbook", title (strategic), subtitle (tactical), bullets (4-6 items)
+- Cover these themes: Vision & Strategy, Team Collaboration, Delivery & Outcomes, 30-60-90 Day Plan, Tools & Methodologies, Success Metrics, Risk Mitigation, Stakeholder Management
+- Bullets should be specific to the industry and role (not generic advice)
 
 Context provided:
 1. Job posting requirements (analyze for key themes)

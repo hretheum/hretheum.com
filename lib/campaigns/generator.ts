@@ -145,15 +145,31 @@ function generateCampaignBody(template: CampaignTemplate): string {
     `<OutcomeBanner text="From metrics to outcomes — measurably, scalably, consistently" />\n`
   )
   
+  // Render playbook sections from frontmatter
+  if (template.sections && template.sections.length > 0) {
+    const playbookSections = template.sections.filter((s: any) => s.type === 'playbook')
+    if (playbookSections.length > 0) {
+      sections.push(`\n{/* Playbook Sections */}`)
+      playbookSections.forEach((section: any) => {
+        const { title, subtitle, bullets } = section
+        sections.push(`\n<PlaybookSection`)
+        sections.push(`  title="${title}"`)
+        if (subtitle) sections.push(`  subtitle="${subtitle}"`)
+        sections.push(`  bullets={${JSON.stringify(bullets)}}`)
+        sections.push(`/>\n`)
+      })
+    }
+  }
+  
   // Case grid (if provided)
   if (template.caseGrid && template.caseGrid.items.length > 0) {
-    sections.push(`<SectionTitle title="Selected Projects" subtitle="Impact • Scope • Results" />\n`)
+    sections.push(`\n<SectionTitle title="Selected Projects" subtitle="Impact • Scope • Results" />\n`)
     sections.push(`<CaseGrid items={${JSON.stringify(template.caseGrid.items)}} />\n`)
   }
   
   // Closing
   sections.push(
-    `<SectionTitle title="Next Steps" subtitle="Let's discuss how I can add value to your team" />\n`
+    `\n<SectionTitle title="Next Steps" subtitle="Let's discuss how I can add value to your team" />\n`
   )
   
   return sections.join('\n')

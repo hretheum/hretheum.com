@@ -803,3 +803,50 @@ export function OutcomeBanner({ text, className, fullBleed = false }: { text: st
     </div>
   )
 }
+
+/**
+ * PlaybookSection - Renders a playbook section with title, subtitle, and bullet points
+ * Used to display strategy/approach sections in campaigns
+ */
+export function PlaybookSection({ 
+  title, 
+  subtitle, 
+  bullets 
+}: { 
+  title: string
+  subtitle?: string
+  bullets: string[] 
+}) {
+  return (
+    <section className="py-12 px-4 sm:px-6 max-w-5xl mx-auto">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="border-l-4 pl-6" style={{ borderColor: 'var(--campaign-accent)' }}>
+          <h3 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
+            {title}
+          </h3>
+          {subtitle && (
+            <p className="text-base md:text-lg text-gray-600 font-medium">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        {/* Bullets */}
+        <ul className="space-y-4 pl-6">
+          {bullets.map((bullet, idx) => (
+            <li key={idx} className="flex gap-3">
+              <span 
+                className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5"
+                style={{ backgroundColor: 'var(--campaign-accent)' }}
+              >
+                {idx + 1}
+              </span>
+              <span className="text-gray-700 leading-relaxed">{bullet}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
