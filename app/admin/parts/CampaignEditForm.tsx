@@ -148,7 +148,10 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
         {/* MDX Editor */}
         <div className="col-span-5 space-y-2 flex flex-col">
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700">MDX Content</label>
+            <div className="flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-700">Raw MDX</label>
+              <span className="text-xs text-gray-500">(frontmatter + body)</span>
+            </div>
             <button
               onClick={() => setShowHelp(!showHelp)}
               className="text-xs text-blue-600 hover:text-blue-700"
@@ -156,15 +159,33 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
               {showHelp ? 'Hide' : 'Show'} Components
             </button>
           </div>
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="flex-1 w-full p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            spellCheck={false}
-          />
-          <div className="text-xs text-gray-500">
-            {content.length} characters • {content.split('\n').length} lines
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="absolute inset-0 w-full h-full p-4 font-mono text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              spellCheck={false}
+              placeholder="---
+slug: brand-name
+brand: Brand Name
+industry: SaaS
+accent: '#8b5cf6'
+sections:
+  - type: playbook
+    title: Your Title
+    subtitle: Subtitle
+    bullets:
+      - Bullet 1
+      - Bullet 2
+---
+
+<PlaybookSection ... />"
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>{content.length} characters • {content.split('\n').length} lines</span>
+            <span className="text-amber-600">⚠️ Full MDX editing - be careful with frontmatter syntax</span>
           </div>
         </div>
 
