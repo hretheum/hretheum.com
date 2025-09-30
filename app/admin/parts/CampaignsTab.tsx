@@ -1,16 +1,18 @@
 'use client'
 
 import React, { useState } from 'react'
+import CampaignCreationForm from './CampaignCreationForm'
 
 /**
  * Campaigns Tab - Admin UI for campaign creation
- * Task 2.1: Initial placeholder implementation
+ * Task 2.1: ✅ Tab structure
+ * Task 2.2: ✅ Campaign creation form (basic implementation)
  * 
- * TODO Task 2.2: Add campaign creation form with 3 input methods
- * TODO Task 2.3: Add real-time processing status display
+ * TODO: LLM-powered industry classification
+ * TODO: Real-time processing status display (Task 2.3)
  */
 export default function CampaignsTab() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [showForm, setShowForm] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -22,8 +24,9 @@ export default function CampaignsTab() {
         </p>
       </div>
 
-      {/* Placeholder content - Task 2.2 will add the actual form */}
-      <div className="rounded-lg border border-dashed border-gray-300 p-8">
+      {/* Toggle Form View */}
+      {!showForm ? (
+        <div className="rounded-lg border border-dashed border-gray-300 p-8">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 text-gray-400">
             <svg
@@ -48,8 +51,8 @@ export default function CampaignsTab() {
           <div className="mt-6">
             <button
               type="button"
-              disabled
-              className="inline-flex items-center rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-400 cursor-not-allowed"
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
               <svg
                 className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -59,11 +62,26 @@ export default function CampaignsTab() {
               >
                 <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
               </svg>
-              New Campaign (Coming Soon)
+              New Campaign
             </button>
           </div>
         </div>
       </div>
+      ) : (
+        <div className="rounded-lg border bg-white p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-medium">Create New Campaign</h3>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              ← Back to overview
+            </button>
+          </div>
+          <CampaignCreationForm />
+        </div>
+      )}
 
       {/* Stats placeholder */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
