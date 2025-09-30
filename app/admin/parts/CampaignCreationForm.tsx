@@ -113,7 +113,7 @@ export default function CampaignCreationForm() {
       
       const requestBody = {
         source,
-        brand: formData.brandSlug,
+        brandSlug: formData.brandSlug,
         industry: formData.industry,
         metadata: {
           accent: formData.accent,
