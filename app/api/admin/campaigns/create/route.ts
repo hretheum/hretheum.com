@@ -6,6 +6,13 @@ import {
   ProcessingStep 
 } from '@/lib/campaigns/types'
 import { z } from 'zod'
+import { fetchJobPostingFromUrl } from '@/lib/scraping/url-fetcher'
+import { parseJobPostingFile } from '@/lib/scraping/file-parser'
+import { generateCampaignContent } from '@/lib/campaigns/ai-generator'
+import { generateCampaignMDX } from '@/lib/campaigns/generator'
+import { updateCampaignIndex } from '@/lib/campaigns/index-manager'
+import path from 'path'
+import fs from 'fs/promises'
 
 // Runtime configuration
 export const runtime = 'nodejs'
@@ -145,18 +152,119 @@ export async function POST(request: NextRequest) {
     steps[3].status = 'completed'
     steps[3].duration = Date.now() - sanitizationStart
     
-    // Step 5: Placeholder for actual processing
-    // This will be implemented in subsequent tasks (Task 1.2-1.6)
-    steps.push({ name: 'content_processing', status: 'pending' })
-    steps.push({ name: 'job_posting_creation', status: 'pending' })
-    steps.push({ name: 'campaign_file_generation', status: 'pending' })
-    steps.push({ name: 'index_update', status: 'pending' })
-    steps.push({ name: 'cache_invalidation', status: 'pending' })
+    // Step 5: Content Extraction
+    steps.push({ name: 'content_extraction', status: 'running' })
+    const extractionStart = Date.now()
     
-    // For now, return success with pending steps
-    const campaignId = `camp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    let rawContent: string
+    try {
+      if (requestData.source.type === 'url') {
+        rawContent = await fetchJobPostingFromUrl(requestData.source.url)
+      } else if (requestData.source.type === 'text') {
+        rawContent = requestData.source.content
+      } else if (requestData.source.type === 'file') {
+        rawContent = await parseJobPostingFile(
+          requestData.source.fileData,
+          requestData.source.fileName,
+          requestData.source.fileType
+        )
+      } else {
+        throw new Error('Invalid source type')
+      }
+      
+      steps[4].status = 'completed'
+      steps[4].duration = Date.now() - extractionStart
+    } catch (error: any) {
+      steps[4].status = 'failed'
+      steps[4].error = error.message
+      steps[4].duration = Date.now() - extractionStart
+      throw error
+    }
+    
+    // Step 6: AI Content Generation
+    steps.push({ name: 'ai_generation', status: 'running' })
+    const aiStart = Date.now()
+    
+    let aiContent
+    try {
+      aiContent = await generateCampaignContent({
+        jobPosting: {
+          content: rawContent,
+          requirements: [], // Will be extracted by AI
+          skills: [],
+          role: requestData.metadata?.role || 'Professional',
+          seniority: 'mid', // Default
+        },
+        brand: sanitizedBrandSlug,
+        industry: sanitizedIndustry,
+      })
+      
+      steps[5].status = 'completed'
+      steps[5].duration = Date.now() - aiStart
+    } catch (error: any) {
+      steps[5].status = 'failed'
+      steps[5].error = error.message
+      steps[5].duration = Date.now() - aiStart
+      throw error
+    }
+    
+    // Step 7: Campaign File Generation
+    steps.push({ name: 'file_generation', status: 'running' })
+    const fileGenStart = Date.now()
+    
     const campaignSlug = requestData.campaignSlug || 
-      `${sanitizedBrandSlug}_${requestData.metadata?.role?.toLowerCase().replace(/\s+/g, '_') || 'campaign'}`
+      `${sanitizedBrandSlug}-${requestData.metadata?.role?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'campaign'}`
+    
+    let mdxContent: string
+    try {
+      mdxContent = await generateCampaignMDX({
+        slug: campaignSlug,
+        brand: sanitizedBrandSlug,
+        industry: sanitizedIndustry,
+        accent: requestData.metadata?.accent,
+        role: requestData.metadata?.role,
+        location: requestData.metadata?.location,
+        heroHeadline: aiContent.copy.heroHeadline,
+        sections: aiContent.copy.sections,
+      })
+      
+      // Write MDX file
+      const campaignsDir = path.join(process.cwd(), 'data', 'campaigns')
+      await fs.mkdir(campaignsDir, { recursive: true })
+      
+      const filePath = path.join(campaignsDir, `${campaignSlug}.mdx`)
+      await fs.writeFile(filePath, mdxContent, 'utf-8')
+      
+      steps[6].status = 'completed'
+      steps[6].duration = Date.now() - fileGenStart
+    } catch (error: any) {
+      steps[6].status = 'failed'
+      steps[6].error = error.message
+      steps[6].duration = Date.now() - fileGenStart
+      throw error
+    }
+    
+    // Step 8: Index Update
+    steps.push({ name: 'index_update', status: 'running' })
+    const indexStart = Date.now()
+    
+    try {
+      await updateCampaignIndex(sanitizedBrandSlug, campaignSlug, {
+        industry: sanitizedIndustry,
+        role: requestData.metadata?.role,
+      })
+      
+      steps[7].status = 'completed'
+      steps[7].duration = Date.now() - indexStart
+    } catch (error: any) {
+      steps[7].status = 'failed'
+      steps[7].error = error.message
+      steps[7].duration = Date.now() - indexStart
+      // Don't throw - index update is not critical
+      console.error('[campaigns] Index update failed:', error)
+    }
+    
+    const campaignId = `camp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     
     const response: CreateCampaignResponse = {
       success: true,
