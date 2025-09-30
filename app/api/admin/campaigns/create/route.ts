@@ -19,6 +19,70 @@ export const runtime = 'nodejs'
 export const maxDuration = 60 // 60s timeout
 
 /**
+ * Helper to update processing status in database
+ */
+async function updateStatus(jobId: string, statusData: any, supabase: any) {
+  try {
+    await supabase
+      .from('campaign_processing_status')
+      .upsert({
+        job_id: jobId,
+        status: statusData,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'job_id'
+      })
+  } catch (err) {
+    console.error('[status] Update failed:', err)
+  }
+}
+
+/**
+ * Map internal steps to user-facing steps
+ */
+function mapToUserSteps(internalSteps: ProcessingStep[]): any[] {
+  const stepMap: Record<string, string> = {
+    'authentication': 'validate',
+    'validation': 'validate',
+    'url_fetch': 'fetch',
+    'industry_classification': 'industry',
+    'rag_retrieval': 'rag',
+    'ai_generation': 'generate',
+    'database_save': 'save',
+    'index_update': 'index',
+  }
+
+  const userSteps: any[] = [
+    { id: 'validate', label: 'Validating input', status: 'pending' },
+    { id: 'fetch', label: 'Fetching job posting', status: 'pending' },
+    { id: 'industry', label: 'Analyzing industry', status: 'pending' },
+    { id: 'rag', label: 'Retrieving context', status: 'pending' },
+    { id: 'generate', label: 'Generating content with AI', status: 'pending' },
+    { id: 'save', label: 'Saving to database', status: 'pending' },
+    { id: 'index', label: 'Updating indexes', status: 'pending' },
+    { id: 'complete', label: 'Complete', status: 'pending' },
+  ]
+
+  // Map internal steps to user steps
+  for (const step of internalSteps) {
+    const userId = stepMap[step.name]
+    if (userId) {
+      const userStep = userSteps.find((s) => s.id === userId)
+      if (userStep) {
+        userStep.status = step.status
+        if (step.error) userStep.error = step.error
+      }
+    }
+  }
+
+  // Calculate progress
+  const completedCount = userSteps.filter((s) => s.status === 'completed').length
+  const progress = Math.round((completedCount / userSteps.length) * 100)
+
+  return userSteps
+}
+
+/**
  * POST /api/admin/campaigns/create
  * 
  * Create a new campaign from URL, text, or file upload.
@@ -29,7 +93,19 @@ export const maxDuration = 60 // 60s timeout
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const steps: ProcessingStep[] = []
+  const jobId = `camp_${Date.now()}_${Math.random().toString(36).substring(7)}`
   
+  // Initialize ServiceRole client for status updates
+  let serviceSupabase: any = null
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+    serviceSupabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { persistSession: false } }
+    )
+  }
+
   try {
     // Step 1: Authentication & Authorization
     steps.push({ name: 'authentication', status: 'running' })
@@ -37,6 +113,16 @@ export async function POST(request: NextRequest) {
     
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    // Initial status update
+    if (serviceSupabase) {
+      const userSteps = mapToUserSteps(steps)
+      await updateStatus(jobId, {
+        steps: userSteps,
+        progress: 0,
+        isComplete: false
+      }, serviceSupabase)
+    }
     
     if (authError || !user?.email) {
       steps[0].status = 'failed'
@@ -193,6 +279,16 @@ export async function POST(request: NextRequest) {
     steps.push({ name: 'ai_generation', status: 'running' })
     const aiStart = Date.now()
     
+    // Update status - AI generation starting
+    if (serviceSupabase) {
+      const userSteps = mapToUserSteps(steps)
+      await updateStatus(jobId, {
+        steps: userSteps,
+        progress: Math.round((steps.filter(s => s.status === 'completed').length / 8) * 100),
+        isComplete: false
+      }, serviceSupabase)
+    }
+    
     let aiContent
     let usedFallback = false
     try {
@@ -345,11 +441,20 @@ export async function POST(request: NextRequest) {
       console.error('[campaigns] Index update failed:', error)
     }
     
-    const campaignId = `camp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    // Final status update - complete
+    if (serviceSupabase) {
+      const userSteps = mapToUserSteps(steps)
+      userSteps.find(s => s.id === 'complete')!.status = 'completed'
+      await updateStatus(jobId, {
+        steps: userSteps,
+        progress: 100,
+        isComplete: true
+      }, serviceSupabase)
+    }
     
     const response: CreateCampaignResponse = {
       success: true,
-      campaignId,
+      campaignId: jobId,
       brandSlug: sanitizedBrandSlug,
       campaignSlug,
       steps,
@@ -357,7 +462,7 @@ export async function POST(request: NextRequest) {
     
     const totalDuration = Date.now() - startTime
     console.log('[campaigns] Request processed', {
-      campaignId,
+      campaignId: jobId,
       brandSlug: sanitizedBrandSlug,
       sourceType: requestData.source.type,
       duration: totalDuration,

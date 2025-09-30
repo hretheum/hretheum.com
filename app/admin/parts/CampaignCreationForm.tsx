@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { ProcessingStatus } from './ProcessingStatus'
 
 type InputMethod = 'url' | 'text' | 'file'
 
@@ -33,6 +34,8 @@ export default function CampaignCreationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState('')
+  const [jobId, setJobId] = useState<string | null>(null)
+  const [showStatus, setShowStatus] = useState(false)
 
   const handleInputMethodChange = (method: InputMethod) => {
     setFormData({ ...formData, inputMethod: method })
@@ -145,21 +148,9 @@ export default function CampaignCreationForm() {
         throw new Error(errorMessage)
       }
       
-      // Check if AI generation had warnings
-      const aiStep = result.steps?.find((s: any) => s.name === 'ai_generation')
-      const hasWarning = aiStep?.error
-      
-      setSuccessMessage(
-        `Campaign created! Slug: ${result.campaignSlug || result.brandSlug}${
-          hasWarning ? ' ⚠️ Warning: AI may have used fallback content' : ''
-        }`
-      )
-      
-      // Reset form after 2 seconds
-      setTimeout(() => {
-        setFormData(INITIAL_FORM_DATA)
-        setSuccessMessage('')
-      }, 2000)
+      // Show processing status
+      setJobId(result.campaignId)
+      setShowStatus(true)
       
     } catch (error: any) {
       console.error('Campaign creation error:', error)
@@ -451,6 +442,31 @@ export default function CampaignCreationForm() {
           {isSubmitting ? 'Creating...' : 'Create Campaign'}
         </button>
       </div>
+
+      {/* Processing Status */}
+      {showStatus && jobId && (
+        <div className="mt-6 border-t pt-6">
+          <ProcessingStatus 
+            jobId={jobId}
+            onComplete={(success) => {
+              if (success) {
+                setSuccessMessage('Campaign created successfully!')
+                setTimeout(() => {
+                  setFormData(INITIAL_FORM_DATA)
+                  setSuccessMessage('')
+                  setShowStatus(false)
+                  setJobId(null)
+                }, 3000)
+              }
+            }}
+            onCancel={() => {
+              setShowStatus(false)
+              setJobId(null)
+              setIsSubmitting(false)
+            }}
+          />
+        </div>
+      )}
     </form>
   )
 }
