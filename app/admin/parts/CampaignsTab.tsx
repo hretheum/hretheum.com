@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import CampaignCreationForm from './CampaignCreationForm'
 import { CampaignEditForm } from './CampaignEditForm'
 import { CampaignListView } from './CampaignListView'
@@ -14,8 +15,10 @@ import { CampaignListView } from './CampaignListView'
 export default function CampaignsTab() {
   const [showForm, setShowForm] = useState(false)
   const [editSlug, setEditSlug] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Check URL for edit param
     const params = new URLSearchParams(window.location.search)
     const edit = params.get('edit')
@@ -37,10 +40,10 @@ export default function CampaignsTab() {
     window.history.replaceState({}, '', params.toString() ? `?${params.toString()}` : window.location.pathname)
   }
 
-  // Show edit form if editSlug is set (full width for split view)
-  if (editSlug) {
-    return (
-      <div className="fixed inset-0 bg-white z-40 overflow-auto">
+  // Show edit form if editSlug is set (full viewport via portal)
+  if (editSlug && mounted) {
+    const editOverlay = (
+      <div className="fixed inset-0 bg-white z-50 overflow-auto">
         <div className="max-w-[1920px] mx-auto p-6">
           <div className="flex items-center justify-between border-b pb-4 mb-6">
             <h2 className="text-lg font-semibold">Edit Campaign: {editSlug}</h2>
@@ -56,6 +59,8 @@ export default function CampaignsTab() {
         </div>
       </div>
     )
+    
+    return createPortal(editOverlay, document.body)
   }
 
   return (
