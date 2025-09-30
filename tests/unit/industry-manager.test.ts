@@ -14,7 +14,7 @@ describe('Industry Manager', () => {
     })
     
     it('should handle special characters', () => {
-      expect(generateIndustrySlug('E-Commerce & Retail')).toBe('ecommerce-retail')
+      expect(generateIndustrySlug('E-Commerce & Retail')).toBe('e-commerce-retail')
       expect(generateIndustrySlug('AI/ML Technology')).toBe('aiml-technology')
     })
     

@@ -159,7 +159,8 @@ describe('Campaign Generator', () => {
       
       const mdx = await generateCampaignMDX(template)
       
-      expect(mdx).toContain('accent: "#e20074"')
+      // YAML may use single or double quotes
+      expect(mdx).toMatch(/accent: ['"]#e20074['"]/)
       expect(mdx).toContain('role: Senior Designer')
       expect(mdx).toContain('location: Warsaw')
       expect(mdx).toContain('contract: B2B')
@@ -175,7 +176,8 @@ describe('Campaign Generator', () => {
       
       const mdx = await generateCampaignMDX(template)
       
-      expect(mdx).toContain('accent: "#e20074"') // Telecom default
+      // YAML may use single or double quotes
+      expect(mdx).toMatch(/accent: ['"]#e20074['"]/) // Telecom default
     })
     
     it('should reject invalid slug', async () => {
