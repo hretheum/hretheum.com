@@ -117,8 +117,8 @@ export default function CampaignCreationForm() {
         industry: formData.industry,
         metadata: {
           accent: formData.accent,
-          role: formData.role || undefined,
-          location: formData.location || undefined,
+          role: formData.role?.trim() || undefined,
+          location: formData.location?.trim() || undefined,
         }
       }
       
