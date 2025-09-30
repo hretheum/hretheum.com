@@ -60,11 +60,13 @@ export default async function AdminPage() {
     <div className="mx-auto max-w-6xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Admin Console</h1>
-        <form action="/auth/signout" method="post">
-          <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">Sign out</button>
-        </form>
+        <div className="flex items-center gap-3">
+          <ConsentHelper />
+          <form action="/auth/signout" method="post">
+            <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">Sign out</button>
+          </form>
+        </div>
       </div>
-      <ConsentHelper />
       <AdminTabs />
     </div>
   );

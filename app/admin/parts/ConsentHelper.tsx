@@ -81,7 +81,7 @@ export default function ConsentHelper() {
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className="mt-2 inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors"
+        className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors"
         title="Click to expand consent controls"
       >
         <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
