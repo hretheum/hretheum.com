@@ -170,11 +170,18 @@ async function testCampaignGeneration(jobUrl: string, brand: string, industry: s
     console.log(`  ${GREEN}✓${RESET} Step 3: AI Generation (${aiOutput.narrative.keyMessages.length} messages, ${aiOutput.caseStudies.length} cases)`)
     console.log(`  ${GREEN}✓${RESET} Step 4: MDX Generation (${mdx.length} chars)`)
     
-    console.log('\nGenerated MDX Preview:')
+    // Save full MDX to file
+    const fs = await import('fs/promises')
+    const outputPath = `data/campaigns/${template.slug}-test.mdx`
+    await fs.writeFile(outputPath, mdx, 'utf-8')
+    
+    console.log('\nGenerated MDX:')
+    console.log(`${GREEN}✓${RESET} Full MDX saved to: ${outputPath}`)
     console.log(`${BLUE}${'─'.repeat(60)}${RESET}`)
     console.log(mdx.slice(0, 500))
     console.log(`${BLUE}${'─'.repeat(60)}${RESET}`)
     console.log(`\n... (truncated, full length: ${mdx.length} characters)\n`)
+    console.log(`${YELLOW}View full file: cat ${outputPath}${RESET}\n`)
     
     if (!validation.valid) {
       console.log(`${YELLOW}⚠️  Note: Some quality issues detected (see Step 3)${RESET}\n`)

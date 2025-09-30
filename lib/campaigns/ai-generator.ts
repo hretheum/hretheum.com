@@ -279,7 +279,7 @@ IMPORTANT:
   try {
     // Create with timeout using AbortController
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60s timeout for rich content
     
     const response = await client.chat.completions.create({
       model: process.env.AI_MODEL_GENERATION || 'gpt-4o-mini',
