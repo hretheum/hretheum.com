@@ -145,10 +145,10 @@ export default function CampaignsTab() {
       {editSlug && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" onClick={handleCloseEdit}>
           <div 
-            className="bg-white rounded-lg shadow-xl w-full h-full max-w-none max-h-none overflow-auto"
+            className="bg-white rounded-lg shadow-xl w-full h-full max-w-none max-h-none overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex items-center justify-between">
+            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Edit Campaign: {editSlug}</h2>
               <button
                 type="button"
@@ -158,7 +158,7 @@ export default function CampaignsTab() {
                 ✕ Close
               </button>
             </div>
-            <div className="p-6">
+            <div className="flex-1 overflow-y-auto p-6">
               <CampaignEditForm brandSlug={editSlug} />
             </div>
           </div>
