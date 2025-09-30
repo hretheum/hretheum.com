@@ -837,12 +837,12 @@ export function PlaybookSection({
           {bullets.map((bullet, idx) => (
             <li key={idx} className="flex gap-3">
               <span 
-                className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5"
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mt-0.5"
                 style={{ backgroundColor: 'var(--campaign-accent)' }}
               >
                 {idx + 1}
               </span>
-              <span className="text-gray-700 leading-relaxed">{bullet}</span>
+              <span className="text-gray-800 leading-relaxed text-base">{bullet}</span>
             </li>
           ))}
         </ul>
