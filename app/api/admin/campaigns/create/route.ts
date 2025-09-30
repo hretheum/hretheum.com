@@ -285,6 +285,12 @@ export async function POST(request: NextRequest) {
           industry: sanitizedIndustry,
         })
       
+      // Remove any LLM suggestions for this brand (we have explicit mapping now)
+      await supabase
+        .from('brand_industry_suggestions')
+        .delete()
+        .eq('brand_slug', sanitizedBrandSlug)
+      
       steps[6].status = 'completed'
       steps[6].duration = Date.now() - fileGenStart
     } catch (error: any) {
