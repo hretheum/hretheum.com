@@ -127,6 +127,14 @@ export async function POST(request: NextRequest) {
     }
     
     const requestData = validation.data
+    
+    console.log('[campaigns] Request validated:', {
+      brandSlug: requestData.brandSlug,
+      industry: requestData.industry,
+      sourceType: requestData.source.type,
+      metadata: requestData.metadata,
+    })
+    
     steps[1].status = 'completed'
     steps[1].duration = Date.now() - validationStart
     
@@ -222,8 +230,15 @@ export async function POST(request: NextRequest) {
     steps.push({ name: 'file_generation', status: 'running' })
     const fileGenStart = Date.now()
     
-    const campaignSlug = requestData.campaignSlug || 
-      `${sanitizedBrandSlug}-${requestData.metadata?.role?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'campaign'}`
+    const roleSlug = requestData.metadata?.role?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'campaign'
+    const campaignSlug = requestData.campaignSlug || `${sanitizedBrandSlug}-${roleSlug}`
+    
+    console.log('[campaigns] Generating campaign slug:', {
+      brandSlug: sanitizedBrandSlug,
+      role: requestData.metadata?.role,
+      roleSlug,
+      finalSlug: campaignSlug,
+    })
     
     let mdxContent: string
     try {
