@@ -238,9 +238,35 @@ export async function CampaignRenderer({ slug, industry }: { slug: string; indus
 
   // Use custom MDX compiler in dev to avoid React 19 issues
   if (process.env.NODE_ENV !== 'production') {
+    // Try file first
     const found = await findCampaignForBrand(slug)
-    if (!found) return null
-    const raw = await fs.readFile(found.filePath, 'utf8')
+    let raw: string | null = null
+    
+    if (found) {
+      raw = await fs.readFile(found.filePath, 'utf8')
+    } else {
+      // Try Supabase
+      try {
+        const { createClient } = await import('@supabase/supabase-js')
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+          )
+          const { data } = await supabase
+            .from('campaigns')
+            .select('content')
+            .eq('brand_slug', slug)
+            .single()
+          raw = data?.content || null
+        }
+      } catch (err) {
+        console.error('[CampaignRenderer] Supabase error:', err)
+      }
+    }
+    
+    if (!raw) return null
+    
     const compiled = await compileMDXDirect(raw, components)
     if (!compiled) return null
     const { content, frontmatter } = compiled
