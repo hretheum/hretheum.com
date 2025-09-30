@@ -1832,18 +1832,80 @@ function parseEmbedding(emb: any): number[] | null {
 - RAG chunks use: `embedding` (pgvector)
 - Consider: Unified schema or keep separate (different use cases)
 
+### Phase 5: Semantic Profile Matching (Priority 5 - Enhancement)
+
+**Current State:**
+- `lib/job_postings/profile_matcher.ts` uses **string matching only**
+- No semantic search, no embeddings
+- Example: "React" matches "React" but NOT "React.js" or "Frontend frameworks"
+
+**Current Implementation:**
+```typescript
+// Simple string matching - NO EMBEDDINGS
+const jobSkills = new Set([
+  ...jobPosting.technical_skills.map(s => s.toLowerCase()),
+])
+const matching = Array.from(jobSkills).filter(skill => userSkills.has(skill))
+const similarityScore = matchingSkills.length / Math.max(jobSkills.size, 1)
+```
+
+**Enhanced Implementation (Post-Migration):**
+```typescript
+// Semantic matching with embeddings
+async function matchUserProfileSemantic(jobPosting: JobPostingData) {
+  // 1. Generate embedding for job requirements
+  const jobEmbedding = await embedQuery([
+    ...jobPosting.core_requirements,
+    ...jobPosting.technical_skills,
+    ...jobPosting.responsibilities,
+  ].join(' '))
+  
+  // 2. Search portfolio chunks by semantic similarity
+  const matchingProjects = await searchByEmbedding(jobEmbedding, 10, 0.6)
+  
+  // 3. Extract projects from chunks
+  const projects = matchingProjects
+    .filter(r => r.metadata?.source_type === 'case_study' || r.metadata?.source_type === 'experience')
+    .map(r => ({
+      source_name: r.metadata.source_name,
+      similarity_score: r.score,  // Real cosine similarity
+      matched_context: r.text,     // Why it matches
+      metadata: r.metadata,
+    }))
+  
+  return { matching_projects: projects }
+}
+```
+
+**Benefits:**
+- Semantic understanding: "React" → "Frontend", "SPA", "Component-based UI"
+- Better skill matching: "Leadership" → "Team management", "Mentoring", "Coaching"
+- Context-aware: "E-commerce optimization" → "Conversion funnel", "Checkout UX"
+- Higher quality suggestions in Workflow 3
+
+**Implementation Steps:**
+1. Ensure Phase 1-3 complete (Supabase embeddings working)
+2. Add `matchUserProfileSemantic()` function
+3. A/B test: Compare semantic vs string matching quality
+4. Gradual rollout: Fallback to string matching if semantic fails
+5. Monitor: Track suggestion quality metrics
+
 **Risks:**
 - ⚠️ Breaking RAG chat if migration fails
 - ⚠️ Campaign generation depends on RAG (fallback implemented)
 - ⚠️ Data loss if Supabase migration incomplete
+- ⚠️ Phase 5: Slower matching (vector search ~200-500ms vs string match ~10ms)
 
 **Testing Checklist:**
-- [ ] RPC `match_chunks()` returns arrays not strings
-- [ ] searchByEmbedding() gets valid results (score > 0.5)
-- [ ] Campaign generation retrieves portfolio items
-- [ ] RAG chat uses Supabase successfully
-- [ ] Ingestion script writes to Supabase correctly
-- [ ] Performance: Supabase search < 500ms (baseline: index.json ~100ms)
+- [ ] Phase 1: RPC `match_chunks()` returns arrays not strings
+- [ ] Phase 2: searchByEmbedding() gets valid results (score > 0.5)
+- [ ] Phase 3: Campaign generation retrieves portfolio items
+- [ ] Phase 3: RAG chat uses Supabase successfully
+- [ ] Phase 3: Ingestion script writes to Supabase correctly
+- [ ] Phase 3: Performance: Supabase search < 500ms (baseline: index.json ~100ms)
+- [ ] Phase 5: Semantic matching finds relevant projects (not just exact string match)
+- [ ] Phase 5: Suggestion quality improved (A/B test vs baseline)
+- [ ] Phase 5: Performance acceptable (<500ms for profile matching)
 
 ---
 
