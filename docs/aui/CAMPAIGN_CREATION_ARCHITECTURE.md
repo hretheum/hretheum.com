@@ -1184,7 +1184,7 @@ export function IndustrySelector({
 
 ---
 
-#### Task 2.4: Implement campaign list view with filters ✅
+#### ✅ Task 2.4: Implement campaign list view with filters 
 
 **Definition of Done:**
 - Table with columns: Brand, Industry, Campaign, Created, Status, Actions

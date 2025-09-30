@@ -317,12 +317,22 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => onEdit(campaign.brand_slug)}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      <a
+                        href={`/brand/${campaign.brand_slug}?preview=true`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 hover:text-gray-700 text-sm"
+                      >
+                        Preview →
+                      </a>
+                      <button
+                        onClick={() => onEdit(campaign.brand_slug)}
+                        className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
