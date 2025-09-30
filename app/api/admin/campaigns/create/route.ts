@@ -228,12 +228,23 @@ export async function POST(request: NextRequest) {
         sections: aiContent.copy.sections,
       })
       
-      // Write MDX file
-      const campaignsDir = path.join(process.cwd(), 'data', 'campaigns')
-      await fs.mkdir(campaignsDir, { recursive: true })
+      // Save to Supabase (works on serverless)
+      const { error: dbError } = await supabase
+        .from('campaigns')
+        .upsert({
+          brand_slug: sanitizedBrandSlug,
+          mdx_slug: campaignSlug,
+          content: mdxContent,
+          industry: sanitizedIndustry,
+          role: requestData.metadata?.role,
+          location: requestData.metadata?.location,
+          active: true,
+          updated_at: new Date().toISOString(),
+        })
       
-      const filePath = path.join(campaignsDir, `${campaignSlug}.mdx`)
-      await fs.writeFile(filePath, mdxContent, 'utf-8')
+      if (dbError) {
+        throw new Error(`Database save failed: ${dbError.message}`)
+      }
       
       steps[6].status = 'completed'
       steps[6].duration = Date.now() - fileGenStart
