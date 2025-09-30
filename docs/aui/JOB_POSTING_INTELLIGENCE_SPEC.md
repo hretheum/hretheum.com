@@ -929,18 +929,42 @@ const fallbackSuggestions = await getSuggestedQueries(industry, brandSlug)
 
 ### Workflow 2: Manual Upload via Admin API
 
+📋 **[Full Architecture Specification →](./CAMPAIGN_CREATION_ARCHITECTURE.md)** - Complete campaign creation flow with Admin UI
+
+**High-Level Flow:**
 ```
-1. Admin navigates to /admin/job-postings
-2. Fills form with brand_slug and content
-3. POST /api/admin/job-postings
-4. Server validates input
-5. Content normalized
-6. Processing queued (async)
-7. Admin sees "Processing..." status
-8. Background worker processes job posting
-9. Admin receives notification on completion
-10. Suggestions immediately available in chat
+1. Admin navigates to /admin → "Campaigns" tab
+2. Chooses input method:
+   a. URL scraping (job board link)
+   b. Text paste (markdown content)
+   c. File upload (drag & drop .md/.pdf/.docx)
+3. Fills campaign metadata:
+   - Brand slug (manual or auto-extracted)
+   - Industry (existing or create new)
+   - Campaign slug (auto-generated or override)
+   - Visual settings (accent color, CTA variant)
+4. Submits form → POST /api/admin/campaigns/create
+5. Real-time processing status display:
+   ✓ Content fetched/parsed
+   ✓ Job posting processed (LLM + embeddings)
+   ✓ Campaign MDX generated
+   ✓ Index updated
+   ✓ Cache invalidated
+6. Campaign goes live immediately
+7. Suggestions available in next chat session
 ```
+
+**Key Features:**
+- **URL Scraping**: Automatic content extraction from job boards
+- **New Industry Creation**: Full scaffolding (DB migration, templates, type updates)
+- **Preview Mode**: QA before going live
+- **Campaign Management**: List, edit, archive campaigns
+
+**See [Campaign Creation Architecture](./CAMPAIGN_CREATION_ARCHITECTURE.md) for:**
+- Detailed API specifications
+- Admin UI mockups
+- Security considerations
+- Implementation plan (4-week roadmap)
 
 ### Workflow 3: Suggestion Generation in Chat
 
