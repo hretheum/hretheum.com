@@ -98,6 +98,82 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
     }, 0)
   }
 
+  const handleRegenerateBody = () => {
+    if (!confirm('Regenerate body from frontmatter sections? This will replace current body.')) return
+    
+    try {
+      // Parse frontmatter
+      const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
+      if (!match) {
+        setError('Invalid MDX format')
+        return
+      }
+      
+      const [, frontmatterStr, ] = match
+      
+      // Simple YAML parser for our use case
+      const frontmatter: any = {}
+      const lines = frontmatterStr.split('\n')
+      let currentKey = ''
+      let currentArray: any[] = []
+      let inArray = false
+      
+      for (const line of lines) {
+        if (line.trim().startsWith('- ') && inArray) {
+          // Array item
+          const value = line.trim().substring(2).trim()
+          if (value.includes(':')) {
+            // Object in array
+            const [k, v] = value.split(':').map(s => s.trim())
+            if (!currentArray[currentArray.length - 1]) currentArray.push({})
+            currentArray[currentArray.length - 1][k] = v
+          } else {
+            currentArray.push(value)
+          }
+        } else if (line.includes(':') && !line.trim().startsWith('-')) {
+          const [key, ...valueParts] = line.split(':')
+          const value = valueParts.join(':').trim()
+          currentKey = key.trim()
+          if (value === '' || value === '[]') {
+            inArray = true
+            currentArray = []
+            frontmatter[currentKey] = currentArray
+          } else {
+            inArray = false
+            frontmatter[currentKey] = value.replace(/^['"]|['"]$/g, '')
+          }
+        }
+      }
+      
+      // Generate new body
+      let newBody = '\n<SectionTitle title="' + (frontmatter.brand || campaign?.brand_slug).toUpperCase() + '" subtitle="Leadership • Outcomes • Operating model" />\n\n'
+      newBody += '<OutcomeBanner text="From metrics to outcomes — measurably, scalably, consistently" />\n\n'
+      
+      // Add PlaybookSections from frontmatter
+      if (frontmatter.sections) {
+        const playbookSections = frontmatter.sections.filter((s: any) => s.type === 'playbook')
+        if (playbookSections.length > 0) {
+          newBody += '{/* Playbook Sections */}\n'
+          playbookSections.forEach((section: any) => {
+            newBody += `\n<PlaybookSection\n`
+            newBody += `  title="${section.title}"\n`
+            if (section.subtitle) newBody += `  subtitle="${section.subtitle}"\n`
+            newBody += `  bullets={${JSON.stringify(section.bullets)}}\n`
+            newBody += `/>\n`
+          })
+        }
+      }
+      
+      newBody += '\n<SectionTitle title="Next Steps" subtitle="Let\'s discuss how I can add value to your team" />\n'
+      
+      setContent(`---\n${frontmatterStr}\n---${newBody}`)
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 2000)
+    } catch (err: any) {
+      setError('Failed to parse: ' + err.message)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -132,6 +208,12 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
         <div className="flex items-center gap-3">
           {error && <span className="text-xs text-red-600">{error}</span>}
           {success && <span className="text-xs text-green-600">✓ Saved!</span>}
+          <button
+            onClick={handleRegenerateBody}
+            className="px-3 py-2 text-xs bg-amber-50 text-amber-700 rounded-md hover:bg-amber-100 border border-amber-200"
+          >
+            🔄 Regenerate Body
+          </button>
           <button
             onClick={handleSave}
             disabled={saving}
