@@ -714,7 +714,7 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ---
 
-#### Task 1.3: Implement campaign file generator (`lib/campaigns/generator.ts`)
+#### ✅ Task 1.3: Implement campaign file generator (`lib/campaigns/generator.ts`)
 
 **Definition of Done:**
 - `generateCampaignMDX()` creates valid MDX files
