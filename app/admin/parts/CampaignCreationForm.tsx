@@ -134,7 +134,15 @@ export default function CampaignCreationForm() {
       const result = await response.json()
       
       if (!response.ok) {
-        throw new Error(result.error || `API error: ${response.status}`)
+        // Extract detailed error message
+        let errorMessage = result.error || `API error: ${response.status}`
+        if (result.message) {
+          errorMessage = `${errorMessage}: ${result.message}`
+        }
+        if (result.errors && Array.isArray(result.errors)) {
+          errorMessage = `${errorMessage}\n${result.errors.join('\n')}`
+        }
+        throw new Error(errorMessage)
       }
       
       setSuccessMessage(`Campaign created successfully! File: ${result.campaign.slug}.mdx`)
@@ -402,7 +410,7 @@ export default function CampaignCreationForm() {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-red-800">{errors.submit}</p>
+              <p className="text-sm font-medium text-red-800 whitespace-pre-wrap">{errors.submit}</p>
             </div>
           </div>
         </div>
