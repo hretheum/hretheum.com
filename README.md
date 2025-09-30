@@ -30,6 +30,8 @@ Optional:
 - `SMOKE_ENDPOINT=http://localhost:3000/api/rag/query?stream=0` to override target.
 
 ## Ingestion (Supabase)
+
+### RAG Content Ingestion
 Ingestion writes Markdown sources into `public.documents`/`public.chunks` and populates embeddings (vector(1536)). Service role key is required only for ingest; runtime uses anon.
 
 High‑level steps:
@@ -37,6 +39,45 @@ High‑level steps:
 - Run ingest script (service role). If not present yet in this repo, follow docs below to create it or perform a manual import.
 
 See: `docs/playbooks/PROJECT_CONTENT_TEMPLATES.md` and `docs/playbooks/CONTENT_PLAYBOOK.md` for content structure, and `docs/CONVERSATIONAL_RAG.md` §23 for RPC schema.
+
+```bash
+# Ingest all RAG content from data/rag/ directory
+RAG_STORE=supabase npx tsx scripts/rag_ingest.ts
+```
+
+### Job Posting Ingestion
+Process job posting files for personalized campaign suggestions. Supports `.md`, `.txt`, and `.json` formats.
+
+**File naming convention:** `<brand>-<timestamp>.md`
+- Brand: lowercase slug (e.g., `tmobile`, `webimpact`)
+- Timestamp: ISO 8601 format `YYYYMMDDTHHmmssZ`
+- Example: `tmobile-20250929T224212Z.md`
+
+**Automatic processing (watcher):**
+```bash
+# Start file watcher for data/job_postings/ directory
+npx tsx scripts/job_posting_watcher.ts
+# Detects new files and processes automatically
+```
+
+**Manual processing (on-demand):**
+```bash
+# Process a specific job posting file
+npx tsx scripts/ingest-job-posting.ts data/job_postings/tmobile/tmobile-20250929T224212Z.md
+
+# Show help
+npx tsx scripts/ingest-job-posting.ts
+```
+
+**Pipeline steps:**
+1. Extract metadata (brand, timestamp) from filename
+2. Read and normalize content (remove extra whitespace, empty lines)
+3. Extract semantic data using LLM (skills, requirements, seniority)
+4. Generate embeddings with OpenAI (full text, requirements, skills)
+5. Store in Supabase `job_postings` table
+6. Invalidate suggestion cache for the brand
+
+**Output:** Job posting stored in database, suggestions cache cleared, ready for `/brand/<brand>` route.
 
 ## Environment Variables
 
