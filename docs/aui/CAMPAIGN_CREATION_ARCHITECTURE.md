@@ -1063,11 +1063,22 @@ Constraints:
 **Definition of Done:**
 - Form with 3 tabs: URL, Text, File
 - All fields from `CampaignCreationForm` interface
-- Industry dropdown (existing + "Create New" option)
+- **LLM-powered industry classification** (auto-suggests industry after scraping)
+- Industry selector with AI suggestions (confidence badges + reasoning)
+- Smart industry UI: Accept suggestion / Choose alternative / Create new
 - Color picker for accent
 - Form validation (client-side + server-side)
 - Submit button with loading state
 - Error display (field-level + form-level)
+
+**Industry Classification Enhancement:**
+- After URL/file scraping, LLM analyzes content and suggests industry
+- UI shows suggestion with confidence score (e.g., "SaaS 85% match")
+- Displays reasoning: "Company builds cloud software for..."
+- Shows top 3 alternatives if confidence < 70%
+- Suggests creating new industry if no good match (all < 50%)
+- Admin can: Accept suggestion / Override with dropdown / Create new industry
+- Classification cached per company (same URL = same suggestion)
 
 **Guardrails:**
 - Client-side validation before submit
@@ -1087,12 +1098,52 @@ Constraints:
 - Validation error rate: < 10%
 - Average form fill time: < 2 minutes
 - User satisfaction: > 4/5
+- Industry classification accuracy: > 85% (admin accepts suggestion)
+- New industry suggestions: < 10% of cases
+
+**Implementation Details:**
+
+```typescript
+// lib/scraping/industry-classifier.ts
+interface IndustryClassification {
+  suggestedIndustry: Industry | null
+  confidence: number // 0-1
+  reasoning: string
+  alternatives: Array<{
+    industry: Industry
+    confidence: number
+    reasoning: string
+  }>
+  shouldCreateNew: boolean
+  newIndustryName?: string
+}
+
+async function classifyIndustry(
+  jobPostingContent: string,
+  companyName?: string
+): Promise<IndustryClassification>
+
+// app/admin/campaigns/_components/IndustrySelector.tsx
+export function IndustrySelector({
+  classification,
+  value,
+  onChange
+}: Props) {
+  // Shows AI suggestion with confidence badge
+  // Allows accept/override/create new
+}
+```
 
 **Tests:**
 - Unit: Form validation logic (20 test cases)
 - Unit: Input method switching
+- Unit: Industry classification LLM prompt (5 job postings)
+- Unit: Classification confidence scoring
 - Integration: Form submission with mocked API
-- E2E: Fill form, submit, verify campaign created
+- Integration: Industry selector with AI suggestions
+- E2E: Fill form, accept AI industry suggestion, submit
+- E2E: Override AI suggestion, choose manually
+- E2E: Create new industry from AI suggestion
 - Accessibility: Form labels, error announcements
 
 ---
