@@ -278,12 +278,20 @@ export async function POST(request: NextRequest) {
       console.log('[campaigns] Saved to database:', upsertData)
       
       // Also save to brand_industries for industry resolution
+      // Use service role to bypass RLS
       console.log('[campaigns] Saving to brand_industries:', {
         brand_slug: sanitizedBrandSlug,
         industry: sanitizedIndustry,
       })
       
-      const { data: brandIndData, error: brandIndError } = await supabase
+      const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+      const serviceSupabase = createServiceClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { persistSession: false } }
+      )
+      
+      const { data: brandIndData, error: brandIndError } = await serviceSupabase
         .from('brand_industries')
         .upsert({
           brand_slug: sanitizedBrandSlug,
