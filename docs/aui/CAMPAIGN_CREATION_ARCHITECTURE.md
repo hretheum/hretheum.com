@@ -639,43 +639,874 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ### Phase 1: Backend Foundation (Week 1)
 
-**Tasks:**
-1. ✅ Create `/api/admin/campaigns/create` endpoint
-2. ✅ Implement content scraping module (`lib/scraping/`)
-3. ✅ Implement campaign file generator (`lib/campaigns/generator.ts`)
-4. ✅ Implement index manager (`lib/campaigns/index-manager.ts`)
-5. ✅ Add new industry creation flow
-6. ✅ Database migrations for `industries` table
-7. ✅ Unit tests for all modules
+#### Task 1.1: Create `/api/admin/campaigns/create` endpoint
+
+**Definition of Done:**
+- POST endpoint accepts all 3 input types (URL, text, file)
+- Request validation with Zod schema
+- Response includes processing steps with status
+- Error handling with specific error codes
+- Admin-only access enforced (ADMIN_EMAILS check)
+- API documented in OpenAPI/Swagger format
+
+**Guardrails:**
+- Request timeout: 60s max
+- File size limit: 5MB
+- Rate limiting: 10 requests/minute per admin
+- Input sanitization (XSS prevention)
+- CORS headers for admin origin only
+
+**Quality Gates:**
+- All request validation tests pass (invalid inputs rejected)
+- Response schema matches TypeScript interface
+- Error responses include actionable messages
+- API latency p95 < 2s (excluding LLM processing)
+
+**Success Metrics:**
+- 100% of valid requests return 200/201
+- 0% false positives in validation
+- Error rate < 1%
+- Average response time < 5s
+
+**Tests:**
+- Unit: Request validation (10 test cases)
+- Unit: Error handling (5 scenarios)
+- Integration: Full flow with mocked dependencies
+- E2E: Create campaign from URL, text, file
+
+---
+
+#### Task 1.2: Implement content scraping module (`lib/scraping/`)
+
+**Definition of Done:**
+- `fetchJobPostingFromUrl()` extracts text from job board URLs
+- `parseJobPostingFile()` supports .md, .txt, .pdf, .docx
+- Content normalization (encoding, whitespace, special chars)
+- Readability/Cheerio integration for HTML parsing
+- PDF/DOCX parsing with fallback to plain text
+- Error handling for network failures, timeouts, invalid formats
+
+**Guardrails:**
+- Domain whitelist (pracuj.pl, nofluffjobs.com, justjoin.it, etc.)
+- Timeout: 10s per URL fetch
+- Max content length: 50,000 chars
+- Retry logic: 3 attempts with exponential backoff
+- User-Agent spoofing prevention
+
+**Quality Gates:**
+- Successfully extracts content from 95% of whitelisted domains
+- Handles malformed HTML gracefully (no crashes)
+- PDF/DOCX parsing accuracy > 90%
+- No SSRF vulnerabilities (security audit pass)
+
+**Success Metrics:**
+- Content extraction success rate ≥ 95%
+- Average extraction time < 3s
+- Zero SSRF incidents
+- Parsing accuracy (manual validation on 20 samples) > 90%
+
+**Tests:**
+- Unit: URL validation (whitelist/blacklist)
+- Unit: HTML parsing (5 job board samples)
+- Unit: File parsing (.md, .txt, .pdf, .docx)
+- Integration: End-to-end scraping with real URLs (mocked responses)
+- Security: SSRF attack vectors (10 malicious URLs)
+
+---
+
+#### Task 1.3: Implement campaign file generator (`lib/campaigns/generator.ts`)
+
+**Definition of Done:**
+- `generateCampaignMDX()` creates valid MDX files
+- Frontmatter schema matches existing campaigns
+- Default values for optional fields (accent, CTAs, sections)
+- Template inheritance (industry-specific defaults)
+- File written to `data/campaigns/{slug}.mdx`
+- Atomic file writes (temp file + rename)
+
+**Guardrails:**
+- Slug validation (alphanumeric + hyphens only)
+- Accent color validation (hex format)
+- CTA URL validation (HTTPS only)
+- Max file size: 100KB
+- Backup existing file before overwrite
+
+**Quality Gates:**
+- Generated MDX passes MDX compiler validation
+- Frontmatter schema validation (Zod)
+- All required fields present
+- No duplicate slugs in index.json
+- File permissions correct (644)
+
+**Success Metrics:**
+- 100% of generated files are valid MDX
+- Zero file write failures
+- Schema validation pass rate: 100%
+- Average generation time < 100ms
+
+**Tests:**
+- Unit: Frontmatter generation (all field combinations)
+- Unit: Default value population
+- Unit: Slug generation and validation
+- Integration: Full MDX generation + compilation
+- E2E: Generate campaign, verify file exists and is valid
+
+---
+
+#### Task 1.4: Implement index manager (`lib/campaigns/index-manager.ts`)
+
+**Definition of Done:**
+- `updateCampaignIndex()` adds/updates brand → campaign mapping
+- `removeCampaignFromIndex()` removes mapping
+- Atomic updates (read → modify → write with lock)
+- Backup index.json before modification
+- Validation of index.json structure after update
+
+**Guardrails:**
+- File locking mechanism (prevent concurrent writes)
+- Backup retention: last 10 versions
+- Index validation after each update
+- Rollback on validation failure
+- Max index size: 1MB
+
+**Quality Gates:**
+- Index.json remains valid JSON after all operations
+- No duplicate brand slugs
+- All referenced campaign files exist
+- Atomic operations (no partial updates)
+
+**Success Metrics:**
+- 100% of updates succeed or rollback cleanly
+- Zero index corruption incidents
+- Average update time < 50ms
+- Concurrent update handling: 100% success rate
+
+**Tests:**
+- Unit: Add/update/remove operations
+- Unit: Concurrent update handling (race conditions)
+- Unit: Rollback on failure
+- Integration: Full workflow with file system
+- E2E: Multiple campaigns created in parallel
+
+---
+
+#### Task 1.5: Add new industry creation flow
+
+**Definition of Done:**
+- `createNewIndustry()` creates DB entry + templates
+- Industry slug generation (kebab-case)
+- Default accent color assignment
+- Template files created in `data/campaigns/templates/{slug}/`
+- TypeScript type update (runtime validation)
+- Audit log entry created
+
+**Guardrails:**
+- Industry name validation (alphanumeric + spaces, 3-50 chars)
+- Duplicate check (name and slug)
+- Admin-only operation
+- Rollback on any step failure
+- Rate limiting: 5 new industries per day
+
+**Quality Gates:**
+- Industry appears in `getAllowedIndustries()` immediately
+- Templates are valid MDX
+- Database constraints enforced (unique slug)
+- No orphaned records on failure
+
+**Success Metrics:**
+- 100% of valid industry creations succeed
+- Zero orphaned templates
+- Average creation time < 2s
+- Type system updated within 1 minute
+
+**Tests:**
+- Unit: Slug generation (special chars, duplicates)
+- Unit: Template generation
+- Integration: Full flow (DB + filesystem + types)
+- E2E: Create industry, use in campaign creation
+- Security: SQL injection attempts
+
+---
+
+#### Task 1.6: Database migrations for `industries` table
+
+**Definition of Done:**
+- Migration script creates `industries` table
+- All columns with correct types and constraints
+- Indexes on `slug` and `name`
+- RLS policies for admin-only access
+- Rollback script tested
+- Migration applied to dev, staging, prod
+
+**Guardrails:**
+- Migration is idempotent (safe to re-run)
+- Backup before migration
+- Rollback tested on staging
+- Zero downtime deployment
+- Data validation after migration
+
+**Quality Gates:**
+- All constraints enforced (unique, not null)
+- RLS policies prevent unauthorized access
+- Indexes improve query performance (< 10ms)
+- Migration completes in < 5s
+
+**Success Metrics:**
+- Migration success rate: 100%
+- Zero data loss
+- Query performance: < 10ms for industry lookup
+- RLS policy effectiveness: 100% (unauthorized access blocked)
+
+**Tests:**
+- Unit: Migration SQL syntax validation
+- Integration: Apply + rollback on test DB
+- E2E: Full workflow after migration
+- Security: RLS policy bypass attempts
+
+---
+
+#### Task 1.7: Unit tests for all modules
+
+**Definition of Done:**
+- Test coverage ≥ 80% for all new modules
+- All edge cases covered (invalid inputs, errors, timeouts)
+- Mocks for external dependencies (LLM, file system, DB)
+- Fast tests (< 100ms per test)
+- CI/CD integration (tests run on every commit)
+
+**Guardrails:**
+- No flaky tests (deterministic results)
+- Isolated tests (no shared state)
+- Clear test names (describe behavior, not implementation)
+- Fail fast on first error
+
+**Quality Gates:**
+- All tests pass on CI
+- Coverage report generated
+- No skipped or pending tests
+- Test execution time < 30s total
+
+**Success Metrics:**
+- Code coverage: ≥ 80%
+- Test pass rate: 100%
+- Average test execution time: < 50ms
+- Zero flaky tests
+
+**Tests:**
+- 50+ unit tests across all modules
+- Coverage: scraping (15), generator (20), index (10), industry (15)
+
+---
 
 ### Phase 2: Admin UI (Week 2)
 
-**Tasks:**
-1. ✅ Create "Campaigns" tab in `/admin`
-2. ✅ Build campaign creation form (3 input methods)
-3. ✅ Add real-time processing status display
-4. ✅ Implement campaign list view with filters
-5. ✅ Add preview functionality
-6. ✅ E2E tests with Playwright
+#### Task 2.1: Create "Campaigns" tab in `/admin`
+
+**Definition of Done:**
+- New tab appears in AdminTabs component
+- Tab routing works (`/admin?tab=campaigns`)
+- Tab content area with placeholder
+- Consistent styling with existing tabs
+- Mobile responsive
+- Loading states
+
+**Guardrails:**
+- Admin-only access (inherited from parent)
+- Tab state persisted in URL
+- Graceful degradation on JS disabled
+- Accessibility (ARIA labels, keyboard navigation)
+
+**Quality Gates:**
+- Tab switching works without page reload
+- URL updates on tab change
+- Back button works correctly
+- No layout shift on tab switch
+
+**Success Metrics:**
+- Tab switch time: < 100ms
+- Accessibility score: 100 (Lighthouse)
+- Mobile usability: no horizontal scroll
+- Zero console errors
+
+**Tests:**
+- Unit: Tab component rendering
+- Integration: Tab switching logic
+- E2E: Navigate to campaigns tab, verify content
+- Accessibility: Keyboard navigation, screen reader
+
+---
+
+#### Task 2.2: Build campaign creation form (3 input methods)
+
+**Definition of Done:**
+- Form with 3 tabs: URL, Text, File
+- All fields from `CampaignCreationForm` interface
+- Industry dropdown (existing + "Create New" option)
+- Color picker for accent
+- Form validation (client-side + server-side)
+- Submit button with loading state
+- Error display (field-level + form-level)
+
+**Guardrails:**
+- Client-side validation before submit
+- Debounced input (prevent excessive API calls)
+- File upload progress indicator
+- Max file size enforced (5MB)
+- Unsaved changes warning
+
+**Quality Gates:**
+- All validation rules enforced
+- Error messages are actionable
+- Form state persists on tab switch
+- No data loss on network error
+
+**Success Metrics:**
+- Form completion rate: > 80%
+- Validation error rate: < 10%
+- Average form fill time: < 2 minutes
+- User satisfaction: > 4/5
+
+**Tests:**
+- Unit: Form validation logic (20 test cases)
+- Unit: Input method switching
+- Integration: Form submission with mocked API
+- E2E: Fill form, submit, verify campaign created
+- Accessibility: Form labels, error announcements
+
+---
+
+#### Task 2.3: Add real-time processing status display
+
+**Definition of Done:**
+- Status component shows 8 processing steps
+- Real-time updates via polling or WebSocket
+- Progress bar (0-100%)
+- Step-level status (pending, running, completed, failed)
+- Error details for failed steps
+- Completion notification
+
+**Guardrails:**
+- Polling interval: 500ms (not too aggressive)
+- Timeout: 60s max
+- Graceful degradation (fallback to final status)
+- Cancel operation button
+
+**Quality Gates:**
+- Status updates within 1s of backend change
+- No UI freezing during updates
+- Error states clearly communicated
+- Smooth animations (no jank)
+
+**Success Metrics:**
+- Status accuracy: 100%
+- Update latency: < 1s
+- User comprehension: > 90% (user testing)
+- Perceived performance: "fast" rating > 80%
+
+**Tests:**
+- Unit: Status component rendering (all states)
+- Integration: Polling logic with mocked API
+- E2E: Full workflow, verify status updates
+- Performance: No memory leaks during long polling
+
+---
+
+#### Task 2.4: Implement campaign list view with filters
+
+**Definition of Done:**
+- Table with columns: Brand, Industry, Campaign, Created, Status, Actions
+- Filters: Industry, Status, Date Range
+- Sorting by any column
+- Pagination (20 items per page)
+- Search by brand slug
+- Bulk actions (archive, delete)
+
+**Guardrails:**
+- Client-side filtering for < 100 items
+- Server-side filtering for > 100 items
+- Debounced search (300ms)
+- Optimistic UI updates
+- Undo for destructive actions
+
+**Quality Gates:**
+- Filter response time: < 200ms
+- No layout shift on filter change
+- Pagination works correctly
+- Sort order persists on page reload
+
+**Success Metrics:**
+- Filter usage rate: > 50%
+- Average time to find campaign: < 10s
+- Zero data inconsistencies
+- User satisfaction: > 4/5
+
+**Tests:**
+- Unit: Filter logic (10 combinations)
+- Unit: Sorting logic
+- Integration: API integration with filters
+- E2E: Apply filters, verify results
+- Performance: Large dataset (1000 campaigns)
+
+---
+
+#### Task 2.5: Add preview functionality
+
+**Definition of Done:**
+- Preview button in campaign list
+- Opens campaign in new tab with `?preview=true`
+- Preview banner at top (not indexed, not cached)
+- Edit link back to admin
+- Preview expires after 24h
+
+**Guardrails:**
+- Preview URLs not crawlable (noindex, nofollow)
+- Preview data not cached in CDN
+- Preview access logged (audit trail)
+- Preview auto-expires
+
+**Quality Gates:**
+- Preview renders identically to live
+- No SEO impact (verified with Google Search Console)
+- Preview loads in < 3s
+- Edit link works correctly
+
+**Success Metrics:**
+- Preview usage rate: > 70% before publish
+- Preview accuracy: 100% (matches live)
+- Zero SEO incidents
+- Average preview time: 30s
+
+**Tests:**
+- Unit: Preview URL generation
+- Integration: Preview rendering with preview flag
+- E2E: Create campaign, preview, verify banner
+- SEO: Verify noindex, nofollow, no sitemap
+
+---
+
+#### Task 2.6: E2E tests with Playwright
+
+**Definition of Done:**
+- 10+ E2E scenarios covering full workflow
+- Tests run on CI (GitHub Actions)
+- Screenshots on failure
+- Video recording for debugging
+- Parallel execution (4 workers)
+- Flake detection and retry
+
+**Guardrails:**
+- Tests use isolated test data (no prod data)
+- Cleanup after each test
+- Deterministic results (no random data)
+- Fast execution (< 5 minutes total)
+
+**Quality Gates:**
+- All E2E tests pass on CI
+- Zero flaky tests (3 consecutive runs)
+- Test coverage: all critical paths
+- Execution time: < 5 minutes
+
+**Success Metrics:**
+- E2E pass rate: 100%
+- Flake rate: 0%
+- Bug detection rate: > 80% (catch bugs before prod)
+- Average execution time: < 3 minutes
+
+**Tests:**
+- E2E: Create campaign from URL (happy path)
+- E2E: Create campaign with new industry
+- E2E: Form validation errors
+- E2E: File upload (all formats)
+- E2E: Preview and publish
+- E2E: Edit existing campaign
+- E2E: Archive campaign
+- E2E: Filter and search
+- E2E: Concurrent campaign creation
+- E2E: Error recovery (network failure)
+
+---
 
 ### Phase 3: Integration & Testing (Week 3)
 
-**Tasks:**
-1. ✅ Integrate with existing job posting pipeline
-2. ✅ Test full workflow (URL → Campaign → Live)
-3. ✅ Performance testing (large job postings)
-4. ✅ Security audit (URL scraping, file uploads)
-5. ✅ Documentation updates
-6. ✅ Admin training materials
+#### Task 3.1: Integrate with existing job posting pipeline
+
+**Definition of Done:**
+- Campaign creation triggers job posting processing (Workflow 1)
+- Job posting ID linked to campaign in DB
+- Cache invalidation works end-to-end
+- Suggestions reflect new campaign immediately
+- No duplicate processing
+
+**Guardrails:**
+- Idempotent operations (safe to retry)
+- Transaction boundaries (all-or-nothing)
+- Rollback on any step failure
+- Monitoring for pipeline failures
+
+**Quality Gates:**
+- Integration points tested with real data
+- No data inconsistencies
+- Cache invalidation verified (suggestions update)
+- Performance: no degradation to existing pipeline
+
+**Success Metrics:**
+- Integration success rate: 100%
+- End-to-end latency: < 30s
+- Zero data loss
+- Suggestion freshness: < 1 minute
+
+**Tests:**
+- Integration: Full workflow (campaign → job posting → suggestions)
+- Integration: Rollback scenarios
+- E2E: Create campaign, verify suggestions in chat
+- Performance: Concurrent campaign creation (10 simultaneous)
+
+---
+
+#### Task 3.2: Test full workflow (URL → Campaign → Live)
+
+**Definition of Done:**
+- 20+ real-world scenarios tested
+- All input methods (URL, text, file) tested
+- All industries tested
+- Error scenarios tested (invalid URL, timeout, etc.)
+- Performance benchmarks documented
+
+**Guardrails:**
+- Test data isolated from production
+- Cleanup after tests
+- No side effects (idempotent)
+- Reproducible results
+
+**Quality Gates:**
+- All scenarios pass
+- Performance meets SLAs (< 30s end-to-end)
+- Error handling verified
+- User experience validated (manual testing)
+
+**Success Metrics:**
+- Scenario pass rate: 100%
+- Average workflow time: < 20s
+- Error recovery rate: 100%
+- User satisfaction: > 4.5/5
+
+**Tests:**
+- 20+ E2E scenarios (various inputs, industries, edge cases)
+- Performance benchmarks (P50, P95, P99)
+- Error injection tests (network failures, timeouts)
+
+---
+
+#### Task 3.3: Performance testing (large job postings)
+
+**Definition of Done:**
+- Load testing with 100+ concurrent requests
+- Stress testing (find breaking point)
+- Large file handling (5MB PDFs)
+- Long content (50,000 chars)
+- Performance report with bottlenecks identified
+
+**Guardrails:**
+- Testing on staging (not production)
+- Rate limiting enforced
+- Resource monitoring (CPU, memory, DB connections)
+- Graceful degradation under load
+
+**Quality Gates:**
+- P95 latency < 30s under normal load
+- No crashes under stress
+- Resource usage within limits (< 80% CPU, < 2GB memory)
+- Database connection pool not exhausted
+
+**Success Metrics:**
+- Throughput: > 10 campaigns/minute
+- P95 latency: < 30s
+- Error rate under load: < 1%
+- Resource efficiency: < 1GB memory per request
+
+**Tests:**
+- Load: 100 concurrent campaign creations
+- Stress: Ramp up to breaking point
+- Soak: 1 hour continuous load
+- Spike: Sudden 10x traffic increase
+
+---
+
+#### Task 3.4: Security audit (URL scraping, file uploads)
+
+**Definition of Done:**
+- SSRF vulnerability testing (10+ attack vectors)
+- File upload security (malicious files, path traversal)
+- SQL injection testing (all DB queries)
+- XSS testing (all user inputs)
+- CSRF protection verified
+- Security report with findings and remediations
+
+**Guardrails:**
+- Audit performed by security expert
+- All findings remediated before launch
+- Penetration testing on staging
+- Security headers enforced (CSP, HSTS, etc.)
+
+**Quality Gates:**
+- Zero critical vulnerabilities
+- All high-severity issues fixed
+- Medium/low issues documented with mitigation plan
+- Security best practices followed (OWASP Top 10)
+
+**Success Metrics:**
+- Vulnerability count: 0 critical, 0 high
+- Remediation time: < 48h for high-severity
+- Security score: A+ (Mozilla Observatory)
+- Compliance: GDPR, SOC 2 (if applicable)
+
+**Tests:**
+- SSRF: 10+ malicious URLs
+- File upload: Malicious files (.exe, .sh, path traversal)
+- SQL injection: All DB queries
+- XSS: All user inputs
+- CSRF: All state-changing operations
+
+---
+
+#### Task 3.5: Documentation updates
+
+**Definition of Done:**
+- API documentation (OpenAPI/Swagger)
+- Admin user guide (with screenshots)
+- Developer guide (architecture, setup)
+- Troubleshooting guide (common errors)
+- Changelog updated
+
+**Guardrails:**
+- Documentation versioned with code
+- Screenshots up-to-date
+- Examples tested and working
+- Accessible format (Markdown + HTML)
+
+**Quality Gates:**
+- All endpoints documented
+- All user flows covered
+- Code examples compile and run
+- Screenshots match current UI
+
+**Success Metrics:**
+- Documentation completeness: 100%
+- User comprehension: > 90% (user testing)
+- Support ticket reduction: > 30%
+- Time to onboard new admin: < 15 minutes
+
+**Tests:**
+- Manual: Follow user guide, verify all steps work
+- Manual: Run all code examples
+- Automated: Link checker (no broken links)
+
+---
+
+#### Task 3.6: Admin training materials
+
+**Definition of Done:**
+- Video tutorial (5-10 minutes)
+- Interactive demo (sandbox environment)
+- FAQ document
+- Best practices guide
+- Training session conducted
+
+**Guardrails:**
+- Training materials reviewed by admins
+- Feedback incorporated
+- Materials accessible (subtitles, transcripts)
+- Regular updates (quarterly)
+
+**Quality Gates:**
+- Video quality: 1080p, clear audio
+- Demo environment stable
+- FAQ covers 80% of common questions
+- Training session attendance: 100%
+
+**Success Metrics:**
+- Admin proficiency: > 90% after training
+- Training satisfaction: > 4.5/5
+- Support ticket reduction: > 50%
+- Time to create first campaign: < 5 minutes
+
+**Tests:**
+- Manual: Admin walkthrough (observe and collect feedback)
+- Survey: Post-training assessment
+
+---
 
 ### Phase 4: Polish & Launch (Week 4)
 
-**Tasks:**
-1. ✅ UI/UX refinements based on feedback
-2. ✅ Error handling improvements
-3. ✅ Monitoring & alerting setup
-4. ✅ Rollout to production
-5. ✅ Post-launch monitoring
+#### Task 4.1: UI/UX refinements based on feedback
+
+**Definition of Done:**
+- User testing with 3+ admins
+- Feedback collected and prioritized
+- Top 10 issues fixed
+- UI polish (animations, micro-interactions)
+- Accessibility improvements
+
+**Guardrails:**
+- Changes validated with users
+- No breaking changes
+- Performance not degraded
+- Accessibility maintained
+
+**Quality Gates:**
+- User satisfaction: > 4.5/5
+- Task completion rate: > 95%
+- Error rate: < 5%
+- Accessibility score: 100 (Lighthouse)
+
+**Success Metrics:**
+- User satisfaction improvement: +20%
+- Task completion time reduction: -30%
+- Error rate reduction: -50%
+- NPS score: > 50
+
+**Tests:**
+- User testing: 3+ sessions with admins
+- A/B testing: Compare old vs new UI (if applicable)
+- Accessibility audit: WCAG 2.1 AA compliance
+
+---
+
+#### Task 4.2: Error handling improvements
+
+**Definition of Done:**
+- All error scenarios identified and handled
+- User-friendly error messages
+- Actionable error recovery steps
+- Error logging and monitoring
+- Retry mechanisms for transient errors
+
+**Guardrails:**
+- No silent failures
+- Errors logged with context (user, timestamp, input)
+- PII not logged
+- Error rate alerts configured
+
+**Quality Gates:**
+- All error paths tested
+- Error messages reviewed by UX
+- Error recovery success rate: > 80%
+- Mean time to recovery: < 5 minutes
+
+**Success Metrics:**
+- Error rate: < 1%
+- Error recovery rate: > 80%
+- User frustration: < 10% (user testing)
+- Support tickets for errors: < 5/month
+
+**Tests:**
+- Error injection: 20+ scenarios
+- User testing: Observe error recovery
+- Monitoring: Verify alerts trigger correctly
+
+---
+
+#### Task 4.3: Monitoring & alerting setup
+
+**Definition of Done:**
+- Metrics dashboard (campaign creation rate, success rate, latency)
+- Alerts for critical failures (error rate > 10%, latency > 60s)
+- Log aggregation (Datadog, Sentry, or similar)
+- On-call rotation defined
+- Runbook for common incidents
+
+**Guardrails:**
+- Alerts actionable (not noisy)
+- Alert fatigue prevention (smart grouping)
+- Escalation policy defined
+- Incident response SLA: < 15 minutes
+
+**Quality Gates:**
+- All critical metrics tracked
+- Alerts tested (fire drill)
+- Dashboard accessible to all stakeholders
+- Runbook covers 80% of incidents
+
+**Success Metrics:**
+- Mean time to detection (MTTD): < 2 minutes
+- Mean time to resolution (MTTR): < 30 minutes
+- Alert accuracy: > 95% (no false positives)
+- Incident response SLA met: > 95%
+
+**Tests:**
+- Fire drill: Trigger alerts, verify response
+- Load testing: Verify metrics accuracy under load
+
+---
+
+#### Task 4.4: Rollout to production
+
+**Definition of Done:**
+- Deployment plan documented
+- Rollback plan tested
+- Feature flag enabled (gradual rollout)
+- Monitoring active
+- Stakeholders notified
+- Go-live checklist completed
+
+**Guardrails:**
+- Gradual rollout (10% → 50% → 100%)
+- Rollback trigger: error rate > 5%
+- Zero downtime deployment
+- Database migrations applied (with rollback tested)
+
+**Quality Gates:**
+- All pre-launch checks passed
+- Smoke tests pass on production
+- No critical bugs in first 24h
+- Performance meets SLAs
+
+**Success Metrics:**
+- Deployment success: 100%
+- Rollback count: 0
+- Downtime: 0 minutes
+- Critical bugs in first week: 0
+
+**Tests:**
+- Smoke tests: 10+ critical paths
+- Canary deployment: 10% traffic for 1 hour
+- Full rollout: Monitor for 24h
+
+---
+
+#### Task 4.5: Post-launch monitoring
+
+**Definition of Done:**
+- Daily metrics review (first week)
+- Weekly metrics review (first month)
+- User feedback collection
+- Bug triage and prioritization
+- Performance optimization (if needed)
+- Success criteria validation
+
+**Guardrails:**
+- On-call rotation active
+- Incident response ready
+- Hotfix process defined
+- Communication plan (stakeholders)
+
+**Quality Gates:**
+- All success criteria met (see Section 8)
+- No critical bugs
+- Performance SLAs met
+- User satisfaction > 4.5/5
+
+**Success Metrics:**
+- Campaign creation rate: > 10/week
+- Success rate: > 95%
+- Average processing time: < 20s
+- User satisfaction: > 4.5/5
+- Support tickets: < 5/week
+
+**Tests:**
+- Manual: Daily metrics review
+- Automated: Continuous monitoring
+- User feedback: Surveys, interviews
 
 ---
 
