@@ -230,15 +230,10 @@ export async function POST(request: NextRequest) {
     steps.push({ name: 'file_generation', status: 'running' })
     const fileGenStart = Date.now()
     
-    const roleSlug = requestData.metadata?.role?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'campaign'
-    const campaignSlug = requestData.campaignSlug || `${sanitizedBrandSlug}-${roleSlug}`
+    // Use brand slug as campaign slug
+    const campaignSlug = sanitizedBrandSlug
     
-    console.log('[campaigns] Generating campaign slug:', {
-      brandSlug: sanitizedBrandSlug,
-      role: requestData.metadata?.role,
-      roleSlug,
-      finalSlug: campaignSlug,
-    })
+    console.log('[campaigns] Using brand slug as campaign slug:', campaignSlug)
     
     let mdxContent: string
     try {
