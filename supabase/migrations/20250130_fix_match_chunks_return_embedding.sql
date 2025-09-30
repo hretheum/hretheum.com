@@ -4,6 +4,9 @@
 -- Root cause: Supabase PostgREST returns pgvector as JSON string, not array
 -- Solution: Return embedding column explicitly in RPC results
 
+-- Drop existing function first (cannot change return type with CREATE OR REPLACE)
+drop function if exists public.match_chunks(vector, int, float);
+
 -- Backup old function as _legacy (keep for 1 sprint)
 create or replace function public.match_chunks_legacy(
   query_embedding vector(1536),
