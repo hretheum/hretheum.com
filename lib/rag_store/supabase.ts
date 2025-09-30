@@ -32,6 +32,39 @@ function requireAdmin(): SupabaseClient {
   return createAdminClient();
 }
 
+/**
+ * Parse embedding from Supabase response
+ * Phase 2: Handle both array and string formats for backward compatibility
+ * 
+ * @param emb - Embedding from Supabase (array or JSON string)
+ * @returns Parsed embedding as number array, or null if invalid
+ */
+function parseEmbedding(emb: any): number[] | null {
+  // Already an array - return as-is
+  if (Array.isArray(emb)) {
+    return emb;
+  }
+  
+  // String format - parse JSON
+  if (typeof emb === 'string') {
+    try {
+      const parsed = JSON.parse(emb);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      console.warn('[parseEmbedding] Parsed value is not an array:', typeof parsed);
+      return null;
+    } catch (error) {
+      console.error('[parseEmbedding] Failed to parse embedding:', error);
+      return null;
+    }
+  }
+  
+  // Invalid format
+  console.warn('[parseEmbedding] Embedding is neither array nor string:', typeof emb);
+  return null;
+}
+
 export async function upsertChunks(chunks: StoreChunk[]) {
   const supabase = requireAdmin();
 
@@ -75,12 +108,21 @@ export async function upsertChunks(chunks: StoreChunk[]) {
     await supabase.from('chunks').delete().eq('document_id', docRows!.id);
 
     // Insert chunks for this file
-    const rows = arr.map((c) => ({
-      document_id: docRows!.id,
-      chunk_index: c.chunk_index,
-      text: c.text,
-      embedding: c.embedding as unknown as any, // pgvector accepts float[] via PostgREST
-    }));
+    // Phase 2: Validate embedding format before insert
+    const rows = arr.map((c) => {
+      // Ensure embedding is array (parseEmbedding handles both formats)
+      const embedding = parseEmbedding(c.embedding);
+      if (!embedding) {
+        throw new Error(`Invalid embedding for chunk ${c.chunk_index} in file ${file}`);
+      }
+      
+      return {
+        document_id: docRows!.id,
+        chunk_index: c.chunk_index,
+        text: c.text,
+        embedding: embedding as unknown as any, // pgvector accepts float[] via PostgREST
+      };
+    });
     const { error: chErr } = await supabase.from('chunks').insert(rows);
     if (chErr) throw chErr;
   }
