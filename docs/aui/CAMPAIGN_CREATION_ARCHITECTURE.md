@@ -676,7 +676,7 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ---
 
-#### Task 1.2: Implement content scraping module (`lib/scraping/`) ✅
+#### ✅ Task 1.2: Implement content scraping module (`lib/scraping/`) 
 
 **Definition of Done:**
 - `fetchJobPostingFromUrl()` extracts text from job board URLs
