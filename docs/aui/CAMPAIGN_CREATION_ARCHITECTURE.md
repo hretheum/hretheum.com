@@ -1766,7 +1766,149 @@ Constraints:
 
 ---
 
-## 9. References
+## 9. CRITICAL: RAG Embeddings Migration to Supabase
+
+**Current State (2025-09-30):**
+- RAG embeddings stored in `data/index.json` (3.6MB, 140 vectors)
+- Supabase chunks table has 75 vectors but **embeddings stored as STRING not ARRAY**
+- Multiple systems reading from different sources (inconsistent)
+
+**Systems Using data/index.json:**
+1. **app/api/rag/query/route.ts** - RAG chat (when `RAG_STORE !== 'supabase'`)
+2. **lib/campaigns/ai-generator.ts** - Campaign generation (TEMPORARY fallback)
+3. **app/api/rag/ingest/route.ts** - API ingestion endpoint
+4. **scripts/rag_ingest.ts** - Batch ingestion script
+
+**Systems Using Supabase (partially broken):**
+1. **app/api/rag/query/route.ts** - RAG chat (when `RAG_STORE === 'supabase'`)
+2. **lib/rag_store/supabase.ts** - searchByEmbedding() RPC function
+3. **Job Postings storage** - Uses separate embedding fields (works)
+
+**Root Cause:**
+- Supabase PostgREST returns pgvector columns as JSON strings, not arrays
+- RPC `match_chunks()` likely has same issue
+- No type casting in SQL function definition
+
+**Migration Plan (CRITICAL - before scaling):**
+
+### Phase 1: Fix Supabase Schema & RPC (Priority 1)
+```sql
+-- Check current RPC definition
+SELECT proname, prosrc FROM pg_proc WHERE proname = 'match_chunks';
+
+-- Fix: Ensure RPC returns embeddings as arrays not strings
+-- Add explicit type casts in function
+-- Update PostgREST schema cache
+```
+
+### Phase 2: Update Code to Handle Both Formats (Priority 2)
+```typescript
+// lib/rag_store/supabase.ts - Add parsing helper
+function parseEmbedding(emb: any): number[] | null {
+  if (Array.isArray(emb)) return emb;
+  if (typeof emb === 'string') {
+    try {
+      return JSON.parse(emb);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+// Update searchByEmbedding() to parse returned embeddings
+// Update upsertChunks() to ensure proper insertion format
+```
+
+### Phase 3: Migrate All Systems to Supabase (Priority 3)
+1. **Verify Supabase RPC works** with test queries
+2. **Update app/api/rag/query/route.ts** - Remove index.json fallback
+3. **Update lib/campaigns/ai-generator.ts** - Switch from index.json to searchByEmbedding()
+4. **Remove data/index.json** from production deployments (keep for dev backup)
+5. **Update scripts/rag_ingest.ts** - Always use Supabase (remove JSON output)
+
+### Phase 4: Consolidate Embedding Storage (Priority 4)
+- Job postings use: `embedding_full_text`, `embedding_requirements`, `embedding_skills` (JSON strings)
+- RAG chunks use: `embedding` (pgvector)
+- Consider: Unified schema or keep separate (different use cases)
+
+**Risks:**
+- ⚠️ Breaking RAG chat if migration fails
+- ⚠️ Campaign generation depends on RAG (fallback implemented)
+- ⚠️ Data loss if Supabase migration incomplete
+
+**Testing Checklist:**
+- [ ] RPC `match_chunks()` returns arrays not strings
+- [ ] searchByEmbedding() gets valid results (score > 0.5)
+- [ ] Campaign generation retrieves portfolio items
+- [ ] RAG chat uses Supabase successfully
+- [ ] Ingestion script writes to Supabase correctly
+- [ ] Performance: Supabase search < 500ms (baseline: index.json ~100ms)
+
+---
+
+## 10. Task Continuation: Back to Campaign Creation
+
+**Resume Point: Task 1.4 Enhancement**
+
+After RAG migration is complete, return to:
+
+### Task 1.4b: Enhanced LLM Prompt for Richer Campaigns
+
+**Current State:**
+- ✅ AI generation works with RAG context
+- ✅ Generates 8 sections (vs 1 before)
+- ✅ Confidence: 90-95% (vs 30%)
+- ⚠️ Still needs more detail per section
+
+**Enhancement Goals:**
+1. **Expand Playbook Sections:**
+   - Generate 6-10 detailed sections (currently 8)
+   - Each with 4-6 specific bullets (currently generic)
+   - Role-specific themes: Vision, Team, Delivery, 30-60-90, Tools, Metrics, Risks, Stakeholders
+
+2. **Add Experience Timeline:**
+   - Extract 2-4 recent positions from portfolio
+   - Format as ExperienceItem components
+   - Include company, period, role, 3-4 achievements each
+
+3. **Rich Case Studies:**
+   - Full CaseStudyRich format: context, role, challenge, approach, outcome
+   - Match to job requirements with relevance scores
+   - Extract measurable outcomes from portfolio
+
+4. **Standard Footer Blocks:**
+   - Leadership section (Tribe models, coaching, cross-functional)
+   - Product Design Playbook grid (6 cards: Org Models, Discovery, Design Ops, Research Ops, Quality, AI)
+   - AI Builder section
+   - Other Projects section
+   - Keywords block
+   - Closing CTA
+
+**Updated Prompt Structure:**
+```
+CAMPAIGN STRUCTURE (based on tmobile_g2m_lead.mdx):
+1. Hero + MetricsStrip (3-4 metrics)
+2. OutcomeBanner (outcome statement)
+3. Vision section (what we'll achieve)
+4. 6-10 Playbook sections (role-specific strategies)
+   - Each: SectionTitle + Playbook component with 4-6 bullets
+5. Experience timeline (2-4 positions)
+   - ExperienceItem: company, period, role, bullets
+6. Case Studies (2-4 projects)
+   - CaseStudyRich: title, context, role, challenge, approach, outcome
+7. Standard footer (Leadership, Playbook, AI Builder, Other Projects, Keywords, Closing CTA)
+```
+
+**After Enhancement:**
+- Continue with Task 1.5 (Index Manager)
+- Continue with Task 1.6 (New Industry Creation)
+- Continue with Task 1.7 (Database Migrations)
+- Continue with Task 1.8 (Unit Tests Consolidation)
+
+---
+
+## 11. References
 
 - [Job Posting Intelligence Spec](./JOB_POSTING_INTELLIGENCE_SPEC.md) - Workflow 1 & 3 details
 - [Living Layouts Implementation](./LIVING_LAYOUTS_IMPLEMENTATION.md) - LL-1.1 completion status
@@ -1775,7 +1917,7 @@ Constraints:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-09-30  
+**Document Version**: 1.1  
+**Last Updated**: 2025-09-30 13:05  
 **Author**: Cascade AI  
-**Reviewers**: TBD
+**Status**: Phase 1 Backend - 50% complete (4/8 tasks) + RAG migration pending
