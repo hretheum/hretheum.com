@@ -145,7 +145,9 @@ export default function CampaignCreationForm() {
         throw new Error(errorMessage)
       }
       
-      setSuccessMessage(`Campaign created successfully! File: ${result.campaign.slug}.mdx`)
+      setSuccessMessage(
+        `Campaign created successfully! Slug: ${result.campaignSlug || result.brandSlug}`
+      )
       
       // Reset form after 2 seconds
       setTimeout(() => {
