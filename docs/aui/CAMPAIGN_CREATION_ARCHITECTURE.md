@@ -639,7 +639,7 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 
 ### Phase 1: Backend Foundation (Week 1)
 
-#### Task 1.1: Create `/api/admin/campaigns/create` endpoint
+#### ✅ Task 1.1: Create `/api/admin/campaigns/create` endpoint 
 
 **Definition of Done:**
 - POST endpoint accepts all 3 input types (URL, text, file)
