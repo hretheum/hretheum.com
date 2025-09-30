@@ -142,7 +142,7 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full h-[600px] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-[calc(100vh-280px)] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             spellCheck={false}
           />
           <div className="text-xs text-gray-500">
@@ -158,7 +158,7 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
           <iframe
             key={previewKey}
             src={`/brand/${campaign.brand_slug}?preview=true`}
-            className="w-full h-[600px] border border-gray-300 rounded-lg bg-white"
+            className="w-full h-[calc(100vh-280px)] border border-gray-300 rounded-lg bg-white"
             title="Campaign Preview"
           />
           <p className="text-xs text-gray-500">
