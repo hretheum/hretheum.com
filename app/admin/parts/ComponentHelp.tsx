@@ -28,10 +28,39 @@ export const AVAILABLE_COMPONENTS = [
 ]} />`,
   },
   {
+    name: 'CaseStudy',
+    description: 'Single detailed case study',
+    template: `<CaseStudy 
+  title="Project Title"
+  subtitle="Role & Impact"
+  challenge="Problem statement"
+  solution="How you solved it"
+  outcome="Results achieved"
+/>`,
+  },
+  {
+    name: 'CaseStudyRich',
+    description: 'Rich case study with media and detailed sections',
+    template: `<CaseStudyRich 
+  title="Project Title"
+  client="Client Name"
+  role="Your Role"
+  duration="Timeline"
+  description="Project description"
+/>`,
+  },
+  {
     name: 'MetricsStrip',
-    description: '3-4 key metrics/achievements',
+    description: '3-4 key metrics/achievements in horizontal strip',
     template: `<MetricsStrip items={[
   { label: "Metric Name", value: "15+", source: "From project X" }
+]} />`,
+  },
+  {
+    name: 'MetricsGrid',
+    description: 'Grid of metrics with descriptions',
+    template: `<MetricsGrid items={[
+  { label: "Metric", value: "100+", description: "Details" }
 ]} />`,
   },
   {
@@ -45,14 +74,50 @@ export const AVAILABLE_COMPONENTS = [
     template: `<SectionTitle title="Section Heading" subtitle="Optional subtitle" />`,
   },
   {
+    name: 'Timeline',
+    description: 'Career/project timeline with events',
+    template: `<Timeline items={[
+  { year: "2023", title: "Role", description: "What you did" }
+]} />`,
+  },
+  {
+    name: 'CareerTimeline',
+    description: 'Detailed career progression timeline',
+    template: `<CareerTimeline />`,
+  },
+  {
+    name: 'Quote',
+    description: 'Blockquote with attribution',
+    template: `<Quote 
+  text="The quote text here"
+  author="Author Name"
+  role="Their Role"
+/>`,
+  },
+  {
+    name: 'CTABanner',
+    description: 'Call-to-action banner',
+    template: `<CTABanner 
+  title="CTA Heading"
+  subtitle="Supporting text"
+  buttonText="Action"
+  buttonLink="#"
+/>`,
+  },
+  {
     name: 'AIOriginalsSection',
     description: 'Showcase of AI-generated original work/content',
     template: `<AIOriginalsSection />`,
   },
   {
-    name: 'AIOriginalsShowcase',
-    description: 'Full-width showcase with multiple AI originals',
-    template: `<AIOriginalsShowcase />`,
+    name: 'Playbook',
+    description: 'Multi-section playbook component',
+    template: `<Playbook />`,
+  },
+  {
+    name: 'LeadershipSection',
+    description: 'Leadership philosophy/approach section',
+    template: `<LeadershipSection />`,
   },
 ]
 
