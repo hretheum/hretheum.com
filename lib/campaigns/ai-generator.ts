@@ -95,8 +95,7 @@ interface RAGContext {
 /**
  * Retrieve relevant competencies and portfolio items from RAG
  * 
- * TEMPORARY: Uses data/index.json instead of Supabase due to pgvector parsing issues
- * TODO: Fix Supabase RPC to properly handle vector similarity search
+ * Phase 3: Uses Supabase with searchByEmbedding() (parseEmbedding handles format)
  */
 async function retrieveRAGContext(
   jobRequirements: string[],
@@ -111,50 +110,31 @@ async function retrieveRAGContext(
   const queryEmbedding = await embeddings.embedQuery(query)
   
   try {
-    // TEMPORARY: Use data/index.json instead of Supabase
-    // Supabase returns embeddings as strings, not arrays, causing search to fail
-    const fs = await import('fs/promises')
-    const path = await import('path')
-    const indexPath = path.join(process.cwd(), 'data', 'index.json')
-    const indexContent = await fs.readFile(indexPath, 'utf-8')
-    const index = JSON.parse(indexContent)
+    // Phase 3: Use Supabase searchByEmbedding() with parseEmbedding() helper
+    console.log('[ai-generator] Searching Supabase for relevant context...')
     
-    // Compute cosine similarity
-    const cosineSimilarity = (a: number[], b: number[]): number => {
-      let dotProduct = 0
-      let normA = 0
-      let normB = 0
-      for (let i = 0; i < a.length; i++) {
-        dotProduct += a[i] * b[i]
-        normA += a[i] * a[i]
-        normB += b[i] * b[i]
-      }
-      if (normA === 0 || normB === 0) return 0
-      return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
-    }
+    // Search for competencies (relaxed threshold for better recall)
+    const competenciesResults = await searchByEmbedding(queryEmbedding, 10, 0.3)
     
-    // Score and rank all vectors
-    const scored = index.vectors
-      .filter((v: any) => v.embedding && Array.isArray(v.embedding))
-      .map((v: any) => ({
-        text: v.text,
-        metadata: v.metadata,
-        score: cosineSimilarity(queryEmbedding, v.embedding),
-      }))
-      .sort((a: any, b: any) => b.score - a.score)
-    
-    // Filter for competencies (high threshold)
-    const competenciesResults = scored.filter((r: any) => r.score >= 0.6).slice(0, 10)
-    
-    // Filter for portfolio/case studies (lower threshold)
-    const portfolioResults = scored
-      .filter((r: any) => r.score >= 0.5)
-      .filter((r: any) => r.metadata?.source_type === 'case_study' || r.metadata?.source_type === 'experience')
+    // Search for portfolio/case studies (lower threshold, more results)
+    const allResults = await searchByEmbedding(queryEmbedding, 20, 0.2)
+    const portfolioResults = allResults
+      .filter(r => r.metadata?.source_type === 'case_study' || r.metadata?.source_type === 'experience')
       .slice(0, 15)
     
+    console.log(`[ai-generator] Found ${competenciesResults.length} competencies, ${portfolioResults.length} portfolio items`)
+    
     return {
-      competencies: competenciesResults,
-      portfolio: portfolioResults,
+      competencies: competenciesResults.map(r => ({
+        text: r.text,
+        metadata: r.metadata,
+        score: r.score,
+      })),
+      portfolio: portfolioResults.map(r => ({
+        text: r.text,
+        metadata: r.metadata,
+        score: r.score,
+      })),
     }
   } catch (error) {
     console.error('[ai-generator] RAG retrieval failed:', error)

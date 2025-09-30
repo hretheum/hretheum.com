@@ -175,7 +175,17 @@ async function ingest() {
   }
 
   const index: RAGIndex = { vectors };
-  if (process.env.RAG_STORE === 'supabase') {
+  
+  // Phase 3: Always use Supabase (remove index.json fallback)
+  const useSupabase = process.env.RAG_STORE === 'supabase';
+  
+  if (!useSupabase) {
+    console.warn('[ingest] WARNING: RAG_STORE is not set to "supabase"');
+    console.warn('[ingest] Please set RAG_STORE=supabase in .env');
+    console.warn('[ingest] Falling back to index.json (deprecated)');
+  }
+  
+  if (useSupabase) {
     // Map vectors to StoreChunk rows and upsert to Supabase
     const rows: StoreChunk[] = index.vectors.map((v: RAGVector) => {
       const file = String(v.metadata?.file || '');
@@ -199,11 +209,12 @@ async function ingest() {
       };
     });
     await upsertChunks(rows);
-    console.log(`[ingest] Upserted ${rows.length} chunks to Supabase (RAG_STORE=supabase)`);
+    console.log(`[ingest] ✅ Upserted ${rows.length} chunks to Supabase`);
   } else {
+    // Deprecated: Still write to index.json for backward compatibility
     await fs.mkdir(path.dirname(INDEX_PATH), { recursive: true });
     await saveIndex(index);
-    console.log(`[ingest] Saved index with ${vectors.length} vectors to ${INDEX_PATH}`);
+    console.log(`[ingest] ⚠️  Saved index to ${INDEX_PATH} (deprecated, use Supabase)`);
   }
 }
 
