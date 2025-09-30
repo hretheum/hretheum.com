@@ -1,13 +1,25 @@
-// Industry Manager - Task 1.6
-// Creates new industries with DB entry, templates, and config updates
+// Industry Manager - Task 1.6 (Database-driven)
+// Creates new industries in Supabase with templates and audit
 
 import { promises as fs } from 'fs'
 import path from 'path'
 import { z } from 'zod'
+import { createClient } from '@supabase/supabase-js'
 
-const BRAND_CONFIG_PATH = path.join(process.cwd(), 'data', 'brand_industries.json')
 const CAMPAIGNS_DIR = path.join(process.cwd(), 'data', 'campaigns')
 const TEMPLATES_DIR = path.join(CAMPAIGNS_DIR, 'templates')
+
+// Supabase client (uses service role for write access)
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!url || !key) {
+    throw new Error('Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)')
+  }
+  
+  return createClient(url, key, { auth: { persistSession: false } })
+}
 
 // Validation schema
 const IndustryNameSchema = z.string()
@@ -50,33 +62,62 @@ function getDefaultAccentColor(existingCount: number): string {
 }
 
 /**
- * Read brand_industries.json
+ * Get all industries from database
  */
-async function readBrandConfig(): Promise<any> {
-  try {
-    const content = await fs.readFile(BRAND_CONFIG_PATH, 'utf-8')
-    return JSON.parse(content)
-  } catch (error: any) {
-    throw new Error(`Failed to read brand config: ${error.message}`)
+async function getAllIndustriesFromDB(): Promise<Array<{ name: string; slug: string }>> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from('industries')
+    .select('name, slug')
+    .eq('is_active', true)
+    .order('name')
+  
+  if (error) {
+    throw new Error(`Failed to fetch industries: ${error.message}`)
   }
+  
+  return data || []
 }
 
 /**
- * Write brand_industries.json with backup
+ * Check if industry exists in database
  */
-async function writeBrandConfig(config: any): Promise<void> {
-  // Create backup
-  const backupPath = `${BRAND_CONFIG_PATH}.backup-${Date.now()}`
-  try {
-    const current = await fs.readFile(BRAND_CONFIG_PATH, 'utf-8')
-    await fs.writeFile(backupPath, current, 'utf-8')
-  } catch (error) {
-    console.warn('[industry-manager] Failed to create backup:', error)
-  }
+async function industryExistsInDB(name: string, slug: string): Promise<boolean> {
+  const supabase = getSupabaseClient()
+  const { data, error} = await supabase
+    .from('industries')
+    .select('name, slug')
+    .or(`name.ilike.${name},slug.eq.${slug}`)
+    .single()
   
-  // Write new config
-  const content = JSON.stringify(config, null, 2) + '\n'
-  await fs.writeFile(BRAND_CONFIG_PATH, content, 'utf-8')
+  return !!data && !error
+}
+
+/**
+ * Sync industry to JSON for backward compatibility
+ * Temporary during migration - keeps JSON in sync with DB
+ */
+async function syncIndustryToJSON(industryName: string): Promise<void> {
+  const configPath = path.join(process.cwd(), 'data', 'brand_industries.json')
+  
+  try {
+    const content = await fs.readFile(configPath, 'utf-8')
+    const config = JSON.parse(content)
+    
+    if (!Array.isArray(config.allowed)) {
+      config.allowed = []
+    }
+    
+    // Add if not already present
+    if (!config.allowed.includes(industryName)) {
+      config.allowed.push(industryName)
+      const updated = JSON.stringify(config, null, 2) + '\n'
+      await fs.writeFile(configPath, updated, 'utf-8')
+    }
+  } catch (error) {
+    // Ignore sync errors - DB is source of truth
+    console.warn('[industry-manager] JSON sync failed:', error)
+  }
 }
 
 /**
@@ -195,36 +236,49 @@ export async function createNewIndustry(
       }
     }
     
-    // Step 3: Read current config
-    const config = await readBrandConfig()
-    
-    // Step 4: Check for duplicates
-    const existingIndustries = Array.isArray(config.allowed) ? config.allowed : []
-    
-    // Check exact name match
-    if (existingIndustries.some((i: string) => i.toLowerCase() === validatedName.toLowerCase())) {
+    // Step 3: Check for duplicates in database
+    const exists = await industryExistsInDB(validatedName, slug)
+    if (exists) {
       return {
         success: false,
-        error: `Industry "${validatedName}" already exists`
+        error: `Industry "${validatedName}" or slug "${slug}" already exists`
       }
     }
     
-    // Check slug collision
-    if (existingIndustries.some((i: string) => generateIndustrySlug(i) === slug)) {
-      return {
-        success: false,
-        error: `Industry with similar name already exists (slug conflict: ${slug})`
-      }
-    }
+    // Step 4: Get all industries to determine accent color
+    const existingIndustries = await getAllIndustriesFromDB()
     
     // Step 5: Get or assign accent color
     const accent = options?.accent || getDefaultAccentColor(existingIndustries.length)
     
-    // Step 6: Update config
-    config.allowed = [...existingIndustries, validatedName]
-    await writeBrandConfig(config)
+    // Step 6: Insert into database
+    const supabase = getSupabaseClient()
+    const { data: inserted, error: insertError } = await supabase
+      .from('industries')
+      .insert({
+        name: validatedName,
+        slug: slug,
+        accent_color: accent,
+        created_by: options?.adminEmail || 'system',
+        is_active: true
+      })
+      .select()
+      .single()
     
-    console.log(`[industry-manager] Added "${validatedName}" to brand_industries.json`)
+    if (insertError) {
+      throw new Error(`Failed to create industry: ${insertError.message}`)
+    }
+    
+    console.log(`[industry-manager] Added "${validatedName}" to industries table (DB)`)
+    
+    // Step 6b: Sync to JSON for backward compatibility (temporary during migration)
+    try {
+      await syncIndustryToJSON(validatedName)
+      console.log(`[industry-manager] Synced "${validatedName}" to brand_industries.json`)
+    } catch (error: any) {
+      console.warn('[industry-manager] Failed to sync to JSON:', error.message)
+      // Don't fail - DB is source of truth
+    }
     
     // Step 7: Create templates
     try {
@@ -265,12 +319,12 @@ export async function createNewIndustry(
 }
 
 /**
- * List all industries from config
+ * List all industries from database
  */
 export async function listAllIndustries(): Promise<string[]> {
   try {
-    const config = await readBrandConfig()
-    return Array.isArray(config.allowed) ? config.allowed : []
+    const industries = await getAllIndustriesFromDB()
+    return industries.map(i => i.name)
   } catch (error) {
     console.error('[industry-manager] Failed to list industries:', error)
     return []
@@ -278,9 +332,14 @@ export async function listAllIndustries(): Promise<string[]> {
 }
 
 /**
- * Check if industry exists
+ * Check if industry exists in database
  */
 export async function industryExists(name: string): Promise<boolean> {
-  const industries = await listAllIndustries()
-  return industries.some(i => i.toLowerCase() === name.toLowerCase())
+  try {
+    const slug = generateIndustrySlug(name)
+    return await industryExistsInDB(name, slug)
+  } catch (error) {
+    console.error('[industry-manager] Failed to check industry existence:', error)
+    return false
+  }
 }
