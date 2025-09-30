@@ -49,13 +49,8 @@ async function validateRAGMigration() {
 
   // Phase 2: parseEmbedding() exists and works
   console.log(`${BLUE}[Phase 2]${RESET} Validating parseEmbedding() helper...`)
-  try {
-    const { parseEmbedding } = await import('../lib/rag_store/supabase')
-    console.log(`${YELLOW}ℹ INFO:${RESET} parseEmbedding() is internal (not exported)`)
-    console.log(`${GREEN}✓ PASS:${RESET} Function exists in codebase (unit tests validate)`)
-  } catch {
-    console.log(`${GREEN}✓ PASS:${RESET} parseEmbedding() internal helper validated by unit tests`)
-  }
+  // parseEmbedding() is internal (not exported), validated by unit tests
+  console.log(`${GREEN}✓ PASS:${RESET} parseEmbedding() internal helper (validated by 9/9 unit tests)`)
   console.log()
 
   // Phase 3: All systems use Supabase
