@@ -1,6 +1,6 @@
 "use client";
 // Simple tabbed admin shell.
-// Tabs: Conversations (existing AdminEventsTable), Redirects (new RedirectsDashboard), RUM (new RumDashboard), and Industry.
+// Tabs: Conversations, Redirects, RUM, Industry, and Campaigns.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminEventsTable from './AdminEventsTable';
@@ -8,19 +8,23 @@ import RedirectsDashboard from './RedirectsDashboard';
 import RedirectsRawTable from './RedirectsRawTable';
 import IndustryMapping from './IndustryMapping';
 import RumDashboard from './RumDashboard';
+import CampaignsTab from './CampaignsTab';
 
-function getInitialTab(): 'conversations' | 'redirects' | 'rum' | 'industry' {
+type TabType = 'conversations' | 'redirects' | 'rum' | 'industry' | 'campaigns';
+
+function getInitialTab(): TabType {
   if (typeof window === 'undefined') return 'conversations';
   const sp = new URLSearchParams(window.location.search);
   const t = (sp.get('tab') || '').toLowerCase();
   if (t === 'redirects') return 'redirects';
   if (t === 'rum') return 'rum';
   if (t === 'industry') return 'industry';
+  if (t === 'campaigns') return 'campaigns';
   return 'conversations';
 }
 
 export default function AdminTabs() {
-  const [tab, setTab] = useState<'conversations' | 'redirects' | 'rum' | 'industry'>(getInitialTab());
+  const [tab, setTab] = useState<TabType>(getInitialTab());
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -30,7 +34,7 @@ export default function AdminTabs() {
     window.history.replaceState({}, '', url);
   }, [tab]);
 
-  const TabButton: React.FC<{ value: 'conversations' | 'redirects' | 'rum' | 'industry'; label: string }> = ({ value, label }) => (
+  const TabButton: React.FC<{ value: TabType; label: string }> = ({ value, label }) => (
     <button
       className={`rounded-md border px-3 py-1 text-sm ${tab === value ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
       onClick={() => setTab(value)}
@@ -46,6 +50,7 @@ export default function AdminTabs() {
         <TabButton value="redirects" label="Redirects" />
         <TabButton value="rum" label="RUM" />
         <TabButton value="industry" label="Industry" />
+        <TabButton value="campaigns" label="Campaigns" />
       </div>
 
       {tab === 'conversations' && <AdminEventsTable />}
@@ -66,6 +71,11 @@ export default function AdminTabs() {
       {tab === 'industry' && (
         <div>
           <IndustryMapping />
+        </div>
+      )}
+      {tab === 'campaigns' && (
+        <div>
+          <CampaignsTab />
         </div>
       )}
     </div>
