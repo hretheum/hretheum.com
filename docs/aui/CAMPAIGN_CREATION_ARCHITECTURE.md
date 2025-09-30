@@ -1792,6 +1792,10 @@ Constraints:
 **Migration Plan (CRITICAL - before scaling):**
 
 ### Phase 1: Fix Supabase Schema & RPC (Priority 1)
+
+**Objective:** Fix pgvector RPC to return embeddings as arrays, not strings
+
+**Implementation:**
 ```sql
 -- Check current RPC definition
 SELECT proname, prosrc FROM pg_proc WHERE proname = 'match_chunks';
@@ -1801,7 +1805,49 @@ SELECT proname, prosrc FROM pg_proc WHERE proname = 'match_chunks';
 -- Update PostgREST schema cache
 ```
 
+**Definition of Done (DoD):**
+- [ ] RPC `match_chunks()` returns embedding as array type
+- [ ] Test query confirms array format: `SELECT typeof(embedding) FROM chunks LIMIT 1`
+- [ ] PostgREST schema cache refreshed
+- [ ] Documentation updated with RPC signature
+- [ ] SQL migration script committed to version control
+
+**Guardrails:**
+- Run in transaction: `BEGIN; ... ROLLBACK;` first to test
+- Backup current RPC definition before changes
+- Test on staging database first
+- Keep old RPC as `match_chunks_legacy()` for 1 sprint
+
+**Quality Gates:**
+- ✅ Manual test: RPC returns valid array format
+- ✅ Performance: Query time < 500ms for 10k chunks
+- ✅ Correctness: Top result matches expected (manual validation on 3 sample queries)
+- ✅ No breaking changes: Existing queries still work
+
+**Success Metrics:**
+- RPC execution time: < 500ms (p95)
+- Result format: 100% arrays (0% strings)
+- Query success rate: > 99.9%
+
+**Validation Method:**
+```typescript
+// scripts/validate-phase1.ts
+const { data } = await supabase.rpc('match_chunks', {
+  query_embedding: testVector,
+  match_count: 5,
+  similarity_threshold: 0.5,
+})
+assert(Array.isArray(data), 'RPC returns data array')
+assert(data.length > 0, 'RPC returns results')
+assert(Array.isArray(data[0].embedding), 'Embedding is array not string')
+assert(typeof data[0].score === 'number', 'Score is number')
+```
+
 ### Phase 2: Update Code to Handle Both Formats (Priority 2)
+
+**Objective:** Add backward-compatible parsing for embeddings (arrays & strings)
+
+**Implementation:**
 ```typescript
 // lib/rag_store/supabase.ts - Add parsing helper
 function parseEmbedding(emb: any): number[] | null {
@@ -1820,17 +1866,181 @@ function parseEmbedding(emb: any): number[] | null {
 // Update upsertChunks() to ensure proper insertion format
 ```
 
+**Definition of Done (DoD):**
+- [ ] `parseEmbedding()` helper added to `lib/rag_store/supabase.ts`
+- [ ] `searchByEmbedding()` handles both string and array formats
+- [ ] `upsertChunks()` validates embedding format before insert
+- [ ] Unit tests cover all 3 cases: array, string, invalid
+- [ ] TypeScript types updated to reflect optional parsing
+- [ ] Logging added for format mismatches (telemetry)
+
+**Guardrails:**
+- Feature flag: `ENABLE_EMBEDDING_PARSING=true/false`
+- Graceful degradation: Return empty results on parse error (don't crash)
+- Log warnings when string format detected (monitoring)
+- Timeout on parse operations (max 100ms)
+
+**Quality Gates:**
+- ✅ Unit tests: 100% coverage on parseEmbedding()
+- ✅ Integration test: searchByEmbedding() with mock string data
+- ✅ Integration test: searchByEmbedding() with mock array data
+- ✅ No regressions: Existing RAG chat still works
+
+**Success Metrics:**
+- Parse success rate: > 99.5%
+- Parse time: < 10ms (p95)
+- Zero crashes from malformed embeddings
+- Format mismatch rate: < 5% (trending down after Phase 1)
+
+**Validation Method:**
+```typescript
+// tests/unit/supabase.test.ts
+describe('parseEmbedding', () => {
+  test('handles array format', () => {
+    const result = parseEmbedding([0.1, 0.2, 0.3])
+    expect(result).toEqual([0.1, 0.2, 0.3])
+  })
+  
+  test('handles string format', () => {
+    const result = parseEmbedding('[0.1, 0.2, 0.3]')
+    expect(result).toEqual([0.1, 0.2, 0.3])
+  })
+  
+  test('handles invalid format', () => {
+    const result = parseEmbedding('invalid')
+    expect(result).toBeNull()
+  })
+})
+```
+
 ### Phase 3: Migrate All Systems to Supabase (Priority 3)
+
+**Objective:** Migrate all RAG consumers from index.json to Supabase
+
+**Implementation:**
 1. **Verify Supabase RPC works** with test queries
 2. **Update app/api/rag/query/route.ts** - Remove index.json fallback
 3. **Update lib/campaigns/ai-generator.ts** - Switch from index.json to searchByEmbedding()
 4. **Remove data/index.json** from production deployments (keep for dev backup)
 5. **Update scripts/rag_ingest.ts** - Always use Supabase (remove JSON output)
 
+**Definition of Done (DoD):**
+- [ ] RAG chat uses Supabase exclusively (`RAG_STORE=supabase` enforced)
+- [ ] Campaign generation uses searchByEmbedding() (no index.json fallback)
+- [ ] Ingestion script writes only to Supabase
+- [ ] index.json removed from production builds (.gitignore updated)
+- [ ] Migration guide documented for dev environments
+- [ ] Rollback plan documented and tested
+
+**Guardrails:**
+- Canary deployment: 5% → 25% → 50% → 100% traffic
+- Circuit breaker: Auto-rollback if error rate > 1%
+- Feature flag per system: `RAG_CHAT_USE_SUPABASE`, `CAMPAIGN_GEN_USE_SUPABASE`
+- Keep index.json as emergency fallback for 2 sprints
+- Monitor latency: Alert if p95 > 800ms
+
+**Quality Gates:**
+- ✅ Load test: 100 concurrent users, RAG chat < 1s response
+- ✅ Smoke test: 10 sample queries return expected results
+- ✅ A/B test: Supabase vs index.json quality (same results ±5%)
+- ✅ Zero data loss: All vectors in Supabase match index.json count
+- ✅ Performance baseline: Supabase < 2x index.json latency
+
+**Success Metrics:**
+- Migration completion: 100% systems on Supabase
+- Zero downtime during migration
+- Error rate: < 0.1%
+- Latency p95: < 500ms (Supabase) vs ~100ms (index.json baseline)
+- Result quality: > 95% similarity with baseline
+
+**Validation Method:**
+```typescript
+// scripts/validate-phase3.ts
+// 1. Test RAG chat
+const chatResult = await fetch('/api/rag/query', {
+  method: 'POST',
+  body: JSON.stringify({ message: 'What is your experience?' })
+})
+assert(chatResult.ok, 'RAG chat works')
+
+// 2. Test campaign generation
+const campaignResult = await generateCampaignContent(mockJobPosting)
+assert(campaignResult.portfolio.length > 0, 'Campaign gen retrieves portfolio')
+
+// 3. Verify no index.json usage
+const logs = await getLogs({ grep: 'index.json' })
+assert(logs.length === 0, 'No index.json references in logs')
+
+// 4. Performance comparison
+const supabaseLatency = await measureLatency(() => searchByEmbedding(...))
+const baseline = 100 // ms from index.json
+assert(supabaseLatency < baseline * 2, 'Latency within 2x baseline')
+```
+
 ### Phase 4: Consolidate Embedding Storage (Priority 4)
+
+**Objective:** Unify or rationalize embedding storage strategy
+
+**Current State:**
 - Job postings use: `embedding_full_text`, `embedding_requirements`, `embedding_skills` (JSON strings)
 - RAG chunks use: `embedding` (pgvector)
-- Consider: Unified schema or keep separate (different use cases)
+- Different formats, different use cases
+
+**Implementation Options:**
+
+**Option A: Keep Separate (Recommended)**
+- Job postings: Multiple specialized embeddings (requirements, skills, full text)
+- RAG chunks: Single general-purpose embedding
+- Rationale: Different query patterns, different optimization needs
+
+**Option B: Unify Schema**
+- Migrate job postings to pgvector
+- Add embedding_type column: 'full_text' | 'requirements' | 'skills'
+- Unified search API
+
+**Definition of Done (DoD):**
+- [ ] Decision documented: Option A or B with rationale
+- [ ] Schema migration plan (if Option B)
+- [ ] Performance benchmarks for both options
+- [ ] API compatibility layer if needed
+- [ ] Documentation updated with final architecture
+
+**Guardrails:**
+- No breaking changes to existing APIs
+- Migration must be reversible
+- Zero downtime requirement
+- Data integrity checks at each step
+
+**Quality Gates:**
+- ✅ Decision review: Tech lead + 2 engineers sign-off
+- ✅ Performance: No degradation vs baseline
+- ✅ Storage cost: < 20% increase
+- ✅ Query complexity: No significant increase
+
+**Success Metrics:**
+- Schema consistency: 100% if Option B
+- Query performance: Within 10% of baseline
+- Storage efficiency: < 15% overhead
+- Developer clarity: Single embedding strategy documented
+
+**Validation Method:**
+```typescript
+// scripts/validate-phase4.ts
+// Option A validation
+const jobPosting = await getJobPosting('test-id')
+assert(jobPosting.embedding_full_text, 'Job posting has embeddings')
+const chunks = await searchByEmbedding(testVector, 10, 0.5)
+assert(chunks.length > 0, 'RAG chunks searchable')
+assert(typeof chunks[0].embedding !== 'string', 'Chunks use pgvector')
+
+// Option B validation (if chosen)
+const unifiedSearch = await searchAllEmbeddings(testVector, {
+  types: ['job_posting', 'rag_chunk'],
+  embedding_type: 'full_text'
+})
+assert(unifiedSearch.job_postings.length > 0, 'Unified search works')
+assert(unifiedSearch.rag_chunks.length > 0, 'Both types returned')
+```
 
 ### Phase 5: Semantic Profile Matching (Priority 5 - Enhancement)
 
@@ -1889,6 +2099,67 @@ async function matchUserProfileSemantic(jobPosting: JobPostingData) {
 3. A/B test: Compare semantic vs string matching quality
 4. Gradual rollout: Fallback to string matching if semantic fails
 5. Monitor: Track suggestion quality metrics
+
+**Definition of Done (DoD):**
+- [ ] `matchUserProfileSemantic()` function implemented
+- [ ] A/B test infrastructure ready (50/50 split)
+- [ ] Fallback to string matching on error
+- [ ] Performance metrics logged (latency, match quality)
+- [ ] User feedback mechanism for suggestion quality
+- [ ] Documentation: When to use semantic vs string matching
+
+**Guardrails:**
+- Feature flag: `ENABLE_SEMANTIC_MATCHING=true/false`
+- Automatic fallback: If semantic search fails, use string matching
+- Timeout: Semantic search must complete in < 500ms or fallback
+- Quality threshold: If semantic score < 0.3, supplement with string matching
+- Gradual rollout: 10% → 30% → 60% → 100% users
+
+**Quality Gates:**
+- ✅ A/B test: Semantic matching shows ≥ 20% improvement in relevance
+- ✅ User acceptance: ≥ 70% positive feedback on suggestions
+- ✅ Performance: Latency increase < 200ms vs string matching
+- ✅ Coverage: Semantic finds ≥ 80% of string-matched projects + new ones
+- ✅ No regressions: Critical skills still matched (e.g., "React" finds React projects)
+
+**Success Metrics:**
+- Match quality improvement: +20-30% relevant suggestions
+- New matches found: 15-25% projects missed by string matching
+- User engagement: +10% click-through on suggestions
+- Latency p95: < 500ms (vs ~10ms string matching baseline)
+- Fallback rate: < 5% (semantic search succeeds 95%+ of time)
+
+**Validation Method:**
+```typescript
+// scripts/validate-phase5.ts
+// Test semantic matching
+const jobPosting = {
+  technical_skills: ['React', 'TypeScript', 'Node.js'],
+  core_requirements: ['Frontend leadership', '5+ years experience']
+}
+
+// String matching baseline
+const stringMatches = await matchUserProfile(jobPosting)
+console.log('String matches:', stringMatches.matching_projects.length)
+
+// Semantic matching
+const semanticMatches = await matchUserProfileSemantic(jobPosting)
+console.log('Semantic matches:', semanticMatches.matching_projects.length)
+
+// Quality comparison
+assert(semanticMatches.length >= stringMatches.length, 'Semantic finds at least as many')
+
+// Check for new semantic matches
+const newMatches = semanticMatches.filter(sm => 
+  !stringMatches.some(stm => stm.source_name === sm.source_name)
+)
+console.log('New semantic matches:', newMatches.length)
+assert(newMatches.length > 0, 'Semantic finds additional relevant projects')
+
+// Performance check
+const latency = await measureLatency(() => matchUserProfileSemantic(jobPosting))
+assert(latency < 500, 'Semantic matching < 500ms')
+```
 
 **Risks:**
 - ⚠️ Breaking RAG chat if migration fails
