@@ -122,8 +122,29 @@ async function getCampaignAccentForBrand(brandSlug: string): Promise<string | un
 }
 
 async function hasCampaignForBrand(brandSlug: string): Promise<boolean> {
+  // Check files first
   const found = await findCampaignForBrand(brandSlug)
-  return !!found
+  if (found) return true
+  
+  // Check Supabase
+  try {
+    const { createClient } = await import('@supabase/supabase-js')
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return false
+    }
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+    const { data } = await supabase
+      .from('campaigns')
+      .select('brand_slug')
+      .eq('brand_slug', brandSlug)
+      .single()
+    return !!data
+  } catch {
+    return false
+  }
 }
 
 async function getCampaignPrimaryCtaLabelForBrand(brandSlug: string): Promise<string | undefined> {
