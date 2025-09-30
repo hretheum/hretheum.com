@@ -279,7 +279,12 @@ export async function POST(request: NextRequest) {
       
       // Also save to brand_industries for industry resolution
       // Note: brand_industries uses 'slug' column, not 'brand_slug'
-      await supabase
+      console.log('[campaigns] Saving to brand_industries:', {
+        slug: sanitizedBrandSlug,
+        industry: sanitizedIndustry,
+      })
+      
+      const { data: brandIndData, error: brandIndError } = await supabase
         .from('brand_industries')
         .upsert({
           slug: sanitizedBrandSlug,
@@ -287,6 +292,13 @@ export async function POST(request: NextRequest) {
           status: 'manual',
           updated_by: 'admin',
         })
+        .select()
+      
+      if (brandIndError) {
+        console.error('[campaigns] brand_industries save error:', brandIndError)
+      } else {
+        console.log('[campaigns] brand_industries saved:', brandIndData)
+      }
       
       // Remove any LLM suggestions for this brand (we have explicit mapping now)
       await supabase

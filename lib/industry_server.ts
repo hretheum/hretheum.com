@@ -125,11 +125,20 @@ async function fetchIndustryFromDB(slug: string): Promise<Industry | null> {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null
     const anon = getAnon()
     // Note: brand_industries table uses 'slug' column, not 'brand_slug'
-    const { data, error } = await anon.from('brand_industries').select('industry').eq('slug', slug).maybeSingle()
-    if (error) return null
+    const { data, error } = await anon.from('brand_industries').select('*').eq('slug', slug).maybeSingle()
+    console.log('[industry] fetchIndustryFromDB:', { slug, data, error })
+    if (error) {
+      console.error('[industry] DB fetch error:', error)
+      return null
+    }
     const ind = String(data?.industry || '') as Industry
-    return (ALLOWED.includes(ind) ? ind : null)
-  } catch { return null }
+    const allowed = ALLOWED.includes(ind)
+    console.log('[industry] DB result:', { slug, industry: ind, allowed, ALLOWED })
+    return (allowed ? ind : null)
+  } catch (err) {
+    console.error('[industry] fetchIndustryFromDB exception:', err)
+    return null
+  }
 }
 
 async function autopromote(slug: string, industry: Industry, confidence: number) {
