@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { ComponentHelp } from './ComponentHelp'
 
 function Loader2Icon({ className }: { className?: string }) {
   return (
@@ -29,6 +30,8 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [previewKey, setPreviewKey] = useState(0)
+  const [showHelp, setShowHelp] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     fetchCampaign()
@@ -77,6 +80,24 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
     }
   }
 
+  const handleInsertComponent = (template: string) => {
+    if (!textareaRef.current) return
+    
+    const textarea = textareaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const newContent = content.substring(0, start) + '\n\n' + template + '\n\n' + content.substring(end)
+    
+    setContent(newContent)
+    
+    // Focus back and position cursor after inserted template
+    setTimeout(() => {
+      textarea.focus()
+      const newPosition = start + template.length + 4
+      textarea.setSelectionRange(newPosition, newPosition)
+    }, 0)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -123,16 +144,23 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
       </div>
 
       {/* Editor */}
-      <div className="flex-1 grid grid-cols-2 gap-4 pt-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-12 gap-4 pt-4 overflow-hidden">
         {/* MDX Editor */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            MDX Content
-          </label>
+        <div className="col-span-5 space-y-2 flex flex-col">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-gray-700">MDX Content</label>
+            <button
+              onClick={() => setShowHelp(!showHelp)}
+              className="text-xs text-blue-600 hover:text-blue-700"
+            >
+              {showHelp ? 'Hide' : 'Show'} Components
+            </button>
+          </div>
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full h-[calc(100vh-320px)] p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 w-full p-4 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             spellCheck={false}
           />
           <div className="text-xs text-gray-500">
@@ -140,20 +168,23 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
           </div>
         </div>
 
+        {/* Component Help (collapsible) */}
+        {showHelp && (
+          <div className="col-span-2 overflow-y-auto border-l pl-4">
+            <ComponentHelp onInsert={handleInsertComponent} />
+          </div>
+        )}
+
         {/* Live Preview */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Live Preview
-          </label>
+        <div className={`${showHelp ? 'col-span-5' : 'col-span-7'} space-y-2 flex flex-col`}>
+          <label className="block text-sm font-medium text-gray-700">Live Preview</label>
           <iframe
             key={previewKey}
             src={`/brand/${campaign.brand_slug}?preview=true`}
-            className="w-full h-[calc(100vh-320px)] border border-gray-300 rounded-lg bg-white"
+            className="flex-1 w-full border border-gray-300 rounded-lg bg-white"
             title="Campaign Preview"
           />
-          <p className="text-xs text-gray-500">
-            Preview updates after saving changes
-          </p>
+          <p className="text-xs text-gray-500">Preview updates after saving changes</p>
         </div>
       </div>
 
