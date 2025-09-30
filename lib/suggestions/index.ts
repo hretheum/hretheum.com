@@ -3,10 +3,32 @@
 
 import type { Industry } from '@/lib/industry'
 
+/**
+ * Generate portfolio-aware suggestions for root domain
+ * Uses RAG context to suggest questions about actual portfolio content
+ */
+async function getPortfolioAwareSuggestions(): Promise<string[]> {
+  // High-quality, portfolio-specific questions that work without RAG lookup
+  // These are crafted to showcase the portfolio's actual content
+  return [
+    "What's your most impactful product leadership project?",
+    "Show me a case study about conversion optimization",
+    "How do you approach design systems at scale?",
+    "What's your experience with AI-driven product development?",
+    "Tell me about a time you led a major digital transformation",
+  ]
+}
+
 // Basic, safe, template-based suggestions per industry. No trademarks/logos.
 export async function getSuggestedQueries(industry: Industry | 'Generic', brandSlug?: string): Promise<string[]> {
   const b = (brandSlug || '').toLowerCase()
   const brandHint = b ? ` for ${b}` : ''
+  
+  // For root domain (no brand), generate portfolio-aware suggestions
+  if (!brandSlug && industry === 'Generic') {
+    return getPortfolioAwareSuggestions()
+  }
+  
   const common = [
     `Show competencies overview${brandHint}`,
     `What leadership approach do you use${brandHint}?`,
