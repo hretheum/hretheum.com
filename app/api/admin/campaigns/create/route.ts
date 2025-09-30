@@ -298,6 +298,9 @@ export async function POST(request: NextRequest) {
           industry: sanitizedIndustry,
           status: 'manual',
           updated_by: 'admin',
+        }, {
+          onConflict: 'brand_slug',
+          ignoreDuplicates: false
         })
         .select()
       
