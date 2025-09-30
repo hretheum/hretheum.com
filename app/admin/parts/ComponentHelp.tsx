@@ -58,8 +58,28 @@ export const AVAILABLE_COMPONENTS = [
 
 export function ComponentHelp({ onInsert }: { onInsert: (template: string) => void }) {
   return (
-    <div className="space-y-3">
-      <h4 className="text-xs font-semibold text-gray-700 uppercase">Available Components</h4>
+    <div className="space-y-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs space-y-2">
+        <h4 className="font-semibold text-blue-900">📖 Campaign Structure</h4>
+        <div className="text-blue-700 space-y-1">
+          <p><strong>Frontmatter</strong> → Hero, theme, accent, CTAs</p>
+          <p><strong>Body</strong> → Components below (between hero & footer)</p>
+          <p><strong>Auto-footer</strong> → Leadership, Playbook, AI, Projects</p>
+        </div>
+        <details className="mt-2">
+          <summary className="cursor-pointer text-blue-800 font-medium">View full page flow</summary>
+          <div className="mt-2 p-2 bg-white rounded text-[10px] space-y-1 font-mono">
+            <div className="text-gray-500">// 1. Hero (from frontmatter)</div>
+            <div className="text-gray-500">// 2. Your body components ↓</div>
+            <div className="pl-3 text-blue-600">&lt;PlaybookSection /&gt;</div>
+            <div className="pl-3 text-blue-600">&lt;CaseGrid /&gt;</div>
+            <div className="pl-3 text-blue-600">etc...</div>
+            <div className="text-gray-500">// 3. Auto-footer sections</div>
+          </div>
+        </details>
+      </div>
+      
+      <h4 className="text-xs font-semibold text-gray-700 uppercase">Available Body Components</h4>
       {AVAILABLE_COMPONENTS.map((comp) => (
         <div key={comp.name} className="border border-gray-200 rounded-lg p-3">
           <div className="flex items-start justify-between mb-2">
