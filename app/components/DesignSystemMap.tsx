@@ -2,6 +2,8 @@
 // Displays an SVG generated from Mermaid located at /public/diagrams/design-system-map.svg
 // Styling aligns with the site's visual language (clean white card, subtle border, violet accents)
 
+import Image from 'next/image'
+
 export default function DesignSystemMap() {
   return (
     <section className="bg-white py-16 px-6">
@@ -17,10 +19,11 @@ export default function DesignSystemMap() {
             <div className="h-2 w-24 rounded-full bg-purple-600 mx-auto" />
           </div>
           <div className="p-4 md:p-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/diagrams/design-system-map.svg"
               alt="Design System Map"
+              width={1200}
+              height={800}
               className="w-full h-auto"
             />
           </div>

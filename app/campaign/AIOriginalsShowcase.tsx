@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import type { MediaAttachment } from '@/lib/aiOriginalsMedia'
 
 type AIOriginalItem = {
@@ -261,7 +262,7 @@ export function AIOriginalsShowcase({ items }: Props) {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <img src={asset.url} alt={asset.title} className="h-full w-full object-cover" />
+                            <Image src={asset.url} alt={asset.title} fill className="object-cover" unoptimized />
                           )}
                         </div>
                         <figcaption className="p-5 space-y-2">
