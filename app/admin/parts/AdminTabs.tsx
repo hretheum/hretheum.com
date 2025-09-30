@@ -2,7 +2,7 @@
 // Simple tabbed admin shell.
 // Tabs: Conversations, Redirects, RUM, Industry, and Campaigns.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminEventsTable from './AdminEventsTable';
 import RedirectsDashboard from './RedirectsDashboard';
 import RedirectsRawTable from './RedirectsRawTable';
