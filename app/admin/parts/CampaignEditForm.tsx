@@ -90,16 +90,14 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Edit Campaign</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {campaign.brand_slug} • {campaign.industry}
-          </p>
-        </div>
+      <div className="flex-shrink-0 flex items-center justify-between pb-4 border-b">
         <div className="flex items-center gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">{campaign.brand_slug}</h3>
+            <p className="text-xs text-gray-500">{campaign.industry}</p>
+          </div>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -109,10 +107,14 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
             />
             <span>Active</span>
           </label>
+        </div>
+        <div className="flex items-center gap-3">
+          {error && <span className="text-xs text-red-600">{error}</span>}
+          {success && <span className="text-xs text-green-600">✓ Saved!</span>}
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm flex items-center gap-2"
           >
             {saving && <Loader2Icon className="w-4 h-4 animate-spin" />}
             {saving ? 'Saving...' : 'Save Changes'}
@@ -120,20 +122,8 @@ export function CampaignEditForm({ brandSlug }: { brandSlug: string }) {
         </div>
       </div>
 
-      {/* Messages */}
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-          ✓ Saved successfully!
-        </div>
-      )}
-
       {/* Editor */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="flex-1 grid grid-cols-2 gap-4 pt-4 overflow-hidden">
         {/* MDX Editor */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">

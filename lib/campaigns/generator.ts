@@ -200,6 +200,7 @@ export async function generateCampaignMDX(template: CampaignTemplate): Promise<s
     industry: template.industry,
     accent: template.accent || generateAccentColor(template.industry),
     ctaVariant: template.ctaVariant || 'filled',
+    sections: template.sections || generateDefaultSections(),
   }
   
   // Add optional fields if provided
