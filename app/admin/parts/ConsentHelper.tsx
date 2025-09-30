@@ -46,13 +46,17 @@ function setConsentCookie(value: boolean, persistDays = 365) {
 }
 
 export default function ConsentHelper() {
-  const [hasConsent, setHasConsent] = useState<boolean>(() => {
-    const v = getCookie(CONSENT_COOKIE);
-    return v === '1' || v === 'true';
-  });
+  // Start with false to avoid hydration mismatch, then read cookie in useEffect
+  const [hasConsent, setHasConsent] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Read cookie client-side only
+    const v = getCookie(CONSENT_COOKIE);
+    setHasConsent(v === '1' || v === 'true');
+    setMounted(true);
+    
     // expose helper in admin only
     window.hreSetConsent = (val: boolean, opts?: { persistDays?: number }) => {
       try {
@@ -75,6 +79,15 @@ export default function ConsentHelper() {
     const d = computeDomain();
     return `Cookie ${CONSENT_COOKIE} on ${d || '(host)'} = ${hasConsent ? '1' : '0'}`;
   }, [hasConsent]);
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs bg-gray-50">
+        <span className="font-medium text-gray-400">Consent loading...</span>
+      </div>
+    );
+  }
 
   if (!isExpanded) {
     // Collapsed: just icon badge
