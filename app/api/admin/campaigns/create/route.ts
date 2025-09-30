@@ -292,9 +292,10 @@ export async function POST(request: NextRequest) {
     
   } catch (error: any) {
     console.error('[campaigns] Unexpected error:', error)
+    console.error('[campaigns] Error stack:', error.stack)
     
-    // Mark current step as failed
-    const currentStep = steps.find(s => s.status === 'running')
+    // Mark current step as failed if exists
+    const currentStep = steps[steps.length - 1]
     if (currentStep) {
       currentStep.status = 'failed'
       currentStep.error = error.message || 'Unexpected error'
@@ -304,7 +305,8 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         error: 'Internal Server Error', 
-        message: 'An unexpected error occurred during campaign creation',
+        message: error.message || 'An unexpected error occurred during campaign creation',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
         steps 
       },
       { status: 500 }

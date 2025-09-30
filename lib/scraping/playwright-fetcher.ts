@@ -20,16 +20,21 @@ let browserInstance: Browser | null = null
  */
 async function getBrowser(): Promise<Browser> {
   if (!browserInstance) {
-    browserInstance = await chromium.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-      ],
-    })
+    try {
+      browserInstance = await chromium.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+        ],
+      })
+    } catch (error) {
+      console.error('[playwright] Failed to launch browser:', error)
+      throw new Error('Playwright not available in this environment. Use Text/File input instead.')
+    }
   }
   return browserInstance
 }
