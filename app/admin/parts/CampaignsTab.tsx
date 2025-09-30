@@ -143,9 +143,9 @@ export default function CampaignsTab() {
 
       {/* Edit Modal */}
       {editSlug && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" onClick={handleCloseEdit}>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={handleCloseEdit}>
           <div 
-            className="bg-white rounded-lg shadow-xl w-full h-full max-w-none max-h-none overflow-hidden flex flex-col"
+            className="bg-white w-full h-full overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between">
