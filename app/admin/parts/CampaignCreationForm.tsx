@@ -75,16 +75,78 @@ export default function CampaignCreationForm() {
     }
 
     try {
-      // TODO: Submit to API
-      console.log('Submitting:', formData)
+      // Prepare API request body
+      let source: any
       
-      // Placeholder success
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setSuccessMessage('Campaign creation started! (API integration pending)')
+      if (formData.inputMethod === 'url') {
+        source = {
+          type: 'url',
+          url: formData.url
+        }
+      } else if (formData.inputMethod === 'text') {
+        source = {
+          type: 'text',
+          content: formData.text
+        }
+      } else if (formData.inputMethod === 'file' && formData.file) {
+        // Convert file to base64
+        const fileData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => {
+            const base64 = reader.result?.toString().split(',')[1] || ''
+            resolve(base64)
+          }
+          reader.onerror = reject
+          reader.readAsDataURL(formData.file!)
+        })
+        
+        const fileExt = formData.file.name.split('.').pop()?.toLowerCase() || 'txt'
+        const fileType = ['md', 'txt', 'pdf', 'docx'].includes(fileExt) ? fileExt : 'txt'
+        
+        source = {
+          type: 'file',
+          fileData,
+          fileName: formData.file.name,
+          fileType
+        }
+      }
       
-      // Reset form
-      setFormData(INITIAL_FORM_DATA)
+      const requestBody = {
+        source,
+        brand: formData.brandSlug,
+        industry: formData.industry,
+        metadata: {
+          accent: formData.accent,
+          role: formData.role || undefined,
+          location: formData.location || undefined,
+        }
+      }
+      
+      // Call API
+      const response = await fetch('/api/admin/campaigns/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || `API error: ${response.status}`)
+      }
+      
+      setSuccessMessage(`Campaign created successfully! File: ${result.campaign.slug}.mdx`)
+      
+      // Reset form after 2 seconds
+      setTimeout(() => {
+        setFormData(INITIAL_FORM_DATA)
+        setSuccessMessage('')
+      }, 2000)
+      
     } catch (error: any) {
+      console.error('Campaign creation error:', error)
       setErrors({ submit: error.message || 'Failed to create campaign' })
     } finally {
       setIsSubmitting(false)
