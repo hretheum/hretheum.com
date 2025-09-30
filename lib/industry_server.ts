@@ -122,14 +122,21 @@ async function classifyIndustryLLM(slug: string, timeoutMs?: number): Promise<{ 
 
 async function fetchIndustryFromDB(slug: string): Promise<Industry | null> {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null
-    const anon = getAnon()
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null
+    
+    // Use service client if available to bypass RLS, otherwise use anon
+    const client = process.env.SUPABASE_SERVICE_ROLE_KEY 
+      ? getSvc()
+      : (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? getAnon() : null)
+    
+    if (!client) return null
+    
     // Try 'brand_slug' first (actual column name), fallback to 'slug'
     let data, error
-    const result1 = await anon.from('brand_industries').select('*').eq('brand_slug', slug).maybeSingle()
+    const result1 = await client.from('brand_industries').select('*').eq('brand_slug', slug).maybeSingle()
     if (result1.error?.code === '42703') {
       // Column doesn't exist, try 'slug'
-      const result2 = await anon.from('brand_industries').select('*').eq('slug', slug).maybeSingle()
+      const result2 = await client.from('brand_industries').select('*').eq('slug', slug).maybeSingle()
       data = result2.data
       error = result2.error
     } else {
@@ -137,7 +144,7 @@ async function fetchIndustryFromDB(slug: string): Promise<Industry | null> {
       error = result1.error
     }
     
-    console.log('[industry] fetchIndustryFromDB:', { slug, data, error })
+    console.log('[industry] fetchIndustryFromDB:', { slug, data, error, usedServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY })
     if (error) {
       console.error('[industry] DB fetch error:', error)
       return null
