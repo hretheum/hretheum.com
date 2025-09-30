@@ -176,46 +176,41 @@ async function ingest() {
 
   const index: RAGIndex = { vectors };
   
-  // Phase 3: Always use Supabase (remove index.json fallback)
+  // Phase 3: Always use Supabase (no fallback)
   const useSupabase = process.env.RAG_STORE === 'supabase';
   
   if (!useSupabase) {
-    console.warn('[ingest] WARNING: RAG_STORE is not set to "supabase"');
-    console.warn('[ingest] Please set RAG_STORE=supabase in .env');
-    console.warn('[ingest] Falling back to index.json (deprecated)');
+    console.error('[ingest] ERROR: RAG_STORE must be set to "supabase"');
+    console.error('[ingest] Please add RAG_STORE=supabase to your .env file');
+    console.error('[ingest] index.json fallback has been removed');
+    throw new Error('RAG_STORE=supabase is required. Update .env and retry.');
   }
   
-  if (useSupabase) {
-    // Map vectors to StoreChunk rows and upsert to Supabase
-    const rows: StoreChunk[] = index.vectors.map((v: RAGVector) => {
-      const file = String(v.metadata?.file || '');
-      const chunkIdx = Number(String(v.id).split('#').pop());
-      return {
-        file,
-        source_name: v.metadata?.source_name,
-        source_type: v.metadata?.source_type,
-        role: v.metadata?.role,
-        tech: v.metadata?.tech,
-        org: v.metadata?.org,
-        product: v.metadata?.product,
-        domain: v.metadata?.domain,
-        kpis: v.metadata?.kpis,
-        aliases: v.metadata?.aliases,
-        link: v.metadata?.link,
-        date: v.metadata?.date,
-        chunk_index: Number.isFinite(chunkIdx) ? chunkIdx : 0,
-        text: v.text,
-        embedding: (v.embedding as number[]) || [],
-      };
-    });
-    await upsertChunks(rows);
-    console.log(`[ingest] ✅ Upserted ${rows.length} chunks to Supabase`);
-  } else {
-    // Deprecated: Still write to index.json for backward compatibility
-    await fs.mkdir(path.dirname(INDEX_PATH), { recursive: true });
-    await saveIndex(index);
-    console.log(`[ingest] ⚠️  Saved index to ${INDEX_PATH} (deprecated, use Supabase)`);
-  }
+  // Map vectors to StoreChunk rows and upsert to Supabase
+  const rows: StoreChunk[] = index.vectors.map((v: RAGVector) => {
+    const file = String(v.metadata?.file || '');
+    const chunkIdx = Number(String(v.id).split('#').pop());
+    return {
+      file,
+      source_name: v.metadata?.source_name,
+      source_type: v.metadata?.source_type,
+      role: v.metadata?.role,
+      tech: v.metadata?.tech,
+      org: v.metadata?.org,
+      product: v.metadata?.product,
+      domain: v.metadata?.domain,
+      kpis: v.metadata?.kpis,
+      aliases: v.metadata?.aliases,
+      link: v.metadata?.link,
+      date: v.metadata?.date,
+      chunk_index: Number.isFinite(chunkIdx) ? chunkIdx : 0,
+      text: v.text,
+      embedding: (v.embedding as number[]) || [],
+    };
+  });
+  await upsertChunks(rows);
+  console.log(`[ingest] ✅ Upserted ${rows.length} chunks to Supabase`);
+  console.log(`[ingest] ✅ All systems now use Supabase (index.json no longer needed)`)
 }
 
 ingest().catch((err) => {

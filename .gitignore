@@ -37,3 +37,6 @@ next-env.d.ts
 # secrets
 .env
 docs/VERCEL_ENV.md
+
+# Phase 3: RAG now uses Supabase exclusively
+data/index.json
