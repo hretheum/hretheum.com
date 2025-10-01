@@ -302,7 +302,7 @@ sections:
             />
           </div>
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{content.length} characters • {content.split('\n').length} lines</span>
+            <span>{content?.length || 0} characters • {content?.split('\n').length || 0} lines</span>
             <span className="text-amber-600">⚠️ Full MDX editing - be careful with frontmatter syntax</span>
           </div>
         </div>
