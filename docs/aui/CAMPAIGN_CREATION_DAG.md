@@ -1,20 +1,20 @@
 # Campaign Creation DAG (Phase 2.A - Simplified Admin UI)
 
-**Status**: Phase 2.A In Progress (4/6 tasks ~67%)  
-**Last updated**: 2025-10-01 10:35  
+**Status**: Phase 2.A Nearly Complete (5/6 tasks ~83%)  
+**Last updated**: 2025-10-01 11:45  
 **Related**: [Campaign Creation Architecture](./CAMPAIGN_CREATION_ARCHITECTURE.md)
 
 This document provides a task dependency graph (DAG) for Campaign Creation implementation following the Phase 2.A pivot (no online editor).
 
 **Current State (Validated):**
 - ✅ Phase 1: Backend - COMPLETE (8/8 tasks)
-- 🔄 Phase 2.A: Admin UI - IN PROGRESS (5/6 tasks, ~83%)
+- 🔄 Phase 2.A: Admin UI - NEARLY COMPLETE (5/6 tasks, ~83%)
   - ✅ T2.1: Campaigns tab - COMPLETE
   - 🔄 T2.2: Creation form - PARTIAL (needs LLM industry classification)
   - ✅ T2.3: Processing status - COMPLETE
-  - 🔄 T2.4: List view - EXISTS (needs refactor: remove Edit/Bulk Delete)
-  - 🔄 T2.5: Preview - EXISTS (needs extraction from Edit modal)
-  - ✅ T2.6: DB schema - COMPLETE (migration + API ready, needs deployment)
+  - ✅ T2.4: List view - COMPLETE (refactored: visibility toggle, no Edit/Bulk Delete)
+  - ✅ T2.5: Preview - COMPLETE (extracted to CampaignPreviewModal)
+  - ✅ T2.6: DB schema - COMPLETE (deployed)
 
 ## Diagram (Mermaid)
 
@@ -34,8 +34,8 @@ flowchart TB
     P2A_1[✅ T2.1: Campaigns tab in /admin]
     P2A_2[🔄 T2.2: Campaign creation form]
     P2A_3[✅ T2.3: Processing status display]
-    P2A_4[🔄 T2.4: List view + visibility toggle]
-    P2A_5[🔄 T2.5: Preview functionality]
+    P2A_4[✅ T2.4: List view + visibility toggle]
+    P2A_5[✅ T2.5: Preview functionality]
     P2A_6[✅ T2.6: DB schema campaigns table]
 
     %% Phase 3: Integration & Testing
@@ -103,8 +103,8 @@ flowchart TB
     classDef pending fill:#94a3b8,stroke:#64748b,color:#fff
     
     class P1_1,P1_2,P1_3,P1_4,P1_5,P1_6,P1_7,P1_8 complete
-    class P2A_1,P2A_3,P2A_6 complete
-    class P2A_2,P2A_4,P2A_5 partial
+    class P2A_1,P2A_3,P2A_4,P2A_5,P2A_6 complete
+    class P2A_2 partial
     class P3_1,P3_2,P3_3,P3_4,P3_5,P3_6,P3_7 pending
     class P4_1,P4_2,P4_3,P4_4,P4_5 pending
 ```
@@ -170,19 +170,19 @@ flowchart TB
 
 ### Current State (Validated 2025-10-01):
 
-**✅ Complete (3/6):**
+**✅ Complete (5/6):**
 - T2.1: Campaigns tab exists in AdminTabs
 - T2.3: ProcessingStatus component working
-- T2.6: Database schema - Migration created, API endpoints updated
+- T2.4: List view refactored (visibility toggle, no Edit/Bulk Delete)
+- T2.5: Preview extracted to CampaignPreviewModal
+- T2.6: Database schema - Migration deployed, API endpoints updated
 
-**🔄 Partial (3/6):**
+**🔄 Partial (1/6):**
 - T2.2: Form exists (needs LLM industry classification)
-- T2.4: List view exists (needs refactor: remove Edit/Bulk Delete, add Visibility toggle)
-- T2.5: Preview exists in Edit modal (needs extraction to standalone modal)
 
-**📝 Deployment Required:**
-- T2.6: Run `supabase db push` to apply migration
-- T2.6: Run `npx tsx scripts/backfill-campaigns.ts` to populate data
+**✅ Deployment Complete:**
+- T2.6: Migration applied to Supabase
+- Backfill optional (can add campaigns manually or through admin UI)
 
 ### Removed Dependencies (vs Original Phase 2):
 - ❌ No editor state management

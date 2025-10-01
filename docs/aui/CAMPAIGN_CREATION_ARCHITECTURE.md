@@ -1332,28 +1332,23 @@ export function IndustrySelector({
 
 ---
 
-#### 🔄 Task 2.4: Implement campaign list view with visibility toggle - NEEDS REFACTOR 
+#### ✅ Task 2.4: Implement campaign list view with visibility toggle - COMPLETE 
 
-**Status**: 🔄 List view exists but uses OLD architecture (has Edit + Bulk Delete)
+**Status**: ✅ Refactored to Phase 2.A architecture
 
-**Current Implementation:**
-- File: `app/admin/parts/CampaignListView.tsx` (12911 bytes)
-- ✅ Table with columns: brand_slug, mdx_slug, industry, active, created_at, updated_at
-- ✅ Filters: industry, status, search
+**Implementation:**
+- File: `app/admin/parts/CampaignListView.tsx` (refactored)
+- ✅ Table columns: Brand, Industry, Campaign, Created, Visibility, Actions
+- ✅ Changed interface: `active` → `visible`
+- ✅ Changed prop: `onEdit` → `onPreview`
+- ✅ Filters: industry, status (visible/hidden), search
 - ✅ Sorting by any column
 - ✅ Pagination (20 items per page)
-- ✅ API endpoint: `/api/admin/campaigns/list`
-- ⚠️ Has Edit button (`onEdit` callback) - CONFLICTS with Phase 2.A
-- ⚠️ Has Bulk Delete - CONFLICTS with Phase 2.A
-- ⚠️ Uses `active` field, not `visible`
-
-**Phase 2.A Refactor Required:**
-- ❌ Remove Edit button (line 25: `onEdit` prop)
-- ❌ Remove Bulk Delete (line 114: `handleBulkDelete`)
-- ❌ Remove selection checkboxes
-- ❌ Change `active` to `visible`
-- ✅ Add "Toggle Visibility" action per row
-- ✅ Add Preview button per row
+- ✅ API endpoint: `/api/admin/campaigns/list` (reads from DB)
+- ✅ Toggle Visibility button per row (calls `/api/admin/campaigns/[slug]/visibility`)
+- ✅ Preview button per row (opens CampaignPreviewModal)
+- ✅ Optimistic UI updates
+- ✅ Removed: Edit button, Bulk Delete, Selection checkboxes
 
 **Definition of Done:**
 - ✅ Table with columns: Brand, Industry, Campaign, Created, Visible, Actions
@@ -1361,9 +1356,9 @@ export function IndustrySelector({
 - ✅ Sorting by any column
 - ✅ Pagination (20 items per page)
 - ✅ Search by brand slug
-- ❌ Row actions: Preview, Toggle Visibility (currently has Edit)
-- ❌ No bulk actions (currently has bulk delete)
-- ❌ No edit button (currently has edit callback)
+- ✅ Row actions: Preview, Toggle Visibility
+- ✅ No bulk actions
+- ✅ No edit button
 
 **Guardrails:**
 - Client-side filtering for < 100 items
@@ -1396,31 +1391,28 @@ export function IndustrySelector({
 
 ---
 
-#### 🔄 Task 2.5: Add preview functionality - PARTIALLY IMPLEMENTED
+#### ✅ Task 2.5: Add preview functionality - COMPLETE
 
-**Status**: 🔄 Preview exists in Edit modal, needs to be extracted to standalone view
+**Status**: ✅ Extracted to CampaignPreviewModal component
 
-**Current Implementation:**
-- ✅ Preview iframe in CampaignEditForm (line 346-351)
-- ✅ Preview URL: `/brand/{brand_slug}?preview=true`
-- ✅ Preview updates after saving
-- ⚠️ Preview only accessible via Edit modal (conflicts with Phase 2.A)
-- ❌ No preview button in CampaignListView
-- ❌ No preview banner component
-
-**Phase 2.A Refactor Required:**
-- ✅ Extract preview iframe to separate modal/component
-- ✅ Add "Preview" button to each row in CampaignListView
-- ✅ Open preview in modal (instead of Edit modal)
-- ❌ Remove edit functionality from preview modal
-- ❌ Add preview banner component (optional)
+**Implementation:**
+- File: `app/admin/parts/CampaignPreviewModal.tsx` (NEW - 172 lines)
+- ✅ Standalone preview modal (extracted from CampaignEditForm)
+- ✅ Preview iframe: `/brand/{brand_slug}?preview=true`
+- ✅ Refresh button to reload preview
+- ✅ Visibility status badge (Visible/Hidden)
+- ✅ Preview button in CampaignListView
+- ✅ Opens in full-screen modal
+- ✅ Close button
+- ✅ Link to open in new tab
+- ✅ No edit functionality (Phase 2.A compliant)
 
 **Definition of Done:**
-- 🔄 Preview button in campaign list (needs to be added)
-- ✅ Opens campaign with `?preview=true` (works)
-- ❌ Preview banner at top (not indexed, not cached) - optional
-- ❌ Preview in modal or new tab
-- ❌ No edit functionality in preview mode
+- ✅ Preview button in campaign list
+- ✅ Opens campaign with `?preview=true` in modal
+- ✅ Preview in modal with iframe
+- ✅ No edit functionality in preview mode
+- ⏭️ Preview banner at top (optional - not implemented)
 
 **Guardrails:**
 - Preview URLs not crawlable (noindex, nofollow)
@@ -2677,9 +2669,11 @@ CAMPAIGN STRUCTURE (based on tmobile_g2m_lead.mdx):
 - ✅ Task 2.1: Campaigns tab - COMPLETE
 - 🔄 Task 2.2: Creation form - Partially complete (needs LLM industry classification)
 - ✅ Task 2.3: Processing status - COMPLETE
-- 🔄 Task 2.4: List view - EXISTS but needs refactor (remove Edit/Bulk Delete, add Visibility toggle)
-- 🔄 Task 2.5: Preview - EXISTS in Edit modal, needs extraction to standalone
+- ✅ Task 2.4: List view - COMPLETE (refactored: Visibility toggle, no Edit/Bulk Delete)
+- ✅ Task 2.5: Preview - COMPLETE (extracted to CampaignPreviewModal)
 - ✅ Task 2.6: Database schema - COMPLETE (migration + API endpoints ready)
+
+**Phase 2.A Status**: 5/6 tasks complete (~83%) - Only LLM industry classification remains
 
 **Phase 2.A Changes:**
 - ✅ No online editor (campaigns edited locally via MDX files)
@@ -2689,11 +2683,13 @@ CAMPAIGN STRUCTURE (based on tmobile_g2m_lead.mdx):
 - ✅ Task 3.6: E2E tests moved to Phase 3 (renamed from Task 2.6)
 - ✅ Task 3.7: Admin training (updated for local editing workflow)
 
-**⚠️ REFACTOR NEEDED (Not Conflicts):**
-- CampaignEditForm.tsx contains preview iframe (lines 343-353) - extract to CampaignPreviewModal
-- CampaignsTab.tsx has Edit modal (lines 145-166) - convert to Preview modal
-- CampaignListView has `onEdit` callback - rename to `onPreview`
-- CampaignListView has Bulk Delete - remove (conflicts with Phase 2.A)
+**✅ REFACTOR COMPLETE:**
+- ✅ CampaignPreviewModal.tsx created (extracted from CampaignEditForm)
+- ✅ CampaignsTab.tsx refactored (edit → preview modal)
+- ✅ CampaignListView refactored (onEdit → onPreview, visibility toggle added)
+- ✅ Bulk Delete removed
+- ✅ Selection checkboxes removed
+- ✅ CampaignEditForm.tsx kept as reference (can be moved to docs/examples/)
 
 ---
 
