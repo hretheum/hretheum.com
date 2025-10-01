@@ -352,7 +352,7 @@ export async function POST(request: NextRequest) {
         industry: sanitizedIndustry,
       })
       
-      // Phase 2.A: Save with 'visible' field instead of 'active'
+      // Phase 2.A: Save ONLY metadata (content is in MDX file)
       const { data: upsertData, error: dbError } = await supabase
         .from('campaigns')
         .upsert({
@@ -360,7 +360,7 @@ export async function POST(request: NextRequest) {
           mdx_slug: campaignSlug,
           slug: campaignSlug, // Phase 2.A: canonical slug
           campaign_file: `${campaignSlug}.mdx`, // Phase 2.A: MDX filename
-          content: mdxContent,
+          // content: NOT SAVED - MDX file is source of truth
           industry: sanitizedIndustry,
           role: requestData.metadata?.role,
           location: requestData.metadata?.location,
