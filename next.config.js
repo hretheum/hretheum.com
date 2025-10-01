@@ -45,6 +45,16 @@ const nextConfig = {
     return {
       beforeFiles: [
         {
+          source: '/',
+          has: [
+            {
+              type: 'host',
+              value: 'careers.hretheum.com',
+            },
+          ],
+          destination: 'https://hretheum.notion.site/open',
+        },
+        {
           source: '/:path*',
           has: [
             {
@@ -52,7 +62,7 @@ const nextConfig = {
               value: 'careers.hretheum.com',
             },
           ],
-          destination: 'https://hretheum.notion.site/:path*',
+          destination: 'https://hretheum.notion.site/open/:path*',
         },
       ],
     };
