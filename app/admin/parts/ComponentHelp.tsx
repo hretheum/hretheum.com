@@ -146,12 +146,12 @@ export function ComponentHelp({ onInsert }: { onInsert: (template: string) => vo
         <details className="mt-2">
           <summary className="cursor-pointer text-blue-800 font-medium">View full page flow</summary>
           <div className="mt-2 p-2 bg-white rounded text-[10px] space-y-1 font-mono">
-            <div className="text-gray-500">// 1. Hero (from frontmatter)</div>
-            <div className="text-gray-500">// 2. Your body components ↓</div>
+            <div className="text-gray-500">{'// 1. Hero (from frontmatter)'}</div>
+            <div className="text-gray-500">{'// 2. Your body components ↓'}</div>
             <div className="pl-3 text-blue-600">&lt;PlaybookSection /&gt;</div>
             <div className="pl-3 text-blue-600">&lt;CaseGrid /&gt;</div>
             <div className="pl-3 text-blue-600">etc...</div>
-            <div className="text-gray-500">// 3. Auto-footer sections</div>
+            <div className="text-gray-500">{'// 3. Auto-footer sections'}</div>
           </div>
         </details>
       </div>

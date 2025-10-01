@@ -38,6 +38,7 @@ export function CampaignPreviewModal({ brandSlug, onClose }: CampaignPreviewModa
 
   useEffect(() => {
     fetchCampaign()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brandSlug])
 
   async function fetchCampaign() {
