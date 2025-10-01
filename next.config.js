@@ -39,6 +39,24 @@ const nextConfig = {
   
   // Compression
   compress: true,
+
+  // External redirects for subdomains handled outside Next.js
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'careers.hretheum.com',
+          },
+        ],
+        destination: 'https://hretheum.notion.site/:path*',
+        permanent: true,
+        basePath: false,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

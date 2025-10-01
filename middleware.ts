@@ -20,6 +20,7 @@ const RESERVED_SUBDOMAINS = new Set([
   'm',
   'stage',
   'dev',
+  'careers', // External routing to Notion via DNS CNAME
 ])
 
 // Optional: exact hostnames that should be marked noindex (comma-separated)
@@ -114,6 +115,11 @@ function isRateLimited(clientIP: string, slug: string): boolean {
 export async function middleware(req: NextRequest) {
   const hostname = getHostname(req)
   const isNoindexHost = NOINDEX_HOSTS.has(hostname.toLowerCase())
+
+  // Early exit for careers subdomain (handled by next.config.js redirect to Notion)
+  if (hostname === 'careers.' + APEX_DOMAIN || hostname === 'careers.hretheum.com') {
+    return NextResponse.next()
+  }
 
   // Feature flag for A/B testing redirect behavior
   const redirectAbTestEnabled = await getFeatureFlag('suggestedQueries') // Reuse existing flag for demo
