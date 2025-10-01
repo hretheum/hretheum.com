@@ -1,8 +1,61 @@
 # Campaign Creation Architecture & Admin UI Specification
 
-**Status**: Phase 1 Backend - COMPLETE ✅ (8/8 tasks, 100%) | Phase 2 Admin UI - Ready to start  
+**Status**: Phase 1 Backend - COMPLETE ✅ (8/8 tasks, 100%) | Phase 2.A Admin UI (Simplified) - Ready to start  
+**Architecture**: **No online editor** - campaigns added via admin, edited locally (MDX files)  
 **Related**: [Job Posting Intelligence Spec](./JOB_POSTING_INTELLIGENCE_SPEC.md), [Living Layouts Implementation](./LIVING_LAYOUTS_IMPLEMENTATION.md)  
-**Target**: Workflow 2 (Manual Upload via Admin API) + Full Campaign Scaffolding
+**Target**: Workflow 2 (Manual Upload via Admin API) + Campaign Add/Preview/Visibility Management
+
+---
+
+## 0. Phase 2.A Pivot Summary (2025-10-01)
+
+**Decision**: Remove online editor, simplify admin UI to Add/Preview/Visibility management only.
+
+### What Changed
+
+| Aspect | Before (Phase 2) | After (Phase 2.A) |
+|--------|------------------|-------------------|
+| **Editing** | Online editor in admin UI | Local editing (MDX files in IDE) |
+| **Admin Capabilities** | Add, Edit, Preview, Archive, Delete | Add, Preview, Toggle Visibility |
+| **Content Storage** | MDX files + potential DB sync | MDX files (single source of truth) |
+| **Metadata Storage** | Implicit (from MDX frontmatter) | Explicit (`campaigns` table in Supabase) |
+| **API Endpoints** | POST, GET, PUT, DELETE | POST, GET (read), PUT (visibility only) |
+| **Complexity** | High (versioning, sync, editor state) | Low (simple CRUD + visibility flag) |
+
+### Rationale
+
+1. **Simplicity**: MDX files are already version-controlled, no need for additional versioning
+2. **Developer workflow**: Developers prefer editing in their IDE with syntax highlighting, linting
+3. **Single source of truth**: MDX files define content, Supabase stores metadata only
+4. **Faster delivery**: Skip complex editor implementation (Monaco, MDX preview, validation)
+5. **Lower risk**: No content sync issues, no version conflicts
+
+### Architecture
+
+**Data Split:**
+- **Local filesystem** (`data/campaigns/*.mdx`): Content, layout, components
+- **Supabase `campaigns` table**: Metadata (slug, brand, industry, visible, timestamps)
+- **Supabase `chunks` table**: RAG embeddings (from job postings)
+- **Supabase `job_postings` table**: Structured job posting data
+
+**Workflow:**
+1. Admin creates campaign via form → MDX file generated locally
+2. Admin previews campaign (`?preview=true`)
+3. Admin toggles visibility (visible/hidden) → updates DB only
+4. To edit content → Open MDX file in IDE → Git commit → Deploy
+
+### Task Changes
+
+| Task | Status | Change |
+|------|--------|--------|
+| Task 2.1 | Unchanged | Create "Campaigns" tab |
+| Task 2.2 | Unchanged | Campaign creation form (3 input methods) |
+| Task 2.3 | Unchanged | Real-time processing status |
+| Task 2.4 | **Modified** | List view + **visibility toggle** (no edit/delete) |
+| Task 2.5 | Unchanged | Preview functionality |
+| Task 2.6 | **NEW** | Database schema for `campaigns` table |
+| Task 2.6 (old) | **Moved** | E2E tests → Task 3.6 |
+| Task 3.7 | **NEW** | Admin training (updated for local editing) |
 
 ---
 
@@ -326,21 +379,21 @@ async function createCampaign(req: CreateCampaignRequest): Promise<CreateCampaig
 - Get campaign details
 - Include job posting data
 - Include metrics (views, conversions)
+- Include visibility status
 
-**PUT /api/admin/campaigns/:slug**
-- Update campaign metadata
-- Regenerate MDX file
-- Update index
-
-**DELETE /api/admin/campaigns/:slug**
-- Archive campaign (soft delete)
-- Remove from index
-- Keep job posting data
+**PUT /api/admin/campaigns/:slug/visibility**
+- Toggle campaign visibility (visible/hidden)
+- Update `campaigns` table in Supabase
+- Update cache (revalidate routes)
+- No MDX file modification
 
 **POST /api/admin/campaigns/:slug/preview**
 - Generate preview URL
 - Temporary deployment
 - QA before going live
+
+**❌ REMOVED: PUT /api/admin/campaigns/:slug** (no online editing)
+**❌ REMOVED: DELETE /api/admin/campaigns/:slug** (no deletion from admin)
 
 ---
 
@@ -636,6 +689,41 @@ export async function removeCampaignFromIndex(brandSlug: string) {
 ---
 
 ## 3. Implementation Plan
+
+**Phase 2.A Architecture Summary:**
+
+```
+Admin UI Workflow:
+1. Admin fills form (URL/text/file) → Submit
+2. Backend processes:
+   - Scrape/parse content
+   - LLM extraction (skills, requirements)
+   - Generate embeddings → Supabase chunks table
+   - Create MDX file → data/campaigns/{slug}.mdx
+   - Insert metadata → Supabase campaigns table
+   - Update index.json
+3. Admin previews campaign (?preview=true)
+4. Admin toggles visibility (visible/hidden)
+5. To edit content: Open MDX file locally in IDE
+
+Data Flow:
+┌─────────────────┐
+│  Admin Form    │
+└───────┬────────┘
+        │
+        v
+┌─────────────────┐
+│ API Processing │
+└───┬──────┬──────┘
+    │        │
+    v        v
+┌────────┐  ┌──────────────┐
+│ MDX File │  │ Supabase DB │
+│ (local)  │  │ - campaigns  │
+│ - Content│  │ - chunks     │
+│ - Layout │  │ - job_postings│
+└────────┘  └──────────────┘
+```
 
 ### ✅ Phase 1: Backend Foundation (Week 1)
 
@@ -1020,7 +1108,32 @@ Constraints:
 
 ---
 
-### Phase 2: Admin UI (Week 2)
+### Phase 2.A: Simplified Admin UI - No Editor (Week 2)
+
+**Architecture Decision: No Online Editor**
+
+**Rationale:**
+- Campaign content editing happens locally (via IDE/text editor)
+- MDX files remain the single source of truth
+- Simpler architecture: no content versioning, no editor state management
+- Faster development: focus on add/preview/visibility workflows
+
+**Admin UI Capabilities:**
+1. ✅ **Add** campaigns (URL/text/file → generates MDX locally)
+2. ✅ **Preview** campaigns (before publishing)
+3. ✅ **List** campaigns (with filters)
+4. ✅ **Toggle visibility** (enable/disable without deleting)
+5. ❌ **Edit content** (must edit MDX files locally)
+
+**Data Storage Strategy:**
+- **Local filesystem**: MDX files in `data/campaigns/` (content)
+- **Supabase `campaigns` table**: Metadata, visibility status, timestamps
+- **Supabase `chunks` table**: RAG embeddings (from job postings)
+- **Supabase `job_postings` table**: Structured job posting data
+
+### Phase 2: Admin UI (Week 2) - DEPRECATED
+
+> **Note**: This phase has been replaced by Phase 2.A (Simplified Admin UI).
 
 #### ✅ Task 2.1: Create "Campaigns" tab in `/admin`
 
@@ -1184,22 +1297,24 @@ export function IndustrySelector({
 
 ---
 
-#### ✅ Task 2.4: Implement campaign list view with filters 
+#### ✅ Task 2.4: Implement campaign list view with visibility toggle 
 
 **Definition of Done:**
-- Table with columns: Brand, Industry, Campaign, Created, Status, Actions
-- Filters: Industry, Status, Date Range
+- Table with columns: Brand, Industry, Campaign, Created, Visible, Actions
+- Filters: Industry, Visibility (visible/hidden), Date Range
 - Sorting by any column
 - Pagination (20 items per page)
 - Search by brand slug
-- Bulk actions (archive, delete)
+- Row actions: Preview, Toggle Visibility
+- No bulk actions (no delete, no archive)
+- No edit button (editing must be done locally)
 
 **Guardrails:**
 - Client-side filtering for < 100 items
 - Server-side filtering for > 100 items
 - Debounced search (300ms)
-- Optimistic UI updates
-- Undo for destructive actions
+- Optimistic UI updates for visibility toggle
+- Confirmation modal before hiding campaigns
 
 **Quality Gates:**
 - Filter response time: < 200ms
@@ -1214,10 +1329,13 @@ export function IndustrySelector({
 - User satisfaction: > 4/5
 
 **Tests:**
-- Unit: Filter logic (10 combinations)
+- Unit: Filter logic (8 combinations)
 - Unit: Sorting logic
+- Unit: Visibility toggle logic
 - Integration: API integration with filters
+- Integration: Visibility toggle API
 - E2E: Apply filters, verify results
+- E2E: Toggle visibility, verify status change
 - Performance: Large dataset (1000 campaigns)
 
 ---
@@ -1257,45 +1375,89 @@ export function IndustrySelector({
 
 ---
 
-#### Task 2.6: E2E tests with Playwright
+#### Task 2.6: Database schema for campaign metadata
 
 **Definition of Done:**
-- 10+ E2E scenarios covering full workflow
-- Tests run on CI (GitHub Actions)
-- Screenshots on failure
-- Video recording for debugging
-- Parallel execution (4 workers)
-- Flake detection and retry
+- Create `campaigns` table in Supabase
+- Schema includes: slug, brand, industry, visible, created_at, updated_at
+- Migration script with rollback
+- RLS policies (admin-only write, public read for visible campaigns)
+- Indexes on slug (unique), brand, visible
+- Integration with campaign creation flow
+
+**Schema:**
+```sql
+CREATE TABLE campaigns (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  brand_slug TEXT NOT NULL,
+  industry TEXT NOT NULL,
+  campaign_file TEXT NOT NULL, -- e.g., 'tmobile_g2m_lead.mdx'
+  visible BOOLEAN DEFAULT true,
+  job_posting_id UUID REFERENCES job_postings(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by TEXT, -- admin email
+  CONSTRAINT campaigns_brand_unique UNIQUE (brand_slug)
+);
+
+-- Indexes
+CREATE INDEX idx_campaigns_brand ON campaigns(brand_slug);
+CREATE INDEX idx_campaigns_visible ON campaigns(visible);
+CREATE INDEX idx_campaigns_industry ON campaigns(industry);
+
+-- RLS Policies
+ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
+
+-- Public can read visible campaigns
+CREATE POLICY "Public read visible campaigns" 
+ON campaigns FOR SELECT 
+USING (visible = true);
+
+-- Admins can do everything
+CREATE POLICY "Admins full access" 
+ON campaigns FOR ALL 
+USING (auth.jwt() ->> 'email' IN (
+  SELECT value FROM app_settings WHERE key = 'admin_emails'
+));
+```
 
 **Guardrails:**
-- Tests use isolated test data (no prod data)
-- Cleanup after each test
-- Deterministic results (no random data)
-- Fast execution (< 5 minutes total)
+- Migration tested on staging first
+- Rollback script prepared
+- Data validation after migration
+- Zero downtime deployment
 
 **Quality Gates:**
-- All E2E tests pass on CI
-- Zero flaky tests (3 consecutive runs)
-- Test coverage: all critical paths
-- Execution time: < 5 minutes
+- All constraints enforced
+- RLS policies tested (unauthorized access blocked)
+- Indexes improve query performance (< 10ms)
+- Migration completes in < 5s
 
 **Success Metrics:**
-- E2E pass rate: 100%
-- Flake rate: 0%
-- Bug detection rate: > 80% (catch bugs before prod)
-- Average execution time: < 3 minutes
+- Migration success: 100%
+- Query performance: < 10ms for lookup by slug
+- RLS effectiveness: 100% unauthorized access blocked
+- Zero data loss
 
 **Tests:**
-- E2E: Create campaign from URL (happy path)
-- E2E: Create campaign with new industry
-- E2E: Form validation errors
-- E2E: File upload (all formats)
-- E2E: Preview and publish
-- E2E: Edit existing campaign
-- E2E: Archive campaign
-- E2E: Filter and search
-- E2E: Concurrent campaign creation
-- E2E: Error recovery (network failure)
+- Unit: Migration SQL validation
+- Integration: RLS policy enforcement
+- E2E: Create campaign, verify DB entry
+- Security: Unauthorized access attempts
+
+**Integration:**
+- POST /api/admin/campaigns/create inserts row on success
+- PUT /api/admin/campaigns/:slug/visibility updates visible field
+- GET /api/admin/campaigns reads from this table
+- Campaign list view queries this table
+
+**Migration Path:**
+1. Create table in Supabase
+2. Backfill existing campaigns from index.json
+3. Update API endpoints to read/write from table
+4. Verify consistency (MDX files + DB entries match)
+5. Deploy to production
 
 ---
 
@@ -1476,7 +1638,52 @@ export function IndustrySelector({
 
 ---
 
-#### Task 3.6: Admin training materials
+#### Task 3.6: E2E tests with Playwright (Admin UI)
+
+**Definition of Done:**
+- 10+ E2E scenarios covering full workflow
+- Tests run on CI (GitHub Actions)
+- Screenshots on failure
+- Video recording for debugging
+- Parallel execution (4 workers)
+- Flake detection and retry
+
+**Guardrails:**
+- Tests use isolated test data (no prod data)
+- Cleanup after each test
+- Deterministic results (no random data)
+- Fast execution (< 5 minutes total)
+
+**Quality Gates:**
+- All E2E tests pass on CI
+- Zero flaky tests (3 consecutive runs)
+- Test coverage: all critical paths
+- Execution time: < 5 minutes
+
+**Success Metrics:**
+- E2E pass rate: 100%
+- Flake rate: 0%
+- Bug detection rate: > 80% (catch bugs before prod)
+- Average execution time: < 3 minutes
+
+**Tests:**
+- E2E: Create campaign from URL (happy path)
+- E2E: Create campaign with new industry
+- E2E: Form validation errors
+- E2E: File upload (all formats)
+- E2E: Preview campaign
+- E2E: Toggle visibility (hide/show)
+- E2E: Filter and search campaigns
+- E2E: Concurrent campaign creation
+- E2E: Error recovery (network failure)
+- E2E: Verify MDX file created locally
+- E2E: Verify DB entry in campaigns table
+
+**Note:** No edit or delete tests (not supported in Phase 2.A)
+
+---
+
+#### Task 3.7: Admin training materials
 
 **Definition of Done:**
 - Video tutorial (5-10 minutes)
@@ -1506,6 +1713,12 @@ export function IndustrySelector({
 **Tests:**
 - Manual: Admin walkthrough (observe and collect feedback)
 - Survey: Post-training assessment
+
+**Training Content Updates (Phase 2.A):**
+- Emphasize: Campaigns are added via admin, edited locally (MDX files)
+- Show: How to edit MDX files in IDE
+- Explain: Visibility toggle workflow (hide/show vs delete)
+- Demo: Local development workflow (edit MDX → test locally → push)
 
 ---
 
@@ -2349,7 +2562,15 @@ CAMPAIGN STRUCTURE (based on tmobile_g2m_lead.mdx):
 
 ---
 
-**Document Version**: 1.9  
-**Last Updated**: 2025-09-30 15:47  
+**Document Version**: 2.0 (Phase 2.A Pivot)  
+**Last Updated**: 2025-10-01 10:20  
 **Author**: Cascade AI  
-**Status**: 🎉 Phase 1 Backend - COMPLETE ✅ | Phase 2 Admin UI - 2/5 tasks (40%) - Form complete with API integration
+**Status**: 🎉 Phase 1 Backend - COMPLETE ✅ | Phase 2.A Admin UI (Simplified - No Editor) - 0/6 tasks (0%) - Ready to start
+
+**Phase 2.A Changes:**
+- ✅ No online editor (campaigns edited locally via MDX files)
+- ✅ Admin UI: Add, Preview, List, Toggle Visibility only
+- ✅ Data split: MDX files (content) + Supabase (metadata, visibility, embeddings)
+- ✅ Task 2.6: Database schema for `campaigns` table (NEW)
+- ✅ Task 3.6: E2E tests moved to Phase 3 (renamed from Task 2.6)
+- ✅ Task 3.7: Admin training (updated for local editing workflow)
