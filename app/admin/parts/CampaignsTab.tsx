@@ -2,38 +2,40 @@
 
 import React, { useState, useEffect } from 'react'
 import CampaignCreationForm from './CampaignCreationForm'
-import { CampaignEditForm } from './CampaignEditForm'
+import { CampaignPreviewModal } from './CampaignPreviewModal'
 import { CampaignListView } from './CampaignListView'
 
 /**
- * Campaigns Tab - Admin UI for campaign creation & editing
+ * Campaigns Tab - Admin UI for campaign creation & preview
+ * Phase 2.A: No online editor - campaigns edited locally (MDX files)
  * Task 2.1: ✅ Tab structure
- * Task 2.2: ✅ Campaign creation form (basic implementation)
- * Task 2.3: ✅ Campaign editing UI
+ * Task 2.2: ✅ Campaign creation form
+ * Task 2.5: ✅ Preview functionality (extracted from edit modal)
  */
 export default function CampaignsTab() {
   const [showForm, setShowForm] = useState(false)
-  const [editSlug, setEditSlug] = useState<string | null>(null)
+  const [previewSlug, setPreviewSlug] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check URL for edit param
+    // Check URL for preview param (backward compat with edit)
     const params = new URLSearchParams(window.location.search)
-    const edit = params.get('edit')
-    if (edit) setEditSlug(edit)
+    const preview = params.get('preview') || params.get('edit')
+    if (preview) setPreviewSlug(preview)
   }, [])
 
-  function handleEdit(slug: string) {
-    setEditSlug(slug)
+  function handlePreview(slug: string) {
+    setPreviewSlug(slug)
     setShowForm(false)
     const params = new URLSearchParams(window.location.search)
-    params.set('edit', slug)
+    params.set('preview', slug)
     window.history.replaceState({}, '', `?${params.toString()}`)
   }
 
-  function handleCloseEdit() {
-    setEditSlug(null)
+  function handleClosePreview() {
+    setPreviewSlug(null)
     const params = new URLSearchParams(window.location.search)
-    params.delete('edit')
+    params.delete('preview')
+    params.delete('edit') // cleanup old param
     window.history.replaceState({}, '', params.toString() ? `?${params.toString()}` : window.location.pathname)
   }
 
@@ -108,7 +110,7 @@ export default function CampaignsTab() {
       )}
 
       {/* Campaigns List */}
-      <CampaignListView onEdit={handleEdit} />
+      <CampaignListView onPreview={handlePreview} />
 
       {/* Coming soon features */}
       <div className="rounded-lg bg-blue-50 p-4">
@@ -141,28 +143,12 @@ export default function CampaignsTab() {
         </div>
       </div>
 
-      {/* Edit Modal */}
-      {editSlug && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={handleCloseEdit}>
-          <div 
-            className="bg-white w-full h-full overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Edit Campaign: {editSlug}</h2>
-              <button
-                type="button"
-                onClick={handleCloseEdit}
-                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md font-medium"
-              >
-                ✕ Close
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6">
-              <CampaignEditForm brandSlug={editSlug} />
-            </div>
-          </div>
-        </div>
+      {/* Preview Modal */}
+      {previewSlug && (
+        <CampaignPreviewModal 
+          brandSlug={previewSlug} 
+          onClose={handleClosePreview} 
+        />
       )}
     </div>
   )

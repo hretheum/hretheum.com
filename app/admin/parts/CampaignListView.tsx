@@ -5,8 +5,11 @@ import { useState, useEffect, useCallback } from 'react'
 interface Campaign {
   brand_slug: string
   mdx_slug: string
+  slug: string
   industry: string
-  active: boolean
+  visible: boolean
+  role?: string
+  location?: string
   created_at: string
   updated_at: string
 }
@@ -26,7 +29,7 @@ interface Pagination {
   totalPages: number
 }
 
-export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void }) {
+export function CampaignListView({ onPreview }: { onPreview: (slug: string) => void }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<Filters>({
@@ -42,10 +45,9 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
     total: 0,
     totalPages: 0
   })
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-
   // Debounced search
   const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(null)
+  const [togglingSlug, setTogglingSlug] = useState<string | null>(null)
 
   const fetchCampaigns = useCallback(async () => {
     try {
@@ -93,28 +95,31 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
     }
   }
 
-  const toggleSelect = (slug: string) => {
-    const newSelected = new Set(selected)
-    if (newSelected.has(slug)) {
-      newSelected.delete(slug)
-    } else {
-      newSelected.add(slug)
-    }
-    setSelected(newSelected)
-  }
+  const toggleVisibility = async (slug: string, currentVisible: boolean) => {
+    try {
+      setTogglingSlug(slug)
+      const res = await fetch(`/api/admin/campaigns/${slug}/visibility`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visible: !currentVisible })
+      })
 
-  const toggleSelectAll = () => {
-    if (selected.size === campaigns.length) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(campaigns.map(c => c.brand_slug)))
-    }
-  }
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to toggle visibility')
+      }
 
-  const handleBulkDelete = async () => {
-    if (!confirm(`Delete ${selected.size} campaigns?`)) return
-    // TODO: Implement bulk delete API
-    console.log('Bulk delete:', Array.from(selected))
+      // Optimistic update
+      setCampaigns(campaigns.map(c => 
+        c.slug === slug ? { ...c, visible: !currentVisible } : c
+      ))
+
+    } catch (err: any) {
+      console.error('Failed to toggle visibility:', err)
+      alert(`Error: ${err.message}`)
+    } finally {
+      setTogglingSlug(null)
+    }
   }
 
   const SortIcon = ({ column }: { column: string }) => {
@@ -206,40 +211,12 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
         )}
       </div>
 
-      {/* Bulk Actions */}
-      {selected.size > 0 && (
-        <div className="flex items-center gap-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <span className="text-sm font-medium text-blue-900">
-            {selected.size} selected
-          </span>
-          <button
-            onClick={handleBulkDelete}
-            className="text-sm text-red-600 hover:text-red-700 font-medium"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => setSelected(new Set())}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            Clear selection
-          </button>
-        </div>
-      )}
 
       {/* Table */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="w-10 px-4 py-3 text-left">
-                <input
-                  type="checkbox"
-                  checked={selected.size === campaigns.length && campaigns.length > 0}
-                  onChange={toggleSelectAll}
-                  className="rounded"
-                />
-              </th>
               <th
                 className="px-4 py-3 text-left font-medium text-gray-700 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('brand_slug')}
@@ -262,7 +239,7 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
                 Created <SortIcon column="created_at" />
               </th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">
-                Status
+                Visibility
               </th>
               <th className="px-4 py-3 text-right font-medium text-gray-700">
                 Actions
@@ -272,32 +249,24 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                   Loading...
                 </td>
               </tr>
             ) : campaigns.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                   No campaigns found
                 </td>
               </tr>
             ) : (
               campaigns.map((campaign) => (
                 <tr key={campaign.brand_slug} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(campaign.brand_slug)}
-                      onChange={() => toggleSelect(campaign.brand_slug)}
-                      className="rounded"
-                    />
-                  </td>
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {campaign.brand_slug}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
-                    {campaign.industry}
+                    {campaign.industry || '-'}
                   </td>
                   <td className="px-4 py-3 text-gray-600">
                     {campaign.mdx_slug}
@@ -306,31 +275,29 @@ export function CampaignListView({ onEdit }: { onEdit: (slug: string) => void })
                     {new Date(campaign.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        campaign.active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
+                    <button
+                      onClick={() => toggleVisibility(campaign.slug, campaign.visible)}
+                      disabled={togglingSlug === campaign.slug}
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                        campaign.visible
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      } ${togglingSlug === campaign.slug ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
-                      {campaign.active ? 'Active' : 'Inactive'}
-                    </span>
+                      {togglingSlug === campaign.slug ? (
+                        <>⏳ Toggling...</>
+                      ) : (
+                        <>{campaign.visible ? '👁️ Visible' : '🚫 Hidden'}</>
+                      )}
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <a
-                        href={`/brand/${campaign.brand_slug}?preview=true`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-gray-700 text-sm"
-                      >
-                        Preview →
-                      </a>
                       <button
-                        onClick={() => onEdit(campaign.brand_slug)}
+                        onClick={() => onPreview(campaign.brand_slug)}
                         className="text-blue-600 hover:text-blue-700 font-medium text-sm"
                       >
-                        Edit
+                        👁️ Preview
                       </button>
                     </div>
                   </td>
