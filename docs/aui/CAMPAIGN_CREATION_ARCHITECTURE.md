@@ -1,9 +1,11 @@
 # Campaign Creation Architecture & Admin UI Specification
 
-**Status**: Phase 1 Backend - COMPLETE ✅ (8/8 tasks, 100%) | Phase 2.A Admin UI (Simplified) - Ready to start  
-**Architecture**: **No online editor** - campaigns added via admin, edited locally (MDX files)  
+**Status**: Phase 1 Backend - COMPLETE ✅ (8/8 tasks, 100%) | Phase 2.A Admin UI - IN PROGRESS 🔄 (4/6 tasks, ~67%)  
+**Current State**: Tab, Form, Status, List view EXIST but need Phase 2.A pivot updates (remove editor, add visibility toggle)  
 **Related**: [Job Posting Intelligence Spec](./JOB_POSTING_INTELLIGENCE_SPEC.md), [Living Layouts Implementation](./LIVING_LAYOUTS_IMPLEMENTATION.md)  
 **Target**: Workflow 2 (Manual Upload via Admin API) + Campaign Add/Preview/Visibility Management
+
+**⚠️ IMPORTANT**: Campaign admin UI partially exists but uses OLD architecture (with editor). Needs Phase 2.A refactor.
 
 ---
 
@@ -1135,15 +1137,24 @@ Constraints:
 
 > **Note**: This phase has been replaced by Phase 2.A (Simplified Admin UI).
 
-#### ✅ Task 2.1: Create "Campaigns" tab in `/admin`
+#### ✅ Task 2.1: Create "Campaigns" tab in `/admin` - COMPLETE
+
+**Status**: ✅ Already implemented
+
+**Current Implementation:**
+- File: `app/admin/parts/AdminTabs.tsx`
+- Tab button exists: `<TabButton value="campaigns" label="Campaigns" />`
+- Routing works: `/admin?tab=campaigns`
+- Renders: `<CampaignsTab />` component
+- Consistent with other tabs (Conversations, Redirects, RUM, Industry)
 
 **Definition of Done:**
-- New tab appears in AdminTabs component
-- Tab routing works (`/admin?tab=campaigns`)
-- Tab content area with placeholder
-- Consistent styling with existing tabs
-- Mobile responsive
-- Loading states
+- ✅ New tab appears in AdminTabs component
+- ✅ Tab routing works (`/admin?tab=campaigns`)
+- ✅ Tab content area with CampaignsTab component
+- ✅ Consistent styling with existing tabs
+- ✅ Mobile responsive
+- ✅ Loading states
 
 **Guardrails:**
 - Admin-only access (inherited from parent)
@@ -1171,18 +1182,35 @@ Constraints:
 
 ---
 
-#### ✅ Task 2.2: Build campaign creation form (3 input methods)
+#### 🔄 Task 2.2: Build campaign creation form (3 input methods) - PARTIALLY COMPLETE
+
+**Status**: 🔄 Partially implemented, needs Phase 2.A updates
+
+**Current Implementation:**
+- File: `app/admin/parts/CampaignCreationForm.tsx` (16839 bytes)
+- ✅ 3 input methods: URL, Text, File (radio buttons)
+- ✅ Basic fields: brandSlug, industry, accent, role, location
+- ✅ Client-side validation
+- ✅ Submit to `/api/admin/campaigns/create`
+- ⚠️ No LLM industry classification yet
+- ⚠️ No AI suggestions
+
+**Needs Phase 2.A Updates:**
+- ❌ LLM-powered industry classification
+- ❌ Industry selector with confidence badges
+- ❌ Smart industry UI (Accept/Override/Create new)
+- ❌ Integration with Task 2.6 (campaigns table)
 
 **Definition of Done:**
-- Form with 3 tabs: URL, Text, File
-- All fields from `CampaignCreationForm` interface
-- **LLM-powered industry classification** (auto-suggests industry after scraping)
-- Industry selector with AI suggestions (confidence badges + reasoning)
-- Smart industry UI: Accept suggestion / Choose alternative / Create new
-- Color picker for accent
-- Form validation (client-side + server-side)
-- Submit button with loading state
-- Error display (field-level + form-level)
+- ✅ Form with 3 tabs: URL, Text, File
+- ✅ All fields from `CampaignCreationForm` interface
+- ❌ **LLM-powered industry classification** (auto-suggests industry after scraping)
+- ❌ Industry selector with AI suggestions (confidence badges + reasoning)
+- ❌ Smart industry UI: Accept suggestion / Choose alternative / Create new
+- ✅ Color picker for accent
+- ✅ Form validation (client-side + server-side)
+- ✅ Submit button with loading state
+- ✅ Error display (field-level + form-level)
 
 **Industry Classification Enhancement:**
 - After URL/file scraping, LLM analyzes content and suggests industry
@@ -1261,15 +1289,22 @@ export function IndustrySelector({
 
 ---
 
-#### ✅ Task 2.3: Add real-time processing status display 
+#### ✅ Task 2.3: Add real-time processing status display - COMPLETE 
+
+**Status**: ✅ Already implemented
+
+**Current Implementation:**
+- File: `app/admin/parts/ProcessingStatus.tsx` (7817 bytes)
+- Component integrated in CampaignCreationForm
+- Polling endpoint: `/api/admin/campaigns/status`
 
 **Definition of Done:**
-- Status component shows 8 processing steps
-- Real-time updates via polling or WebSocket
-- Progress bar (0-100%)
-- Step-level status (pending, running, completed, failed)
-- Error details for failed steps
-- Completion notification
+- ✅ Status component shows 8 processing steps
+- ✅ Real-time updates via polling or WebSocket
+- ✅ Progress bar (0-100%)
+- ✅ Step-level status (pending, running, completed, failed)
+- ✅ Error details for failed steps
+- ✅ Completion notification
 
 **Guardrails:**
 - Polling interval: 500ms (not too aggressive)
@@ -1297,17 +1332,38 @@ export function IndustrySelector({
 
 ---
 
-#### ✅ Task 2.4: Implement campaign list view with visibility toggle 
+#### 🔄 Task 2.4: Implement campaign list view with visibility toggle - NEEDS REFACTOR 
+
+**Status**: 🔄 List view exists but uses OLD architecture (has Edit + Bulk Delete)
+
+**Current Implementation:**
+- File: `app/admin/parts/CampaignListView.tsx` (12911 bytes)
+- ✅ Table with columns: brand_slug, mdx_slug, industry, active, created_at, updated_at
+- ✅ Filters: industry, status, search
+- ✅ Sorting by any column
+- ✅ Pagination (20 items per page)
+- ✅ API endpoint: `/api/admin/campaigns/list`
+- ⚠️ Has Edit button (`onEdit` callback) - CONFLICTS with Phase 2.A
+- ⚠️ Has Bulk Delete - CONFLICTS with Phase 2.A
+- ⚠️ Uses `active` field, not `visible`
+
+**Phase 2.A Refactor Required:**
+- ❌ Remove Edit button (line 25: `onEdit` prop)
+- ❌ Remove Bulk Delete (line 114: `handleBulkDelete`)
+- ❌ Remove selection checkboxes
+- ❌ Change `active` to `visible`
+- ✅ Add "Toggle Visibility" action per row
+- ✅ Add Preview button per row
 
 **Definition of Done:**
-- Table with columns: Brand, Industry, Campaign, Created, Visible, Actions
-- Filters: Industry, Visibility (visible/hidden), Date Range
-- Sorting by any column
-- Pagination (20 items per page)
-- Search by brand slug
-- Row actions: Preview, Toggle Visibility
-- No bulk actions (no delete, no archive)
-- No edit button (editing must be done locally)
+- ✅ Table with columns: Brand, Industry, Campaign, Created, Visible, Actions
+- ✅ Filters: Industry, Visibility (visible/hidden), Date Range
+- ✅ Sorting by any column
+- ✅ Pagination (20 items per page)
+- ✅ Search by brand slug
+- ❌ Row actions: Preview, Toggle Visibility (currently has Edit)
+- ❌ No bulk actions (currently has bulk delete)
+- ❌ No edit button (currently has edit callback)
 
 **Guardrails:**
 - Client-side filtering for < 100 items
@@ -1340,14 +1396,31 @@ export function IndustrySelector({
 
 ---
 
-#### ✅ Task 2.5: Add preview functionality 
+#### 🔄 Task 2.5: Add preview functionality - PARTIALLY IMPLEMENTED
+
+**Status**: 🔄 Preview exists in Edit modal, needs to be extracted to standalone view
+
+**Current Implementation:**
+- ✅ Preview iframe in CampaignEditForm (line 346-351)
+- ✅ Preview URL: `/brand/{brand_slug}?preview=true`
+- ✅ Preview updates after saving
+- ⚠️ Preview only accessible via Edit modal (conflicts with Phase 2.A)
+- ❌ No preview button in CampaignListView
+- ❌ No preview banner component
+
+**Phase 2.A Refactor Required:**
+- ✅ Extract preview iframe to separate modal/component
+- ✅ Add "Preview" button to each row in CampaignListView
+- ✅ Open preview in modal (instead of Edit modal)
+- ❌ Remove edit functionality from preview modal
+- ❌ Add preview banner component (optional)
 
 **Definition of Done:**
-- Preview button in campaign list
-- Opens campaign in new tab with `?preview=true`
-- Preview banner at top (not indexed, not cached)
-- Edit link back to admin
-- Preview expires after 24h
+- 🔄 Preview button in campaign list (needs to be added)
+- ✅ Opens campaign with `?preview=true` (works)
+- ❌ Preview banner at top (not indexed, not cached) - optional
+- ❌ Preview in modal or new tab
+- ❌ No edit functionality in preview mode
 
 **Guardrails:**
 - Preview URLs not crawlable (noindex, nofollow)
@@ -1375,15 +1448,48 @@ export function IndustrySelector({
 
 ---
 
-#### Task 2.6: Database schema for campaign metadata
+#### ✅ Task 2.6: Database schema for campaign metadata - COMPLETE
+
+**Status**: ✅ Migration created, API endpoints updated
+
+**Implementation:**
+- ✅ Migration: `supabase/migrations/20251001_campaigns_phase2a_schema.sql`
+- ✅ Backfill script: `scripts/backfill-campaigns.ts`
+- ✅ API endpoint: `/api/admin/campaigns/[slug]/visibility` (toggle visibility)
+- ✅ API endpoint: `/api/admin/campaigns/list` (updated to use `visible`)
+- ✅ API endpoint: `/api/admin/campaigns/create` (updated to save with `visible`)
+
+**Schema Changes:**
+- ✅ Added `visible` field (replaces `active`)
+- ✅ Added `slug` field (canonical campaign slug)
+- ✅ Added `campaign_file` field (MDX filename)
+- ✅ Added `job_posting_id` field (link to job_postings)
+- ✅ Added `created_by` field (admin email)
+- ✅ Added `id` UUID field (for future primary key migration)
+
+**RLS Policies:**
+- ✅ Public can read visible campaigns
+- ✅ Admins have full access (via ADMIN_EMAILS check)
+
+**Indexes:**
+- ✅ idx_campaigns_brand_slug
+- ✅ idx_campaigns_visible
+- ✅ idx_campaigns_industry
+- ✅ idx_campaigns_slug
+- ✅ idx_campaigns_created_at
+
+**Next Steps:**
+1. Run migration: `supabase db push`
+2. Run backfill: `npx tsx scripts/backfill-campaigns.ts`
+3. Proceed to Task 2.4 refactor (List view)
 
 **Definition of Done:**
-- Create `campaigns` table in Supabase
-- Schema includes: slug, brand, industry, visible, created_at, updated_at
-- Migration script with rollback
-- RLS policies (admin-only write, public read for visible campaigns)
-- Indexes on slug (unique), brand, visible
-- Integration with campaign creation flow
+- ✅ Create `campaigns` table in Supabase
+- ✅ Schema includes: slug, brand, industry, visible, created_at, updated_at
+- ✅ Migration script with rollback
+- ✅ RLS policies (admin-only write, public read for visible campaigns)
+- ✅ Indexes on slug (unique), brand, visible
+- ✅ Integration with campaign creation flow
 
 **Schema:**
 ```sql
@@ -2562,15 +2668,159 @@ CAMPAIGN STRUCTURE (based on tmobile_g2m_lead.mdx):
 
 ---
 
-**Document Version**: 2.0 (Phase 2.A Pivot)  
-**Last Updated**: 2025-10-01 10:20  
+**Document Version**: 2.1 (Phase 2.A - Current State Validated)  
+**Last Updated**: 2025-10-01 10:30  
 **Author**: Cascade AI  
-**Status**: 🎉 Phase 1 Backend - COMPLETE ✅ | Phase 2.A Admin UI (Simplified - No Editor) - 0/6 tasks (0%) - Ready to start
+**Status**: 🎉 Phase 1 Backend - COMPLETE ✅ | Phase 2.A Admin UI - IN PROGRESS 🔄 (4/6 tasks, ~67%)
+
+**Current State Summary:**
+- ✅ Task 2.1: Campaigns tab - COMPLETE
+- 🔄 Task 2.2: Creation form - Partially complete (needs LLM industry classification)
+- ✅ Task 2.3: Processing status - COMPLETE
+- 🔄 Task 2.4: List view - EXISTS but needs refactor (remove Edit/Bulk Delete, add Visibility toggle)
+- 🔄 Task 2.5: Preview - EXISTS in Edit modal, needs extraction to standalone
+- ✅ Task 2.6: Database schema - COMPLETE (migration + API endpoints ready)
 
 **Phase 2.A Changes:**
 - ✅ No online editor (campaigns edited locally via MDX files)
 - ✅ Admin UI: Add, Preview, List, Toggle Visibility only
 - ✅ Data split: MDX files (content) + Supabase (metadata, visibility, embeddings)
-- ✅ Task 2.6: Database schema for `campaigns` table (NEW)
+- ❌ Task 2.6: Database schema for `campaigns` table (BLOCKING)
 - ✅ Task 3.6: E2E tests moved to Phase 3 (renamed from Task 2.6)
 - ✅ Task 3.7: Admin training (updated for local editing workflow)
+
+**⚠️ REFACTOR NEEDED (Not Conflicts):**
+- CampaignEditForm.tsx contains preview iframe (lines 343-353) - extract to CampaignPreviewModal
+- CampaignsTab.tsx has Edit modal (lines 145-166) - convert to Preview modal
+- CampaignListView has `onEdit` callback - rename to `onPreview`
+- CampaignListView has Bulk Delete - remove (conflicts with Phase 2.A)
+
+---
+
+## 12. Next Steps (Immediate Actions)
+
+### Priority 1: Task 2.6 - Database Schema (CRITICAL)
+**Blocks**: Task 2.4 refactor, Task 2.5 preview, Visibility toggle
+
+**Action Items:**
+1. Create Supabase migration: `supabase/migrations/00XX_campaigns_table.sql`
+2. Add RLS policies for admin-only write access
+3. Backfill existing campaigns from `data/campaigns/index.json`
+4. Update API endpoints to read/write from DB
+
+**Files to create/modify:**
+- `supabase/migrations/00XX_campaigns_table.sql`
+- `app/api/admin/campaigns/list/route.ts` - read from DB
+- `app/api/admin/campaigns/create/route.ts` - insert to DB
+- `app/api/admin/campaigns/[slug]/visibility/route.ts` - NEW endpoint
+
+---
+
+### Priority 2: Task 2.4 - Refactor List View
+**Depends on**: Task 2.6 complete
+
+**Action Items:**
+1. Extract Preview from CampaignsTab.tsx:
+   - Rename `editSlug` → `previewSlug` (line 16)
+   - Rename `handleEdit` → `handlePreview` (line 25)
+   - Rename `handleCloseEdit` → `handleClosePreview` (line 33)
+   - Replace Edit modal with Preview modal (lines 145-166)
+   - Remove `<CampaignEditForm>` import, add `<CampaignPreviewModal>`
+
+2. Extract CampaignPreviewModal from CampaignEditForm:
+   - Copy iframe preview section (lines 343-353)
+   - Remove: MDX editor, save button, regenerate button, active checkbox
+   - Keep: iframe with `/brand/{slug}?preview=true`, close button
+   - Simple modal: header + iframe + close
+
+3. Refactor CampaignListView.tsx:
+   - Replace `onEdit` prop → `onPreview` prop (line 29)
+   - Remove `selected` state (line 45)
+   - Remove `toggleSelect`, `toggleSelectAll` functions (lines 96-112)
+   - Remove `handleBulkDelete` function (line 114)
+   - Remove selection checkboxes from table
+   - Change `active` field to `visible` (line 9)
+   - Add "Toggle Visibility" button per row
+   - Replace "Edit" button with "Preview" button per row
+
+4. Keep CampaignEditForm.tsx (for local editing reference)
+   - Don't delete - keep as documentation/reference
+   - Or move to `docs/examples/CampaignEditForm.example.tsx`
+   - This shows how MDX editing worked (useful for future)
+
+**Files to modify:**
+- `app/admin/parts/CampaignsTab.tsx` - rename edit → preview
+- `app/admin/parts/CampaignListView.tsx` - onEdit → onPreview, add Preview button
+- `app/admin/parts/CampaignEditForm.tsx` - keep as reference or move to docs/examples
+
+**Files to create:**
+- `app/admin/parts/CampaignPreviewModal.tsx` - extract from CampaignEditForm
+
+---
+
+### Priority 3: Task 2.5 - Extract Preview from Edit Modal
+**Depends on**: Task 2.4 refactor (part of same change)
+
+**Action Items:**
+1. Create new CampaignPreviewModal component:
+   - Extract iframe preview from CampaignEditForm (lines 343-353)
+   - Remove edit functionality (MDX editor, save button)
+   - Keep only: iframe preview + close button
+   - Add to CampaignsTab alongside list
+
+2. Add preview button to CampaignListView:
+   - Add "Preview" button to each row Actions column
+   - Callback: `onPreview(slug: string)` → opens CampaignPreviewModal
+   - Opens campaign in modal with iframe: `/brand/{slug}?preview=true`
+
+3. Optional: Add preview banner component
+   - Shows when `?preview=true` is in URL
+   - Message: "Preview Mode - Not indexed"
+   - Link back to admin
+
+**Files to create:**
+- `app/admin/parts/CampaignPreviewModal.tsx` - NEW (extract from CampaignEditForm)
+- `app/admin/parts/PreviewBanner.tsx` - NEW (optional)
+
+**Files to modify:**
+- `app/admin/parts/CampaignsTab.tsx` - add previewSlug state + modal
+- `app/admin/parts/CampaignListView.tsx` - add Preview button
+- `app/brand/[slug]/page.tsx` - add preview banner (optional)
+
+---
+
+### Priority 4: Task 2.2 - Complete Form Enhancements
+**Optional but valuable**
+
+**Action Items:**
+1. Add LLM industry classification
+2. Add confidence badges
+3. Add smart industry selector UI
+
+**Files to modify:**
+- `app/admin/parts/CampaignCreationForm.tsx` - add AI industry classification
+- `app/api/admin/campaigns/classify-industry/route.ts` - NEW endpoint
+
+---
+
+## 13. Migration Path (Phase 2 → Phase 2.A)
+
+```mermaid
+graph TD
+    A[Current State: Phase 2 partial] --> B{Task 2.6: DB Schema}
+    B -->|Complete| C[Task 2.4: Refactor List]
+    B -->|Complete| D[Task 2.5: Preview]
+    C --> E[Remove Edit functionality]
+    C --> F[Add Visibility toggle]
+    E --> G[Phase 2.A Complete]
+    F --> G
+    D --> G
+```
+
+**Estimated Effort:**
+- Task 2.6 (DB Schema): 4-6 hours
+- Task 2.4 (Refactor): 2-3 hours
+- Task 2.5 (Preview): 3-4 hours
+- **Total**: 9-13 hours
+
+---

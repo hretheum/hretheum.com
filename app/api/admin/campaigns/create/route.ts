@@ -352,16 +352,20 @@ export async function POST(request: NextRequest) {
         industry: sanitizedIndustry,
       })
       
+      // Phase 2.A: Save with 'visible' field instead of 'active'
       const { data: upsertData, error: dbError } = await supabase
         .from('campaigns')
         .upsert({
           brand_slug: sanitizedBrandSlug,
           mdx_slug: campaignSlug,
+          slug: campaignSlug, // Phase 2.A: canonical slug
+          campaign_file: `${campaignSlug}.mdx`, // Phase 2.A: MDX filename
           content: mdxContent,
           industry: sanitizedIndustry,
           role: requestData.metadata?.role,
           location: requestData.metadata?.location,
-          active: true,
+          visible: true, // Phase 2.A: use 'visible' instead of 'active'
+          created_by: user.email, // Phase 2.A: track who created it
           updated_at: new Date().toISOString(),
         })
         .select()
