@@ -377,6 +377,18 @@ export async function POST(request: NextRequest) {
       
       console.log('[campaigns] Saved to database:', upsertData)
       
+      // Phase 2.A: Also save MDX file to filesystem (for local editing)
+      const campaignsDir = path.join(process.cwd(), 'data', 'campaigns')
+      const mdxFilePath = path.join(campaignsDir, `${campaignSlug}.mdx`)
+      
+      try {
+        await fs.writeFile(mdxFilePath, mdxContent, 'utf-8')
+        console.log('[campaigns] MDX file saved:', mdxFilePath)
+      } catch (fileError: any) {
+        console.error('[campaigns] Failed to save MDX file:', fileError)
+        // Non-critical error - campaign is in DB, file can be generated later
+      }
+      
       // Also save to brand_industries for industry resolution
       // Use service role to bypass RLS
       console.log('[campaigns] Saving to brand_industries:', {
