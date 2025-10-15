@@ -9,5 +9,6 @@
   "fluxon": { "slug": "fluxon_senior_product_designer" },
   "bayer": { "slug": "bayer-lead" },
   "wipro": { "slug": "wipro_product_design_lead" },
-  "experis": { "slug": "experis_product_designer" }
+  "experis": { "slug": "experis_product_designer" },
+  "zendesk": { "slug": "zendesk_principal_product_designer" }
 }
