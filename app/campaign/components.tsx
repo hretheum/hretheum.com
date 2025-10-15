@@ -554,9 +554,9 @@ export function CTABanner({ ctas }: { ctas: Array<{ label: string; href?: string
 export function MetricsStrip({ items }: { items: Array<{ label: string; value: string }> }) {
   return (
     <section className="my-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         {items?.map((it, idx) => (
-          <div key={idx} className="p-4 rounded-lg border text-center">
+          <div key={idx} className="p-4 rounded-lg border text-center min-w-[200px]">
             <div className="text-2xl font-bold" style={{ color: 'var(--campaign-accent)' }}>{it.value}</div>
             <div className="text-sm text-neutral-600">{it.label}</div>
           </div>
