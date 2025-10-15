@@ -257,15 +257,20 @@ Return only the unified question, no explanation.
 
     const systemPrompt = 'You are an expert at creating clear, non-duplicate interview questions from similar suggestions.'
 
-    // Use API endpoint instead of direct import
-    const response = await fetch('/api/rag/query', {
+    // Use internal LLM endpoint (does NOT log to chat_events)
+    const response = await fetch('/api/llm/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: prompt,
-        stream: false
+        systemPrompt,
+        maxTokens: 150
       })
     })
+
+    if (!response.ok) {
+      throw new Error(`LLM completion failed: ${response.status}`)
+    }
 
     const data = await response.json()
     const unified = data.answer?.trim()
