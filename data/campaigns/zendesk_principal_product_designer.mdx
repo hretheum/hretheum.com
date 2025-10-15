@@ -112,23 +112,8 @@ metrics:
 />
 
 
-
-<CTAGroup
-  align="center"
-  ctas={[
-    { label: "Let's meet", variant: 'primary' }
-  ]}
-/>
-
-<div className="md:hidden">
-  <CTABanner ctas={[{ label: "Let's meet", variant: 'primary' }]} />
-</div>
-
 {/* --- Root-domain standard blocks (tokenized to campaign accent) --- */}
 
-<SectionTitle title="LEADERSHIP" />
-
-<OutcomeBanner text="SENIOR DESIGNERS SHOULD BUILD, NOT JUST COORDINATE." />
 
 <SectionTitle title="PRODUCT DESIGN LEADERSHIP PLAYBOOK" />
 
@@ -188,6 +173,43 @@ metrics:
     </div>
   </div>
 </div>
+
+<CareerTimeline
+  items={[
+    {
+      company: 'SPORTRADAR',
+      period: '2022–2025',
+      role: 'TRIBE PRODUCT DESIGN LEAD • 15+ SQUADS',
+      tone: 'accent',
+    },
+    {
+      company: 'ING BANK',
+      period: '2017–2022',
+      role: 'UX PRINCIPAL EXPERT • BUSINESS BANKING',
+      tone: 'dark',
+    },
+    {
+      company: 'DELOITTE',
+      period: '2015–2016',
+      role: 'UX MANAGER • ENTERPRISE SCALE',
+      tone: 'accent',
+    },
+    {
+      company: 'KOMITYWA',
+      period: '2007–2009',
+      role: 'CO-FOUNDER • POLAND’S EARLIEST UX AGENCY',
+      tone: 'dark',
+    },
+    {
+      company: 'OFFLINE.PL',
+      period: '2004–2017',
+      role: 'UX LEAD • POLAND’S FIRST USABILITY LAB',
+      tone: 'accent',
+      spotlight: true,
+    },
+  ]}
+/>
+
 
 <SectionTitle title="HIRE ME OR STAY IRRELEVANT." />
 
